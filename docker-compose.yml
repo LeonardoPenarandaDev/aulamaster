@@ -1,0 +1,65 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: aulamaster:latest
+    restart: unless-stopped
+    env_file: .env
+    # Solo accesible desde el propio VPS (127.0.0.1): el Nginx que ya corre
+    # en el sistema es el único que le habla a este puerto, y es el que
+    # queda expuesto al público en el 80/443 para el subdominio.
+    ports:
+      - "127.0.0.1:8091:80"
+    volumes:
+      - storage:/var/www/html/storage
+    depends_on:
+      - mysql
+    networks: [aulamaster]
+
+  queue:
+    image: aulamaster:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    command: php artisan queue:work --tries=3 --backoff=5 --sleep=3
+    volumes:
+      - storage:/var/www/html/storage
+    depends_on:
+      - mysql
+    networks: [aulamaster]
+
+  scheduler:
+    image: aulamaster:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    command: sh -c "while true; do php artisan schedule:run --no-interaction; sleep 60; done"
+    volumes:
+      - storage:/var/www/html/storage
+    depends_on:
+      - mysql
+    networks: [aulamaster]
+
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks: [aulamaster]
+
+volumes:
+  storage:
+  dbdata:
+
+networks:
+  aulamaster:

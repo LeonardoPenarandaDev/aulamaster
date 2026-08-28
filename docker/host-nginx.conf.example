@@ -1,0 +1,36 @@
+# Este archivo NO va dentro del contenedor. Es la configuración que hay que
+# copiar en el Nginx que YA corre en el VPS (fuera de Docker), para que
+# reciba el subdominio y lo reenvíe al contenedor de AulaMaster.
+#
+# En el VPS:
+#   sudo cp docker/host-nginx.conf.example /etc/nginx/sites-available/aulamastertest.codermaster.com.co
+#   sudo ln -s /etc/nginx/sites-available/aulamastertest.codermaster.com.co /etc/nginx/sites-enabled/
+#   sudo nginx -t
+#   sudo systemctl reload nginx
+#   sudo certbot --nginx -d aulamastertest.codermaster.com.co
+#
+# Certbot va a reescribir este archivo automáticamente para agregar los
+# bloques de SSL (listen 443, certificados, redirect de 80 a 443) — no hace
+# falta escribirlos a mano.
+
+server {
+    listen 80;
+    server_name aulamastertest.codermaster.com.co;
+
+    location / {
+        proxy_pass http://127.0.0.1:8091;
+        proxy_http_version 1.1;
+
+        # Esto es lo que hace que Laravel (bootstrap/app.php ->
+        # trustProxies) sepa que la conexión real del navegador es HTTPS,
+        # aunque el contenedor solo reciba HTTP de este proxy.
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        proxy_read_timeout 120s;
+    }
+
+    client_max_body_size 25M;
+}
