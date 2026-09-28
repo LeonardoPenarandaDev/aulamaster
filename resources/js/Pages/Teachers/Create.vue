@@ -14,6 +14,8 @@ const form = useForm({
     email: '',
     phone: '',
     status: 'activo',
+    password: '',
+    password_confirmation: '',
 });
 
 function submit() {
@@ -75,6 +77,27 @@ function submit() {
                                 <InputLabel for="phone" value="Teléfono" />
                                 <TextInput id="phone" v-model="form.phone" class="mt-1 block w-full" />
                                 <InputError class="mt-2" :message="form.errors.phone" />
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-200 pt-6">
+                            <h3 class="text-sm font-medium text-gray-900">Acceso al portal (opcional)</h3>
+                            <p class="mt-1 text-sm text-gray-500">
+                                Si defines una contraseña, el profesor podrá iniciar sesión con su correo. Déjala vacía para crearle el acceso más tarde.
+                            </p>
+
+                            <div class="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div>
+                                    <InputLabel for="password" value="Contraseña" />
+                                    <TextInput id="password" type="password" v-model="form.password" class="mt-1 block w-full" autocomplete="new-password" />
+                                    <InputError class="mt-2" :message="form.errors.password" />
+                                </div>
+
+                                <div>
+                                    <InputLabel for="password_confirmation" value="Confirmar contraseña" />
+                                    <TextInput id="password_confirmation" type="password" v-model="form.password_confirmation" class="mt-1 block w-full" autocomplete="new-password" />
+                                    <InputError class="mt-2" :message="form.errors.password_confirmation" />
+                                </div>
                             </div>
                         </div>
 

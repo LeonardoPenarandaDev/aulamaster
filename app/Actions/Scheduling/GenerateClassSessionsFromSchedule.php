@@ -37,6 +37,7 @@ class GenerateClassSessionsFromSchedule
                 date: $date->toDateString(),
                 startTime: $schedule->start_time,
                 endTime: $schedule->end_time,
+                modality: $schedule->modality ?? 'presencial',
             );
 
             if ($conflicts !== []) {
@@ -50,6 +51,7 @@ class GenerateClassSessionsFromSchedule
                 'level_id' => $schedule->level_id,
                 'teacher_id' => $schedule->teacher_id,
                 'classroom_id' => $schedule->classroom_id,
+                'modality' => $schedule->modality ?? 'presencial',
                 'date' => $date->toDateString(),
                 'start_time' => $schedule->start_time,
                 'end_time' => $schedule->end_time,

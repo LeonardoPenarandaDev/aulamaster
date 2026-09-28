@@ -24,6 +24,7 @@ const form = useForm({
     actual_end_date: props.enrollment.actual_end_date,
     status: props.enrollment.status,
     required_hours: props.enrollment.required_hours,
+    weekly_hours: props.enrollment.weekly_hours,
     base_price: props.enrollment.base_price,
     final_price: props.enrollment.final_price,
 });
@@ -124,6 +125,12 @@ function submitExtension() {
                                 <InputLabel for="required_hours" value="Horas requeridas" />
                                 <TextInput id="required_hours" type="number" step="0.5" v-model="form.required_hours" class="mt-1 block w-full" required />
                                 <InputError class="mt-2" :message="form.errors.required_hours" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="weekly_hours" value="Intensidad horaria (horas/semana)" />
+                                <TextInput id="weekly_hours" type="number" step="0.5" min="1" v-model="form.weekly_hours" class="mt-1 block w-full" required />
+                                <InputError class="mt-2" :message="form.errors.weekly_hours" />
                             </div>
 
                             <div>

@@ -25,6 +25,8 @@ const form = useForm({
     estimated_end_date: '',
     status: 'activa',
     required_hours: '',
+    weekly_hours: '',
+    base_price: '',
     promotion_id: '',
     referral_id: '',
 });
@@ -36,6 +38,8 @@ function applyLevelDefaults(levelId) {
     }
 
     form.required_hours = level.required_hours;
+    form.weekly_hours = level.weekly_hours;
+    form.base_price = level.price;
 
     if (level.duration_months) {
         const end = new Date(form.start_date || today);
@@ -51,7 +55,7 @@ const selectedPromotion = computed(() => props.promotions.find((p) => p.id === N
 const selectedReferral = computed(() => props.referrals.find((r) => r.id === Number(form.referral_id)));
 
 const pricePreview = computed(() => {
-    const base = Number(selectedLevel.value?.price ?? 0);
+    const base = Number(form.base_price || 0);
 
     let promotionDiscount = 0;
     if (selectedPromotion.value) {
@@ -145,15 +149,23 @@ function submit() {
                             <InputError class="mt-2" :message="form.errors.status" />
                         </div>
 
-                        <div>
-                            <InputLabel for="required_hours" value="Horas requeridas" />
-                            <TextInput id="required_hours" type="number" step="0.5" v-model="form.required_hours" class="mt-1 block w-full max-w-xs" required />
-                            <InputError class="mt-2" :message="form.errors.required_hours" />
-                            <p class="mt-1 text-xs text-gray-500">
-                                Tomado del nivel; puedes ajustarlo si aplica una excepción. Las horas acumuladas se calculan
-                                automáticamente a partir de la asistencia una vez que la matrícula quede guardada.
-                            </p>
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <InputLabel for="required_hours" value="Horas requeridas" />
+                                <TextInput id="required_hours" type="number" step="0.5" v-model="form.required_hours" class="mt-1 block w-full" required />
+                                <InputError class="mt-2" :message="form.errors.required_hours" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="weekly_hours" value="Intensidad horaria (horas/semana)" />
+                                <TextInput id="weekly_hours" type="number" step="0.5" min="1" v-model="form.weekly_hours" class="mt-1 block w-full" required />
+                                <InputError class="mt-2" :message="form.errors.weekly_hours" />
+                            </div>
                         </div>
+                        <p class="-mt-4 text-xs text-gray-500">
+                            Tomados del nivel; ajústalos según la intensidad que contrató el estudiante. Las horas acumuladas se calculan
+                            automáticamente a partir de la asistencia una vez que la matrícula quede guardada.
+                        </p>
 
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
@@ -175,6 +187,15 @@ function submit() {
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.referral_id" />
                             </div>
+                        </div>
+
+                        <div>
+                            <InputLabel for="base_price" value="Precio base" />
+                            <TextInput id="base_price" type="number" step="1000" min="0" v-model="form.base_price" class="mt-1 block w-full max-w-xs" required />
+                            <InputError class="mt-2" :message="form.errors.base_price" />
+                            <p class="mt-1 text-xs text-gray-500">
+                                Sugerido: precio del nivel (${{ money(selectedLevel?.price ?? 0) }}). Ajústalo según la intensidad horaria contratada.
+                            </p>
                         </div>
 
                         <div class="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm">

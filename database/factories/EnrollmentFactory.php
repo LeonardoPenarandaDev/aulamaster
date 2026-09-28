@@ -29,6 +29,7 @@ class EnrollmentFactory extends Factory
             'estimated_end_date' => now()->addMonths($level->duration_months ?? 4)->toDateString(),
             'status' => 'activa',
             'required_hours' => $level->required_hours,
+            'weekly_hours' => $level->weekly_hours,
             'accumulated_hours' => 0,
             'base_price' => $level->price,
             'final_price' => $level->price,

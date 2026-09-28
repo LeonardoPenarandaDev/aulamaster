@@ -15,6 +15,8 @@ use Illuminate\Support\Carbon;
     'level_id',
     'teacher_id',
     'classroom_id',
+    'modality',
+    'meeting_url',
     'date',
     'start_time',
     'end_time',
@@ -36,6 +38,11 @@ class ClassSession extends Model
     public function classSchedule(): BelongsTo
     {
         return $this->belongsTo(ClassSchedule::class);
+    }
+
+    public function materials(): HasMany
+    {
+        return $this->hasMany(ClassMaterial::class);
     }
 
     public function level(): BelongsTo

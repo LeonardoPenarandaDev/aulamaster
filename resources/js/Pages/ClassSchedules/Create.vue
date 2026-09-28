@@ -27,6 +27,7 @@ const form = useForm({
     level_id: props.levels[0]?.id ?? '',
     teacher_id: props.teachers[0]?.id ?? '',
     classroom_id: props.classrooms[0]?.id ?? '',
+    modality: 'presencial',
     days_of_week: [],
     start_time: '',
     end_time: '',
@@ -83,6 +84,18 @@ function submit() {
                                     <option v-for="classroom in classrooms" :key="classroom.id" :value="classroom.id">{{ classroom.name }}</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.classroom_id" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <InputLabel for="modality" value="Modalidad" />
+                                <select id="modality" v-model="form.modality" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="presencial">Presencial</option>
+                                    <option value="virtual">Virtual (Meet)</option>
+                                </select>
+                                <InputError class="mt-2" :message="form.errors.modality" />
+                                <p v-if="form.modality === 'virtual'" class="mt-1 text-xs text-gray-500">Las clases virtuales no ocupan el aula seleccionada.</p>
                             </div>
                         </div>
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Attendance\RecalculateEnrollmentHours;
+use App\Actions\Evaluations\EvaluateLevelCompletion;
 use App\Http\Requests\StoreAttendanceRequest;
 use App\Models\Attendance;
 use App\Models\ClassSession;
@@ -73,8 +74,12 @@ class AttendanceController extends Controller
     /**
      * Store the attendance records submitted for a class session.
      */
-    public function store(StoreAttendanceRequest $request, ClassSession $classSession, RecalculateEnrollmentHours $recalculate): RedirectResponse
-    {
+    public function store(
+        StoreAttendanceRequest $request,
+        ClassSession $classSession,
+        RecalculateEnrollmentHours $recalculate,
+        EvaluateLevelCompletion $evaluateCompletion,
+    ): RedirectResponse {
         $alreadyRecorded = Attendance::query()
             ->where('class_session_id', $classSession->id)
             ->pluck('enrollment_id')
@@ -97,6 +102,7 @@ class AttendanceController extends Controller
             ]);
 
             $recalculate->handle($attendance->enrollment);
+            $evaluateCompletion->approveIfComplete($attendance->enrollment->fresh());
             $created++;
         }
 

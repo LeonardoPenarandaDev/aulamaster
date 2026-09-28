@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
 use App\Models\Teacher;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -47,9 +49,23 @@ class TeacherController extends Controller
      */
     public function store(StoreTeacherRequest $request): RedirectResponse
     {
-        Teacher::create($request->validated());
+        DB::transaction(function () use ($request) {
+            $teacher = Teacher::create($request->safe()->except('password'));
 
-        return to_route('teachers.index')->with('success', 'Profesor registrado correctamente.');
+            if ($request->filled('password')) {
+                $user = User::create([
+                    'name' => $teacher->name,
+                    'email' => $teacher->email,
+                    'password' => $request->validated('password'),
+                ]);
+                $user->assignRole('profesor');
+                $teacher->update(['user_id' => $user->id]);
+            }
+        });
+
+        return to_route('teachers.index')->with('success', $request->filled('password')
+            ? 'Profesor registrado con acceso al portal.'
+            : 'Profesor registrado correctamente.');
     }
 
     /**

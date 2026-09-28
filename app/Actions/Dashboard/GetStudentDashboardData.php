@@ -2,6 +2,7 @@
 
 namespace App\Actions\Dashboard;
 
+use App\Actions\Attendance\GetWeeklyHoursSummary;
 use App\Actions\Payments\GetAccountStatement;
 use App\Models\ClassSession;
 use App\Models\Enrollment;
@@ -11,6 +12,7 @@ class GetStudentDashboardData
 {
     public function __construct(
         protected GetAccountStatement $getAccountStatement,
+        protected GetWeeklyHoursSummary $getWeeklyHoursSummary,
     ) {}
 
     /**
@@ -33,6 +35,7 @@ class GetStudentDashboardData
                 'has_enrollment' => false,
                 'account' => $this->getAccountStatement->handle($student),
                 'pending_payments' => $this->pendingPayments($student),
+                'certificates' => $this->certificates($student),
             ];
         }
 
@@ -42,7 +45,7 @@ class GetStudentDashboardData
                 ->where('date', '>', today())
                 ->orWhere(fn ($query) => $query->where('date', today())->where('start_time', '>=', now()->format('H:i:s')))
             )
-            ->with(['teacher:id,name', 'classroom:id,name'])
+            ->with('classroom:id,name')
             ->orderBy('date')
             ->orderBy('start_time')
             ->first();
@@ -59,18 +62,46 @@ class GetStudentDashboardData
                 'accumulated_hours' => $enrollment->accumulated_hours,
                 'required_hours' => $enrollment->required_hours,
                 'progress_percentage' => $enrollment->progress_percentage,
+                'weekly_hours' => $enrollment->weekly_hours,
             ],
+            'weekly_summary' => $this->getWeeklyHoursSummary->handle($enrollment),
+            'catch_up' => $this->getWeeklyHoursSummary->catchUp($enrollment),
             'next_session' => $nextSession ? [
                 'date' => $nextSession->date->toDateString(),
                 'start_time' => substr($nextSession->start_time, 0, 5),
                 'end_time' => substr($nextSession->end_time, 0, 5),
                 'classroom' => $nextSession->classroom->name,
-                'teacher' => $nextSession->teacher->name,
+                'modality' => $nextSession->modality,
+                'meeting_url' => $nextSession->meeting_url,
             ] : null,
             'evaluations' => ['presented' => $evaluationsPresented, 'total' => $evaluationsTotal],
             'account' => $this->getAccountStatement->handle($student),
             'pending_payments' => $this->pendingPayments($student),
+            'certificates' => $this->certificates($student),
         ];
+    }
+
+    /**
+     * Niveles aprobados (horas completas y evaluaciones aprobadas), cuyo
+     * certificado el estudiante puede descargar.
+     *
+     * @return array<int, array{enrollment_id: int, course: string, level: string, finished_at: string|null}>
+     */
+    protected function certificates(Student $student): array
+    {
+        return Enrollment::query()
+            ->where('student_id', $student->id)
+            ->where('status', 'aprobada')
+            ->with('level.course:id,name')
+            ->orderByDesc('actual_end_date')
+            ->get()
+            ->map(fn (Enrollment $enrollment) => [
+                'enrollment_id' => $enrollment->id,
+                'course' => $enrollment->level->course->name,
+                'level' => $enrollment->level->name,
+                'finished_at' => $enrollment->actual_end_date?->toDateString(),
+            ])
+            ->all();
     }
 
     /**

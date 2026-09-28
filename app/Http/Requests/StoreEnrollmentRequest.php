@@ -35,6 +35,8 @@ class StoreEnrollmentRequest extends FormRequest
                 'finalizada', 'cancelada', 'aprobada', 'reprobada',
             ])],
             'required_hours' => ['required', 'numeric', 'min:0'],
+            'weekly_hours' => ['required', 'numeric', 'min:1', 'max:60'],
+            'base_price' => ['nullable', 'numeric', 'min:0'],
             'promotion_id' => ['nullable', 'exists:promotions,id'],
             'referral_id' => ['nullable', 'exists:referrals,id'],
         ];

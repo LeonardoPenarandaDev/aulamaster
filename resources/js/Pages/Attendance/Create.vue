@@ -1,7 +1,9 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     classSession: Object,
@@ -11,11 +13,44 @@ const props = defineProps({
 
 const page = usePage();
 
+// Todos inician como ausentes: el profesor marca presentes a quienes
+// asistieron ingresando su código al final de la clase.
 const form = useForm({
     records: props.roster
         .filter((entry) => !(entry.enrollment_id in props.existing))
-        .map((entry) => ({ enrollment_id: entry.enrollment_id, status: 'presente' })),
+        .map((entry) => ({ enrollment_id: entry.enrollment_id, status: 'ausente' })),
 });
+
+const code = ref('');
+const codeFeedback = ref(null);
+const lastMarkedId = ref(null);
+
+const presentCount = computed(() => form.records.filter((r) => r.status === 'presente').length);
+
+const isTeacher = computed(() => page.props.auth?.roles?.includes('profesor'));
+
+function markPresentByCode() {
+    const typed = code.value.trim().toLowerCase();
+    if (!typed) {
+        return;
+    }
+
+    const entry = props.roster.find((e) => String(e.student.code).toLowerCase() === typed);
+
+    if (!entry) {
+        codeFeedback.value = { type: 'error', message: `No hay ningún estudiante con el código "${code.value.trim()}" en este nivel.` };
+    } else if (entry.enrollment_id in props.existing) {
+        codeFeedback.value = { type: 'error', message: `${entry.student.name} ya tiene la asistencia registrada.` };
+    } else if (statusFor(entry.enrollment_id) === 'presente') {
+        codeFeedback.value = { type: 'info', message: `${entry.student.name} ya estaba marcado como presente.` };
+    } else {
+        setStatus(entry.enrollment_id, 'presente');
+        lastMarkedId.value = entry.enrollment_id;
+        codeFeedback.value = { type: 'success', message: `${entry.student.name} marcado como presente.` };
+    }
+
+    code.value = '';
+}
 
 function statusFor(enrollmentId) {
     const record = form.records.find((r) => r.enrollment_id === enrollmentId);
@@ -64,7 +99,41 @@ function submit() {
                     </p>
                 </div>
 
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                <div v-if="form.records.length > 0" class="mb-6 rounded-lg bg-white p-6 shadow-sm">
+                    <form @submit.prevent="markPresentByCode">
+                        <label for="student_code" class="block text-sm font-medium text-gray-700">
+                            Código del estudiante que asistió
+                        </label>
+                        <div class="mt-1 flex gap-2">
+                            <TextInput
+                                id="student_code"
+                                v-model="code"
+                                class="block w-full"
+                                placeholder="Escribe o escanea el código y presiona Enter"
+                                autocomplete="off"
+                                autofocus
+                            />
+                            <PrimaryButton type="submit">Marcar</PrimaryButton>
+                        </div>
+                    </form>
+                    <p
+                        v-if="codeFeedback"
+                        class="mt-2 text-sm"
+                        :class="{
+                            'text-green-700': codeFeedback.type === 'success',
+                            'text-red-600': codeFeedback.type === 'error',
+                            'text-gray-600': codeFeedback.type === 'info',
+                        }"
+                    >
+                        {{ codeFeedback.message }}
+                    </p>
+                    <p class="mt-3 text-sm text-gray-600">
+                        Presentes: <span class="font-semibold text-gray-900">{{ presentCount }}</span> de {{ form.records.length }}.
+                        Quienes no marques quedarán como ausentes; puedes ajustar cualquier estado en la lista.
+                    </p>
+                </div>
+
+                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>
@@ -74,7 +143,11 @@ function submit() {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="entry in roster" :key="entry.enrollment_id">
+                            <tr
+                                v-for="entry in roster"
+                                :key="entry.enrollment_id"
+                                :class="{ 'bg-green-50': entry.enrollment_id === lastMarkedId }"
+                            >
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ entry.student.code }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ entry.student.name }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm">
@@ -122,7 +195,13 @@ function submit() {
                     <PrimaryButton :disabled="form.processing || form.records.length === 0" @click="submit">
                         Guardar asistencia
                     </PrimaryButton>
-                    <Link :href="route('class-sessions.index')" class="text-sm text-gray-600 hover:text-gray-900">
+                    <Link :href="route('class-materials.index', classSession.id)" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                        Material de la clase
+                    </Link>
+                    <Link v-if="isTeacher" :href="route('dashboard')" class="text-sm text-gray-600 hover:text-gray-900">
+                        Volver al panel
+                    </Link>
+                    <Link v-else :href="route('class-sessions.index')" class="text-sm text-gray-600 hover:text-gray-900">
                         Volver al calendario
                     </Link>
                 </div>

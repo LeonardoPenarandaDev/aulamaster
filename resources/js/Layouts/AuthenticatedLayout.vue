@@ -14,6 +14,7 @@ const page = usePage();
 const isAdmin = () => page.props.auth.roles?.includes('admin');
 const isCoordinador = () => page.props.auth.roles?.includes('coordinador');
 const isCajero = () => page.props.auth.roles?.includes('cajero');
+const isStudent = () => page.props.auth.roles?.includes('estudiante');
 </script>
 
 <template>
@@ -23,7 +24,7 @@ const isCajero = () => page.props.auth.roles?.includes('cajero');
                 class="border-b border-gray-100 bg-white"
             >
                 <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
                     <div class="flex h-16 justify-between">
                         <div class="flex">
                             <!-- Logo -->
@@ -38,13 +39,27 @@ const isCajero = () => page.props.auth.roles?.includes('cajero');
 
                             <!-- Navigation Links -->
                             <div
-                                class="hidden items-center space-x-1 sm:ms-10 sm:flex"
+                                class="hidden items-center space-x-1 lg:ms-8 lg:flex"
                             >
                                 <NavLink
                                     :href="route('dashboard')"
                                     :active="route().current('dashboard')"
                                 >
                                     Dashboard
+                                </NavLink>
+                                <NavLink
+                                    v-if="isStudent()"
+                                    :href="route('student-schedule.index')"
+                                    :active="route().current('student-schedule.*')"
+                                >
+                                    Horarios disponibles
+                                </NavLink>
+                                <NavLink
+                                    v-if="isStudent()"
+                                    :href="route('student-materials.index')"
+                                    :active="route().current('student-materials.*')"
+                                >
+                                    Material de clase
                                 </NavLink>
                                 <NavDropdown
                                     v-if="isAdmin() || isCoordinador()"
@@ -94,7 +109,7 @@ const isCajero = () => page.props.auth.roles?.includes('cajero');
                             </div>
                         </div>
 
-                        <div class="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div class="hidden lg:ms-6 lg:flex lg:items-center">
                             <NotificationBell />
 
                             <!-- Settings Dropdown -->
@@ -106,7 +121,7 @@ const isCajero = () => page.props.auth.roles?.includes('cajero');
                                                 type="button"
                                                 class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
                                             >
-                                                {{ $page.props.auth.user.name }}
+                                                <span class="max-w-[10rem] truncate">{{ $page.props.auth.user.name }}</span>
 
                                                 <svg
                                                     class="-me-0.5 ms-2 h-4 w-4"
@@ -143,7 +158,7 @@ const isCajero = () => page.props.auth.roles?.includes('cajero');
                         </div>
 
                         <!-- Hamburger -->
-                        <div class="-me-2 flex items-center gap-2 sm:hidden">
+                        <div class="-me-2 flex items-center gap-2 lg:hidden">
                             <NotificationBell />
                             <button
                                 @click="
@@ -192,7 +207,7 @@ const isCajero = () => page.props.auth.roles?.includes('cajero');
                         block: showingNavigationDropdown,
                         hidden: !showingNavigationDropdown,
                     }"
-                    class="sm:hidden"
+                    class="lg:hidden"
                 >
                     <div class="space-y-1 pb-3 pt-2">
                         <ResponsiveNavLink
@@ -200,6 +215,20 @@ const isCajero = () => page.props.auth.roles?.includes('cajero');
                             :active="route().current('dashboard')"
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="isStudent()"
+                            :href="route('student-schedule.index')"
+                            :active="route().current('student-schedule.*')"
+                        >
+                            Horarios disponibles
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="isStudent()"
+                            :href="route('student-materials.index')"
+                            :active="route().current('student-materials.*')"
+                        >
+                            Material de clase
                         </ResponsiveNavLink>
                         <template v-if="isAdmin() || isCoordinador()">
                             <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Académico</div>
@@ -273,14 +302,14 @@ const isCajero = () => page.props.auth.roles?.includes('cajero');
                 class="bg-white shadow"
                 v-if="$slots.header"
             >
-                <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-screen-2xl px-4 py-6 sm:px-6 lg:px-8">
                     <slot name="header" />
                 </div>
             </header>
 
             <div
                 v-if="page.props.flash?.error"
-                class="mx-auto mt-4 max-w-7xl px-4 sm:px-6 lg:px-8"
+                class="mx-auto mt-4 max-w-screen-2xl px-4 sm:px-6 lg:px-8"
             >
                 <div class="rounded-md bg-red-50 p-4 text-sm text-red-700">
                     {{ page.props.flash.error }}

@@ -47,7 +47,7 @@ function exportUrl(format) {
         </template>
 
         <div class="py-12">
-            <div class="mx-auto max-w-7xl space-y-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
                 <Link :href="route('reports.index')" class="text-sm text-indigo-600 hover:text-indigo-900">
                     ← Todos los reportes
                 </Link>

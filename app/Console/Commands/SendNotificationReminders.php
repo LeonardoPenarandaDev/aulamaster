@@ -58,7 +58,7 @@ class SendNotificationReminders extends Command
                 fn ($student) => $notifyStudent->handle($student, new UpcomingClassNotification($session))
             );
 
-            $notifyTeacher->handle($session->teacher, new UpcomingClassNotification($session));
+            $notifyTeacher->handle($session->teacher, new UpcomingClassNotification($session, includeTeacher: true));
         }
 
         $this->info("Recordatorios de próxima clase: {$sessions->count()} clase(s) de mañana.");

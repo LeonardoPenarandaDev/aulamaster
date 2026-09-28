@@ -9,6 +9,7 @@ use App\Models\ClassSchedule;
 use App\Models\Level;
 use App\Models\Teacher;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -71,8 +72,26 @@ class ClassScheduleController extends Controller
     {
         Gate::authorize('delete', $classSchedule);
 
-        $classSchedule->delete();
+        $deletedSessions = DB::transaction(function () use ($classSchedule) {
+            $deleted = 0;
 
-        return to_route('class-schedules.index')->with('success', 'Horario recurrente eliminado. Las clases ya generadas se conservan.');
+            $classSchedule->classSessions()
+                ->whereDate('date', '>=', today())
+                ->whereDoesntHave('attendances')
+                ->get()
+                ->each(function ($session) use (&$deleted) {
+                    $session->delete();
+                    $deleted++;
+                });
+
+            $classSchedule->delete();
+
+            return $deleted;
+        });
+
+        return to_route('class-schedules.index')->with(
+            'success',
+            "Horario eliminado junto con {$deletedSessions} clases futuras. Las clases pasadas o con asistencia se conservan en el historial."
+        );
     }
 }

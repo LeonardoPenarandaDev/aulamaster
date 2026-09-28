@@ -26,7 +26,12 @@ class StoreAttendanceRequest extends FormRequest
     {
         return [
             'records' => ['required', 'array', 'min:1'],
-            'records.*.enrollment_id' => ['required', 'exists:enrollments,id'],
+            'records.*.enrollment_id' => [
+                'required',
+                Rule::exists('enrollments', 'id')
+                    ->where('level_id', $this->route('class_session')->level_id)
+                    ->whereIn('status', ['activa', 'en_recuperacion', 'extendida']),
+            ],
             'records.*.status' => ['required', Rule::in(['presente', 'ausente', 'excusado'])],
         ];
     }

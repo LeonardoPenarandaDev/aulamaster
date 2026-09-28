@@ -28,6 +28,7 @@ class StoreClassScheduleRequest extends FormRequest
             'level_id' => ['required', 'exists:levels,id'],
             'teacher_id' => ['required', 'exists:teachers,id'],
             'classroom_id' => ['required', 'exists:classrooms,id'],
+            'modality' => ['sometimes', Rule::in(['presencial', 'virtual'])],
             'days_of_week' => ['required', 'array', 'min:1'],
             'days_of_week.*' => ['integer', 'between:1,7'],
             'start_time' => ['required', 'date_format:H:i'],

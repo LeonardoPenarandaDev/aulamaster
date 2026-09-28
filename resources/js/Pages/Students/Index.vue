@@ -39,7 +39,7 @@ function destroy(student) {
         </template>
 
         <div class="py-12">
-            <div class="mx-auto max-w-7xl space-y-4 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
                 <div
                     v-if="page.props.flash?.success"
                     class="rounded-md bg-green-50 p-4 text-sm text-green-700"
@@ -61,7 +61,7 @@ function destroy(student) {
                     </Link>
                 </div>
 
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                             <tr>

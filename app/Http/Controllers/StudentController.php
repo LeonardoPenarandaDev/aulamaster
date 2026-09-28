@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -47,9 +49,23 @@ class StudentController extends Controller
      */
     public function store(StoreStudentRequest $request): RedirectResponse
     {
-        Student::create($request->validated());
+        DB::transaction(function () use ($request) {
+            $student = Student::create($request->safe()->except('password'));
 
-        return to_route('students.index')->with('success', 'Estudiante registrado correctamente.');
+            if ($request->filled('password')) {
+                $user = User::create([
+                    'name' => $student->name,
+                    'email' => $student->email,
+                    'password' => $request->validated('password'),
+                ]);
+                $user->assignRole('estudiante');
+                $student->update(['user_id' => $user->id]);
+            }
+        });
+
+        return to_route('students.index')->with('success', $request->filled('password')
+            ? 'Estudiante registrado con acceso al portal.'
+            : 'Estudiante registrado correctamente.');
     }
 
     /**

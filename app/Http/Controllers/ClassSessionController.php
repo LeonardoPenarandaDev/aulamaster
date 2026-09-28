@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Notifications\NotifyClassSessionChange;
 use App\Http\Requests\StoreClassSessionRequest;
+use App\Http\Requests\UpdateClassSessionMeetingUrlRequest;
 use App\Http\Requests\UpdateClassSessionRequest;
 use App\Models\Classroom;
 use App\Models\ClassSession;
@@ -76,6 +77,18 @@ class ClassSessionController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    /**
+     * Publica (o quita) el enlace de la reunión de una clase virtual.
+     */
+    public function updateMeetingUrl(UpdateClassSessionMeetingUrlRequest $request, ClassSession $classSession): RedirectResponse
+    {
+        $classSession->update(['meeting_url' => $request->validated('meeting_url')]);
+
+        return back()->with('success', $classSession->meeting_url
+            ? 'Enlace de la clase publicado. Los estudiantes ya pueden verlo.'
+            : 'Enlace de la clase eliminado.');
+    }
+
     public function store(StoreClassSessionRequest $request): RedirectResponse
     {
         ClassSession::create($request->validated());

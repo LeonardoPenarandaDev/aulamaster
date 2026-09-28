@@ -29,6 +29,8 @@ class UpdateClassSessionRequest extends FormRequest
             'level_id' => ['required', 'exists:levels,id'],
             'teacher_id' => ['required', 'exists:teachers,id'],
             'classroom_id' => ['required', 'exists:classrooms,id'],
+            'modality' => ['sometimes', Rule::in(['presencial', 'virtual'])],
+            'meeting_url' => ['nullable', 'url:http,https', 'max:2048'],
             'date' => ['required', 'date'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
@@ -53,6 +55,7 @@ class UpdateClassSessionRequest extends FormRequest
                 date: $this->input('date'),
                 startTime: $this->input('start_time'),
                 endTime: $this->input('end_time'),
+                modality: $this->input('modality', 'presencial'),
                 ignoreClassSessionId: $this->route('class_session')->id,
             );
 

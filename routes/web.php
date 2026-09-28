@@ -3,6 +3,7 @@
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceCorrectionController;
 use App\Http\Controllers\AuditLogController;
+use App\Http\Controllers\ClassMaterialController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassScheduleController;
 use App\Http\Controllers\ClassSessionController;
@@ -24,6 +25,8 @@ use App\Http\Controllers\RecoverySettingController;
 use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\StudentMaterialController;
+use App\Http\Controllers\StudentScheduleController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\WompiPaymentController;
 use Illuminate\Support\Facades\Route;
@@ -93,6 +96,18 @@ Route::middleware(['auth', 'verified', 'role:admin|cajero'])->group(function () 
 Route::middleware(['auth', 'verified', 'role:admin|profesor'])->group(function () {
     Route::get('class-sessions/{class_session}/attendance', [AttendanceController::class, 'create'])->name('attendance.create');
     Route::post('class-sessions/{class_session}/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
+
+    Route::patch('class-sessions/{class_session}/meeting-url', [ClassSessionController::class, 'updateMeetingUrl'])->name('class-sessions.meeting-url');
+
+    Route::get('class-sessions/{class_session}/materials', [ClassMaterialController::class, 'index'])->name('class-materials.index');
+    Route::post('class-sessions/{class_session}/materials', [ClassMaterialController::class, 'store'])->name('class-materials.store');
+    Route::delete('class-materials/{class_material}', [ClassMaterialController::class, 'destroy'])->name('class-materials.destroy');
+});
+
+Route::middleware(['auth', 'verified', 'role:estudiante'])->group(function () {
+    Route::get('mis-horarios', [StudentScheduleController::class, 'index'])->name('student-schedule.index');
+    Route::get('mi-material', [StudentMaterialController::class, 'index'])->name('student-materials.index');
+    Route::get('mis-certificados/{enrollment}', [EnrollmentController::class, 'certificate'])->name('student-certificates.download');
 });
 
 // Pago en línea con Wompi (Fase 17): lo inicia el propio estudiante desde su

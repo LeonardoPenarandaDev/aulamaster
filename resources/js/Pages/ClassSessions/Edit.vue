@@ -18,6 +18,8 @@ const form = useForm({
     level_id: props.classSession.level_id,
     teacher_id: props.classSession.teacher_id,
     classroom_id: props.classSession.classroom_id,
+    modality: props.classSession.modality ?? 'presencial',
+    meeting_url: props.classSession.meeting_url ?? '',
     date: props.classSession.date,
     start_time: props.classSession.start_time,
     end_time: props.classSession.end_time,
@@ -67,6 +69,25 @@ function submit() {
                                     <option v-for="classroom in classrooms" :key="classroom.id" :value="classroom.id">{{ classroom.name }}</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.classroom_id" />
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <InputLabel for="modality" value="Modalidad" />
+                                <select id="modality" v-model="form.modality" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="presencial">Presencial</option>
+                                    <option value="virtual">Virtual (Meet)</option>
+                                </select>
+                                <InputError class="mt-2" :message="form.errors.modality" />
+                                <p v-if="form.modality === 'virtual'" class="mt-1 text-xs text-gray-500">Las clases virtuales no ocupan el aula seleccionada.</p>
+                            </div>
+
+                            <div v-if="form.modality === 'virtual'">
+                                <InputLabel for="meeting_url" value="Enlace de la reunión (opcional)" />
+                                <TextInput id="meeting_url" type="url" v-model="form.meeting_url" class="mt-1 block w-full" placeholder="https://meet.google.com/..." />
+                                <InputError class="mt-2" :message="form.errors.meeting_url" />
+                                <p class="mt-1 text-xs text-gray-500">El profesor también puede publicarlo desde su panel el día de la clase.</p>
                             </div>
                         </div>
 

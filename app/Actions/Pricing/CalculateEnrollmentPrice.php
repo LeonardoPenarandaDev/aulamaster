@@ -14,12 +14,14 @@ class CalculateEnrollmentPrice
      * menos el descuento de la promoción, menos el descuento por referido.
      * El precio final siempre se conserva como el valor realmente aplicado
      * en la matrícula, no como una referencia al precio actual del nivel.
+     * El admin puede fijar otro precio base (por ejemplo, según la
+     * intensidad horaria contratada); si no lo hace, se usa el del nivel.
      *
      * @return array{base_price: float, promotion_discount: float, referral_discount: float, final_price: float}
      */
-    public function handle(Level $level, Student $student, ?Promotion $promotion, ?Referral $referral): array
+    public function handle(Level $level, Student $student, ?Promotion $promotion, ?Referral $referral, ?float $basePrice = null): array
     {
-        $basePrice = (float) $level->price;
+        $basePrice ??= (float) $level->price;
 
         $promotionDiscount = $promotion ? $promotion->discountFor($basePrice) : 0.0;
 

@@ -35,6 +35,7 @@ class UpdateEnrollmentRequest extends FormRequest
                 'finalizada', 'cancelada', 'aprobada', 'reprobada',
             ])],
             'required_hours' => ['required', 'numeric', 'min:0'],
+            'weekly_hours' => ['required', 'numeric', 'min:1', 'max:60'],
             'base_price' => ['required', 'numeric', 'min:0'],
             'final_price' => ['required', 'numeric', 'min:0'],
         ];

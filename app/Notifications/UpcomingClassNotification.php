@@ -6,7 +6,11 @@ use App\Models\ClassSession;
 
 class UpcomingClassNotification extends BaseNotification
 {
-    public function __construct(protected ClassSession $classSession)
+    /**
+     * El nombre del profesor solo se incluye en el aviso al propio profesor:
+     * a los estudiantes no se les informa quién dicta la clase.
+     */
+    public function __construct(protected ClassSession $classSession, protected bool $includeTeacher = false)
     {
         $this->classSession->loadMissing(['level.course', 'classroom', 'teacher']);
     }
@@ -23,7 +27,9 @@ class UpcomingClassNotification extends BaseNotification
         return [
             "{$session->level->course->name} {$session->level->name} — {$session->date->format('d/m/Y')}, ".
                 substr($session->start_time, 0, 5).' a '.substr($session->end_time, 0, 5),
-            "Aula: {$session->classroom->name}. Profesor: {$session->teacher->name}.",
+            $this->includeTeacher
+                ? "Aula: {$session->classroom->name}. Profesor: {$session->teacher->name}."
+                : "Aula: {$session->classroom->name}.",
         ];
     }
 

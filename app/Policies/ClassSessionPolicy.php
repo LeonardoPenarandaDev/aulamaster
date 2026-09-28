@@ -36,6 +36,15 @@ class ClassSessionPolicy
         return false;
     }
 
+    /**
+     * El profesor que dicta una clase virtual publica el enlace de la
+     * reunión (Meet) que genera el día de la clase.
+     */
+    public function updateMeetingUrl(User $user, ClassSession $classSession): bool
+    {
+        return $classSession->teacher?->user_id === $user->id;
+    }
+
     public function delete(User $user, ClassSession $classSession): bool
     {
         return false;

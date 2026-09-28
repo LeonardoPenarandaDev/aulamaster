@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'level_id',
     'teacher_id',
     'classroom_id',
+    'modality',
     'days_of_week',
     'start_time',
     'end_time',

@@ -89,4 +89,36 @@ class AttendanceRulesTest extends TestCase
         $this->assertSame('presente', $attendance->effective_status);
         $this->assertCount(1, $attendance->corrections);
     }
+
+    public function test_teacher_can_only_register_attendance_for_students_enrolled_in_the_session_level(): void
+    {
+        $user = $this->teacherUser();
+        $teacher = Teacher::factory()->create(['user_id' => $user->id]);
+        $session = ClassSession::factory()->create(['teacher_id' => $teacher->id]);
+
+        $sameLevel = Enrollment::factory()->create(['level_id' => $session->level_id]);
+        $otherLevel = Enrollment::factory()->create();
+        $cancelled = Enrollment::factory()->create(['level_id' => $session->level_id, 'status' => 'cancelada']);
+
+        $this->actingAs($user)
+            ->post(route('attendance.store', $session), ['records' => [
+                ['enrollment_id' => $otherLevel->id, 'status' => 'presente'],
+            ]])
+            ->assertSessionHasErrors('records.0.enrollment_id');
+
+        $this->actingAs($user)
+            ->post(route('attendance.store', $session), ['records' => [
+                ['enrollment_id' => $cancelled->id, 'status' => 'presente'],
+            ]])
+            ->assertSessionHasErrors('records.0.enrollment_id');
+
+        $this->actingAs($user)
+            ->post(route('attendance.store', $session), ['records' => [
+                ['enrollment_id' => $sameLevel->id, 'status' => 'presente'],
+            ]])
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseCount('attendances', 1);
+        $this->assertDatabaseHas('attendances', ['class_session_id' => $session->id, 'enrollment_id' => $sameLevel->id]);
+    }
 }

@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'actual_end_date',
     'status',
     'required_hours',
+    'weekly_hours',
     'accumulated_hours',
     'base_price',
     'promotion_id',

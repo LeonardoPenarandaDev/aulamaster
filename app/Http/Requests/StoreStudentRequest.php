@@ -6,6 +6,7 @@ use App\Models\Student;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class StoreStudentRequest extends FormRequest
 {
@@ -28,10 +29,17 @@ class StoreStudentRequest extends FormRequest
             'code' => ['required', 'string', 'max:20', Rule::unique('students', 'code')],
             'name' => ['required', 'string', 'max:255'],
             'document' => ['nullable', 'string', 'max:50'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => [
+                'nullable',
+                'required_with:password',
+                'email',
+                'max:255',
+                Rule::when($this->filled('password'), [Rule::unique('users', 'email')]),
+            ],
             'phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(['activo', 'inactivo'])],
+            'password' => ['nullable', 'confirmed', Password::defaults()],
         ];
     }
 }

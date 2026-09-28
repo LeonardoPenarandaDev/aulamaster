@@ -3,8 +3,8 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import StatCard from '@/Components/StatCard.vue';
 import Icon from '@/Components/Icon.vue';
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { computed, reactive } from 'vue';
 
 const props = defineProps({
     stats: { type: Object, default: null },
@@ -39,6 +39,42 @@ const accountStatusClasses = {
 function money(value) {
     return Number(value).toLocaleString('es-CO');
 }
+
+// Enlaces de Meet de las clases virtuales de hoy (panel del profesor).
+const meetingUrls = reactive(
+    Object.fromEntries((props.teacherData?.today_sessions ?? []).map((session) => [session.id, session.meeting_url ?? ''])),
+);
+const meetingUrlErrors = reactive({});
+
+function saveMeetingUrl(session) {
+    router.patch(
+        route('class-sessions.meeting-url', session.id),
+        { meeting_url: meetingUrls[session.id] || null },
+        {
+            preserveScroll: true,
+            onSuccess: () => delete meetingUrlErrors[session.id],
+            onError: (errors) => (meetingUrlErrors[session.id] = errors.meeting_url),
+        },
+    );
+}
+
+const currentWeek = computed(() => props.studentData?.weekly_summary?.find((week) => week.is_current) ?? null);
+const previousWeeks = computed(() => props.studentData?.weekly_summary?.filter((week) => !week.is_current) ?? []);
+
+function hours(value) {
+    return Number(value).toLocaleString('es-CO', { maximumFractionDigits: 1 });
+}
+
+function weekRange(week) {
+    const format = new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'short' });
+    const parse = (date) => new Date(`${date}T00:00:00`);
+
+    return `${format.format(parse(week.week_start))} – ${format.format(parse(week.week_end))}`;
+}
+
+function weekPercentage(week) {
+    return week.target_hours > 0 ? Math.min(100, (week.attended_hours / week.target_hours) * 100) : 0;
+}
 </script>
 
 <template>
@@ -52,7 +88,7 @@ function money(value) {
         </template>
 
         <div class="py-12">
-            <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-screen-2xl space-y-6 sm:px-6 lg:px-8">
                 <div class="rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-6 text-white shadow-sm sm:px-8">
                     <p class="text-sm font-medium text-indigo-100 capitalize">{{ today }}</p>
                     <h3 class="mt-1 text-2xl font-bold">Hola, {{ userName }} 👋</h3>
@@ -122,20 +158,73 @@ function money(value) {
                                                 {{ session.start_time }} - {{ session.end_time }} · {{ session.classroom }} ·
                                                 {{ session.enrolled_count }} estudiantes
                                             </p>
+                                            <form
+                                                v-if="session.modality === 'virtual'"
+                                                class="mt-2 flex flex-wrap items-center gap-2"
+                                                @submit.prevent="saveMeetingUrl(session)"
+                                            >
+                                                <span class="rounded bg-violet-100 px-1.5 py-0.5 text-xs font-medium text-violet-800">Virtual 💻</span>
+                                                <input
+                                                    v-model="meetingUrls[session.id]"
+                                                    type="url"
+                                                    placeholder="Pega aquí el enlace de Meet"
+                                                    class="w-64 rounded-md border-gray-300 py-1 text-xs shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                                />
+                                                <button type="submit" class="text-xs font-medium text-indigo-600 hover:text-indigo-800">
+                                                    {{ session.meeting_url ? 'Actualizar enlace' : 'Publicar enlace' }}
+                                                </button>
+                                                <a
+                                                    v-if="session.meeting_url"
+                                                    :href="session.meeting_url"
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    class="text-xs text-gray-500 underline hover:text-gray-700"
+                                                >
+                                                    Abrir
+                                                </a>
+                                            </form>
+                                            <p v-if="meetingUrlErrors[session.id]" class="mt-1 text-xs text-red-600">{{ meetingUrlErrors[session.id] }}</p>
                                             <p v-if="session.attendance_taken" class="mt-1 flex flex-wrap gap-2 text-xs">
                                                 <span class="rounded-full bg-emerald-100 px-2 py-0.5 font-medium text-emerald-800">{{ session.present_count }} presentes</span>
                                                 <span class="rounded-full bg-rose-100 px-2 py-0.5 font-medium text-rose-800">{{ session.absent_count }} ausentes</span>
                                             </p>
                                         </div>
                                     </div>
-                                    <Link :href="route('attendance.create', session.id)">
-                                        <PrimaryButton>
-                                            {{ session.attendance_taken ? 'Ver / completar asistencia' : 'Tomar asistencia' }}
-                                        </PrimaryButton>
-                                    </Link>
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        <Link :href="route('class-materials.index', session.id)" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                                            Material ({{ session.materials_count }})
+                                        </Link>
+                                        <Link :href="route('attendance.create', session.id)">
+                                            <PrimaryButton>
+                                                {{ session.attendance_taken ? 'Ver / completar asistencia' : 'Tomar asistencia' }}
+                                            </PrimaryButton>
+                                        </Link>
+                                    </div>
                                 </div>
                                 <div v-if="teacherData.today_sessions.length === 0" class="rounded-xl border border-gray-100 bg-white p-4 text-sm text-gray-500 shadow-sm">
                                     No tienes clases programadas para hoy.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="teacherData.recent_sessions?.length">
+                            <h3 class="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-gray-500">
+                                <Icon name="book" class="h-4 w-4" />
+                                Clases recientes · material de repaso
+                            </h3>
+                            <div class="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+                                <div
+                                    v-for="session in teacherData.recent_sessions"
+                                    :key="session.id"
+                                    class="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
+                                >
+                                    <div>
+                                        <span class="font-medium text-gray-900">{{ session.level }}</span>
+                                        <span class="text-gray-500"> · {{ session.date }}, {{ session.start_time }} - {{ session.end_time }}</span>
+                                    </div>
+                                    <Link :href="route('class-materials.index', session.id)" class="font-medium text-indigo-600 hover:text-indigo-800">
+                                        {{ session.materials_count > 0 ? `Material (${session.materials_count})` : 'Agregar material' }}
+                                    </Link>
                                 </div>
                             </div>
                         </div>
@@ -147,6 +236,31 @@ function money(value) {
                     <div class="space-y-6">
                         <div v-if="!studentData.has_enrollment" class="rounded-xl border border-gray-100 bg-white p-4 text-sm text-gray-600 shadow-sm">
                             Todavía no tienes una matrícula activa.
+                        </div>
+
+                        <div v-if="studentData.certificates?.length" class="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm">
+                            <h4 class="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                                <Icon name="check-circle" class="h-5 w-5 text-emerald-600" />
+                                Mis certificados
+                            </h4>
+                            <ul class="mt-3 divide-y divide-emerald-100">
+                                <li
+                                    v-for="certificate in studentData.certificates"
+                                    :key="certificate.enrollment_id"
+                                    class="flex flex-wrap items-center justify-between gap-2 py-2 text-sm"
+                                >
+                                    <div>
+                                        <span class="font-medium text-gray-900">{{ certificate.course }} {{ certificate.level }}</span>
+                                        <span v-if="certificate.finished_at" class="text-gray-500"> · aprobado el {{ certificate.finished_at }}</span>
+                                    </div>
+                                    <a
+                                        :href="route('student-certificates.download', certificate.enrollment_id)"
+                                        class="font-medium text-emerald-700 hover:text-emerald-900"
+                                    >
+                                        Descargar certificado (PDF)
+                                    </a>
+                                </li>
+                            </ul>
                         </div>
 
                         <div v-if="studentData.has_enrollment" class="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -186,6 +300,78 @@ function money(value) {
                             />
                         </div>
 
+                        <div v-if="currentWeek" class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                            <div class="flex flex-wrap items-start justify-between gap-2">
+                                <div>
+                                    <h4 class="text-sm font-semibold text-gray-900">Horas de esta semana</h4>
+                                    <p class="text-xs text-gray-500">
+                                        {{ weekRange(currentWeek) }} · Intensidad contratada: {{ hours(currentWeek.target_hours) }} h/semana
+                                    </p>
+                                </div>
+                                <span
+                                    class="rounded-full px-2 py-0.5 text-xs font-medium"
+                                    :class="currentWeek.pending_hours === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'"
+                                >
+                                    {{ currentWeek.pending_hours === 0 ? 'Semana completa' : `Faltan ${hours(currentWeek.pending_hours)} h` }}
+                                </span>
+                            </div>
+
+                            <div class="mt-4 grid grid-cols-3 gap-4 text-sm">
+                                <div>
+                                    <p class="text-gray-500">Vistas</p>
+                                    <p class="text-2xl font-bold tabular-nums text-gray-900">{{ hours(currentWeek.attended_hours) }} h</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500">Pendientes</p>
+                                    <p class="text-2xl font-bold tabular-nums text-gray-900">{{ hours(currentWeek.pending_hours) }} h</p>
+                                </div>
+                                <div>
+                                    <p class="text-gray-500">Meta semanal</p>
+                                    <p class="text-2xl font-bold tabular-nums text-gray-900">{{ hours(currentWeek.target_hours) }} h</p>
+                                </div>
+                            </div>
+                            <div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                                <div
+                                    class="h-full rounded-full bg-indigo-500"
+                                    :style="{ width: `${weekPercentage(currentWeek)}%` }"
+                                />
+                            </div>
+
+                            <div class="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-lg bg-gray-50 px-4 py-3 text-sm">
+                                <p v-if="studentData.catch_up.backlog_hours > 0" class="text-gray-700">
+                                    Tienes <span class="font-semibold text-amber-700">{{ hours(studentData.catch_up.backlog_hours) }} h por recuperar</span>
+                                    de semanas anteriores. Esta semana te faltan
+                                    <span class="font-semibold text-gray-900">{{ hours(studentData.catch_up.needed_this_week) }} h</span> para ponerte al día.
+                                </p>
+                                <p v-else class="text-gray-700">Vas al día con tus horas de semanas anteriores.</p>
+                                <Link :href="route('student-schedule.index')" class="font-medium text-indigo-600 hover:text-indigo-800">
+                                    Ver horarios disponibles →
+                                </Link>
+                            </div>
+
+                            <div v-if="previousWeeks.length" class="mt-5 border-t border-gray-100 pt-4">
+                                <p class="text-xs font-medium uppercase tracking-wider text-gray-500">Semanas anteriores</p>
+                                <table class="mt-2 min-w-full text-sm">
+                                    <thead>
+                                        <tr class="text-left text-xs text-gray-500">
+                                            <th class="py-1 font-medium">Semana</th>
+                                            <th class="py-1 text-right font-medium">Vistas</th>
+                                            <th class="py-1 text-right font-medium">Pendientes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-100">
+                                        <tr v-for="week in previousWeeks" :key="week.week_start">
+                                            <td class="py-1.5 text-gray-700">{{ weekRange(week) }}</td>
+                                            <td class="py-1.5 text-right tabular-nums text-gray-900">{{ hours(week.attended_hours) }} / {{ hours(week.target_hours) }} h</td>
+                                            <td class="py-1.5 text-right tabular-nums" :class="week.pending_hours > 0 ? 'text-amber-700' : 'text-emerald-700'">
+                                                {{ hours(week.pending_hours) }} h
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <div v-if="studentData.has_enrollment" class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
                             <div class="flex items-center gap-4">
                                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-sky-50 text-sky-600">
@@ -196,9 +382,21 @@ function money(value) {
                                     <template v-if="studentData.next_session">
                                         <p class="mt-0.5 text-sm font-medium text-gray-900">
                                             {{ studentData.next_session.date }}, {{ studentData.next_session.start_time }} -
-                                            {{ studentData.next_session.end_time }} · {{ studentData.next_session.classroom }}
+                                            {{ studentData.next_session.end_time }} ·
+                                            {{ studentData.next_session.modality === 'virtual' ? 'Virtual 💻' : studentData.next_session.classroom }}
                                         </p>
-                                        <p class="text-xs text-gray-500">Profesor: {{ studentData.next_session.teacher }}</p>
+                                        <a
+                                            v-if="studentData.next_session.modality === 'virtual' && studentData.next_session.meeting_url"
+                                            :href="studentData.next_session.meeting_url"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="mt-1 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-800"
+                                        >
+                                            Unirse a la clase →
+                                        </a>
+                                        <p v-else-if="studentData.next_session.modality === 'virtual'" class="mt-1 text-xs text-gray-500">
+                                            El enlace de la clase se publica el día de la clase.
+                                        </p>
                                     </template>
                                     <p v-else class="mt-0.5 text-sm text-gray-500">No hay clases programadas próximamente.</p>
                                 </div>

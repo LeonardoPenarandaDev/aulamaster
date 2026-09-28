@@ -56,7 +56,7 @@ class EnrollmentController extends Controller
         return Inertia::render('Enrollments/Create', [
             'students' => Student::query()->orderBy('name')->get(['id', 'name', 'code']),
             'levels' => Level::query()->with('course:id,name')->orderBy('name')->get([
-                'id', 'name', 'course_id', 'duration_months', 'required_hours', 'price',
+                'id', 'name', 'course_id', 'duration_months', 'required_hours', 'weekly_hours', 'price',
             ]),
             'promotions' => Promotion::query()->where('status', 'activo')->orderBy('name')->get([
                 'id', 'name', 'discount_type', 'value', 'course_id', 'level_id',
@@ -75,7 +75,8 @@ class EnrollmentController extends Controller
         $promotion = $request->validated('promotion_id') ? Promotion::find($request->validated('promotion_id')) : null;
         $referral = $request->validated('referral_id') ? Referral::find($request->validated('referral_id')) : null;
 
-        $pricing = $calculatePrice->handle($level, $student, $promotion, $referral);
+        $basePrice = $request->validated('base_price');
+        $pricing = $calculatePrice->handle($level, $student, $promotion, $referral, $basePrice !== null ? (float) $basePrice : null);
 
         Enrollment::create([
             ...$request->validated(),
@@ -104,7 +105,7 @@ class EnrollmentController extends Controller
             ],
             'students' => Student::query()->orderBy('name')->get(['id', 'name', 'code']),
             'levels' => Level::query()->with('course:id,name')->orderBy('name')->get([
-                'id', 'name', 'course_id', 'duration_months', 'required_hours', 'price',
+                'id', 'name', 'course_id', 'duration_months', 'required_hours', 'weekly_hours', 'price',
             ]),
         ]);
     }

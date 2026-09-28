@@ -68,6 +68,45 @@ class EvaluateLevelCompletion
     }
 
     /**
+     * Después de sumar horas por asistencia: si el estudiante ya había
+     * aprobado todas las evaluaciones y con esto completa las horas del
+     * nivel, la matrícula queda aprobada (y puede descargar su certificado).
+     * A diferencia de handle(), nunca pasa la matrícula a recuperación.
+     */
+    public function approveIfComplete(Enrollment $enrollment): bool
+    {
+        if (! in_array($enrollment->status, ['activa', 'en_recuperacion', 'extendida'], strict: true)) {
+            return false;
+        }
+
+        if ($enrollment->accumulated_hours < $enrollment->required_hours) {
+            return false;
+        }
+
+        $evaluations = $enrollment->level->evaluations()->where('status', 'activo')->get();
+
+        if ($evaluations->isEmpty()) {
+            return false;
+        }
+
+        $allApproved = $evaluations->every(
+            fn ($evaluation) => $enrollment->evaluationResults()
+                ->where('evaluation_id', $evaluation->id)
+                ->orderByDesc('attempt_number')
+                ->first()?->result === 'aprobado'
+        );
+
+        if (! $allApproved) {
+            return false;
+        }
+
+        $enrollment->update(['status' => 'aprobada', 'actual_end_date' => now()->toDateString()]);
+        $this->notifyStudent->handle($enrollment->student, new LevelApprovedNotification($enrollment));
+
+        return true;
+    }
+
+    /**
      * @param  Collection<int, Evaluation>  $evaluations
      * @param  Collection<int, EvaluationResult>  $latestResults
      */
