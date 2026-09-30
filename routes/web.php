@@ -24,6 +24,7 @@ use App\Http\Controllers\RecoveryController;
 use App\Http\Controllers\RecoverySettingController;
 use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\StaffUserController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentImportController;
 use App\Http\Controllers\StudentMaterialController;
@@ -51,6 +52,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('students/import', [StudentImportController::class, 'store'])->name('students.import.store');
     Route::resource('students', StudentController::class)->except('show');
     Route::resource('teachers', TeacherController::class)->except('show');
+    Route::resource('staff-users', StaffUserController::class)
+        ->only(['index', 'create', 'store', 'edit', 'update'])
+        ->parameters(['staff-users' => 'user']);
     Route::post('students/{student}/portal-access', [PortalAccessController::class, 'storeForStudent'])->name('students.portal-access.store');
     Route::post('teachers/{teacher}/portal-access', [PortalAccessController::class, 'storeForTeacher'])->name('teachers.portal-access.store');
 

@@ -101,8 +101,9 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
                                 <NavDropdown
                                     v-if="isAdmin()"
                                     label="Sistema"
-                                    :active="route().current('audit-logs.*') || route().current('institution-settings.*')"
+                                    :active="route().current('audit-logs.*') || route().current('institution-settings.*') || route().current('staff-users.*')"
                                 >
+                                    <DropdownLink :href="route('staff-users.index')">Usuarios del personal</DropdownLink>
                                     <DropdownLink :href="route('audit-logs.index')">Auditoría</DropdownLink>
                                     <DropdownLink :href="route('institution-settings.edit')">Configuración institucional</DropdownLink>
                                 </NavDropdown>
@@ -261,6 +262,7 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
 
                         <template v-if="isAdmin()">
                             <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Sistema</div>
+                            <ResponsiveNavLink :href="route('staff-users.index')" :active="route().current('staff-users.*')">Usuarios del personal</ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('audit-logs.index')" :active="route().current('audit-logs.*')">Auditoría</ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('institution-settings.edit')" :active="route().current('institution-settings.*')">Configuración institucional</ResponsiveNavLink>
                         </template>

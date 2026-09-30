@@ -12,12 +12,28 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'email', 'password', 'is_active'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable;
+
+    /**
+     * Roles del personal administrativo, gestionados desde "Usuarios del personal".
+     *
+     * @var array<string, string>
+     */
+    public const STAFF_ROLE_LABELS = [
+        'admin' => 'Administrador',
+        'coordinador' => 'Coordinador',
+        'cajero' => 'Cajero / Facturación',
+    ];
+
+    /**
+     * @var list<string>
+     */
+    public const STAFF_ROLES = ['admin', 'coordinador', 'cajero'];
 
     /**
      * Get the attributes that should be cast.
@@ -29,6 +45,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
