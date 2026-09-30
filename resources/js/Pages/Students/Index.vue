@@ -1,6 +1,7 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
@@ -56,9 +57,14 @@ function destroy(student) {
                         @keyup.enter="applySearch"
                     />
 
-                    <Link :href="route('students.create')">
-                        <PrimaryButton>Nuevo estudiante</PrimaryButton>
-                    </Link>
+                    <div class="flex items-center gap-2">
+                        <Link :href="route('students.import.create')">
+                            <SecondaryButton>Importar CSV/Excel</SecondaryButton>
+                        </Link>
+                        <Link :href="route('students.create')">
+                            <PrimaryButton>Nuevo estudiante</PrimaryButton>
+                        </Link>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">

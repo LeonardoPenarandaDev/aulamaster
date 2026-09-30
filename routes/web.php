@@ -25,6 +25,7 @@ use App\Http\Controllers\RecoverySettingController;
 use App\Http\Controllers\ReferralController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\StudentImportController;
 use App\Http\Controllers\StudentMaterialController;
 use App\Http\Controllers\StudentScheduleController;
 use App\Http\Controllers\TeacherController;
@@ -45,6 +46,9 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
+    Route::get('students/import', [StudentImportController::class, 'create'])->name('students.import.create');
+    Route::get('students/import/template', [StudentImportController::class, 'template'])->name('students.import.template');
+    Route::post('students/import', [StudentImportController::class, 'store'])->name('students.import.store');
     Route::resource('students', StudentController::class)->except('show');
     Route::resource('teachers', TeacherController::class)->except('show');
     Route::post('students/{student}/portal-access', [PortalAccessController::class, 'storeForStudent'])->name('students.portal-access.store');
