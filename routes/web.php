@@ -59,6 +59,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('teachers/{teacher}/portal-access', [PortalAccessController::class, 'storeForTeacher'])->name('teachers.portal-access.store');
 
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    Route::get('attendance/absences', [AttendanceController::class, 'absences'])->name('attendance.absences');
     Route::post('attendance/{attendance}/corrections', [AttendanceCorrectionController::class, 'store'])->name('attendance-corrections.store');
 
     Route::resource('evaluations', EvaluationController::class)->except('show');

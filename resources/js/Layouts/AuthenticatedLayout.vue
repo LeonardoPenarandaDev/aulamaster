@@ -86,6 +86,7 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
                                     :active="route().current('attendance.*') || route().current('evaluation-results.*') || route().current('evaluations.*') || route().current('recovery.*') || route().current('recovery-settings.*')"
                                 >
                                     <DropdownLink :href="route('attendance.index')">Asistencias</DropdownLink>
+                                    <DropdownLink :href="route('attendance.absences')">Inasistencias</DropdownLink>
                                     <DropdownLink :href="route('evaluation-results.index')">Evaluaciones</DropdownLink>
                                     <DropdownLink :href="route('recovery.index')">Recuperaciones</DropdownLink>
                                 </NavDropdown>
@@ -248,7 +249,8 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
 
                         <template v-if="isAdmin()">
                             <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Seguimiento</div>
-                            <ResponsiveNavLink :href="route('attendance.index')" :active="route().current('attendance.*')">Asistencias</ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('attendance.index')" :active="route().current('attendance.index')">Asistencias</ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('attendance.absences')" :active="route().current('attendance.absences')">Inasistencias</ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('evaluation-results.index')" :active="route().current('evaluation-results.*') || route().current('evaluations.*')">Evaluaciones</ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('recovery.index')" :active="route().current('recovery.*') || route().current('recovery-settings.*')">Recuperaciones</ResponsiveNavLink>
                         </template>

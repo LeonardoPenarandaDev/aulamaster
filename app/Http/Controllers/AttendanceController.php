@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Attendance\GetStudentsWithAbsences;
 use App\Actions\Attendance\RecalculateEnrollmentHours;
 use App\Actions\Evaluations\EvaluateLevelCompletion;
 use App\Http\Requests\StoreAttendanceRequest;
@@ -11,6 +12,8 @@ use App\Models\Enrollment;
 use App\Models\Level;
 use App\Models\Student;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -37,6 +40,40 @@ class AttendanceController extends Controller
             'filters' => request()->only('student_id', 'level_id', 'date'),
             'students' => Student::query()->orderBy('name')->get(['id', 'name', 'code']),
             'levels' => Level::query()->orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    /**
+     * Estudiantes que faltaron o no pudieron asistir en un rango de fechas,
+     * con sus datos de contacto para que el instituto pueda llamarlos.
+     */
+    public function absences(Request $request, GetStudentsWithAbsences $getStudentsWithAbsences): Response
+    {
+        Gate::authorize('viewAny', Attendance::class);
+
+        $filters = $request->validate([
+            'from' => ['nullable', 'date'],
+            'to' => ['nullable', 'date', 'after_or_equal:from'],
+            'status' => ['nullable', 'in:todos,ausente,excusado'],
+            'level_id' => ['nullable', 'integer', 'exists:levels,id'],
+        ]);
+
+        $filters = [
+            'from' => $filters['from'] ?? today()->subDays(30)->toDateString(),
+            'to' => $filters['to'] ?? today()->toDateString(),
+            'status' => $filters['status'] ?? 'todos',
+            'level_id' => $filters['level_id'] ?? null,
+        ];
+
+        return Inertia::render('Attendance/Absences', [
+            'students' => $getStudentsWithAbsences->handle(
+                Carbon::parse($filters['from']),
+                Carbon::parse($filters['to']),
+                $filters['status'] === 'todos' ? ['ausente', 'excusado'] : [$filters['status']],
+                $filters['level_id'] ? (int) $filters['level_id'] : null,
+            ),
+            'filters' => $filters,
+            'levels' => Level::query()->with('course:id,name')->orderBy('name')->get(['id', 'name', 'course_id']),
         ]);
     }
 
