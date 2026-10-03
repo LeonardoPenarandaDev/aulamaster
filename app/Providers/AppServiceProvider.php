@@ -9,11 +9,15 @@ use App\Models\ClassSession;
 use App\Models\Enrollment;
 use App\Models\EvaluationResult;
 use App\Models\Extension;
+use App\Models\InstitutionSetting;
 use App\Models\Payment;
+use App\Models\PaymentAgreement;
+use App\Models\PaymentFollowUp;
 use App\Models\Promotion;
 use App\Models\Referral;
 use App\Observers\AuditObserver;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 
@@ -41,6 +45,10 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        // Nombre y logo de la institución para el <title> y el favicon de
+        // la vista raíz de Inertia (parte 1 del plan de mejoras).
+        View::composer('app', fn ($view) => $view->with('institution', InstitutionSetting::branding()));
+
         foreach ([
             Attendance::class,
             AttendanceCorrection::class,
@@ -52,6 +60,8 @@ class AppServiceProvider extends ServiceProvider
             Referral::class,
             ClassSession::class,
             ClassSchedule::class,
+            PaymentAgreement::class,
+            PaymentFollowUp::class,
         ] as $model) {
             $model::observe(AuditObserver::class);
         }

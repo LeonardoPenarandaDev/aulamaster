@@ -21,6 +21,9 @@ const form = useForm({
     email: props.settings.email,
     signer_name: props.settings.signer_name,
     signer_title: props.settings.signer_title,
+    payment_due_day: props.settings.payment_due_day ?? 5,
+    payment_reminder_days: props.settings.payment_reminder_days ?? 2,
+    overdue_alert_days: props.settings.overdue_alert_days ?? 10,
     logo: null,
 });
 
@@ -121,6 +124,31 @@ function submit() {
                                 <TextInput id="signer_title" type="text" v-model="form.signer_title" class="mt-1 block w-full" placeholder="Ej: Directora académica" />
                                 <InputError class="mt-2" :message="form.errors.signer_title" />
                             </div>
+                        </div>
+
+                        <div class="border-t border-gray-100 pt-6">
+                            <h3 class="text-sm font-medium text-gray-900">Mensualidades y mora</h3>
+                            <div class="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-3">
+                                <div>
+                                    <InputLabel for="payment_due_day" value="Día límite de pago" />
+                                    <TextInput id="payment_due_day" type="number" min="1" max="28" v-model="form.payment_due_day" class="mt-1 block w-full" required />
+                                    <InputError class="mt-2" :message="form.errors.payment_due_day" />
+                                </div>
+                                <div>
+                                    <InputLabel for="payment_reminder_days" value="Recordatorio (días antes)" />
+                                    <TextInput id="payment_reminder_days" type="number" min="0" max="10" v-model="form.payment_reminder_days" class="mt-1 block w-full" required />
+                                    <InputError class="mt-2" :message="form.errors.payment_reminder_days" />
+                                </div>
+                                <div>
+                                    <InputLabel for="overdue_alert_days" value="Alerta al admin (días de mora)" />
+                                    <TextInput id="overdue_alert_days" type="number" min="1" max="60" v-model="form.overdue_alert_days" class="mt-1 block w-full" required />
+                                    <InputError class="mt-2" :message="form.errors.overdue_alert_days" />
+                                </div>
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500">
+                                La mensualidad se genera el día 1 y vence el día límite. Al día siguiente pasa a "vencido" y el estudiante queda
+                                bloqueado hasta pagar o tener un acuerdo de pago.
+                            </p>
                         </div>
 
                         <PrimaryButton :disabled="form.processing">Guardar</PrimaryButton>

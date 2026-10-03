@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Http\Requests\Concerns\ValidatesStudentGuardian;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Collection;
@@ -12,6 +13,8 @@ use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
+use Throwable;
 
 /**
  * Registro masivo de estudiantes desde CSV/Excel. Las cabeceras se
@@ -21,6 +24,8 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
  */
 class StudentsImport implements ToCollection, WithHeadingRow
 {
+    use ValidatesStudentGuardian;
+
     public const MAX_ROWS = 1000;
 
     /**
@@ -28,7 +33,24 @@ class StudentsImport implements ToCollection, WithHeadingRow
      *
      * @var list<string>
      */
-    public const COLUMNS = ['codigo', 'nombre', 'documento', 'correo', 'telefono', 'direccion', 'estado', 'contrasena'];
+    public const COLUMNS = [
+        'codigo',
+        'nombre',
+        'tipo_documento',
+        'documento',
+        'fecha_nacimiento',
+        'correo',
+        'telefono',
+        'direccion',
+        'estado',
+        'contrasena',
+        'acudiente_nombre',
+        'acudiente_tipo_documento',
+        'acudiente_documento',
+        'acudiente_parentesco',
+        'acudiente_correo',
+        'acudiente_telefono',
+    ];
 
     public int $createdCount = 0;
 
@@ -57,7 +79,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
     }
 
     /**
-     * @return array{code: ?string, name: ?string, document: ?string, email: ?string, phone: ?string, address: ?string, status: string, password: ?string}
+     * @return array<string, ?string>
      */
     private function normalize(Collection $row): array
     {
@@ -70,13 +92,49 @@ class StudentsImport implements ToCollection, WithHeadingRow
         return [
             'code' => $value('codigo'),
             'name' => $value('nombre'),
+            'document_type' => $value('tipo_documento') ? Str::upper($value('tipo_documento')) : null,
             'document' => $value('documento'),
+            'birth_date' => $this->normalizeDate($row->get('fecha_nacimiento')),
             'email' => $value('correo') ? Str::lower($value('correo')) : null,
             'phone' => $value('telefono'),
             'address' => $value('direccion'),
             'status' => Str::lower($value('estado') ?? 'activo'),
             'password' => $value('contrasena'),
+            'guardian_name' => $value('acudiente_nombre'),
+            'guardian_document_type' => $value('acudiente_tipo_documento') ? Str::upper($value('acudiente_tipo_documento')) : null,
+            'guardian_document' => $value('acudiente_documento'),
+            'guardian_relationship' => $value('acudiente_parentesco'),
+            'guardian_email' => $value('acudiente_correo') ? Str::lower($value('acudiente_correo')) : null,
+            'guardian_phone' => $value('acudiente_telefono'),
         ];
+    }
+
+    /**
+     * Excel guarda las fechas como número de serie; en CSV llegan como texto
+     * (AAAA-MM-DD o DD/MM/AAAA). Si no se reconoce, se deja tal cual para
+     * que la validación reporte el error con su número de fila.
+     */
+    private function normalizeDate(mixed $cell): ?string
+    {
+        if ($cell === null || trim((string) $cell) === '') {
+            return null;
+        }
+
+        if (is_numeric($cell)) {
+            try {
+                return ExcelDate::excelToDateTimeObject((float) $cell)->format('Y-m-d');
+            } catch (Throwable) {
+                return (string) $cell;
+            }
+        }
+
+        $cell = trim((string) $cell);
+
+        if (preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})$#', $cell, $parts)) {
+            return sprintf('%04d-%02d-%02d', $parts[3], $parts[2], $parts[1]);
+        }
+
+        return $cell;
     }
 
     /**
@@ -108,7 +166,9 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 'address' => ['nullable', 'string', 'max:255'],
                 'status' => ['required', Rule::in(['activo', 'inactivo'])],
                 'password' => ['nullable', Password::defaults()],
-            ], [], [
+                ...$this->guardianRules(),
+            ], $this->guardianMessages(), [
+                ...$this->guardianAttributes(),
                 'code' => 'código',
                 'name' => 'nombre',
                 'document' => 'documento',

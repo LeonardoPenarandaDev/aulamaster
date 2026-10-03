@@ -28,7 +28,7 @@ class UpcomingClassNotification extends BaseNotification
             "{$session->level->course->name} {$session->level->name} — {$session->date->format('d/m/Y')}, ".
                 substr($session->start_time, 0, 5).' a '.substr($session->end_time, 0, 5),
             $this->includeTeacher
-                ? "Aula: {$session->classroom->name}. Profesor: {$session->teacher->name}."
+                ? "Aula: {$session->classroom->name}. Profesor: {$session->teacher?->name}."
                 : "Aula: {$session->classroom->name}.",
         ];
     }

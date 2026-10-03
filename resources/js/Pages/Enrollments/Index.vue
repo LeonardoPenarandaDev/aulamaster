@@ -12,10 +12,14 @@ const props = defineProps({
 });
 
 const page = usePage();
+const isAdmin = page.props.auth.roles?.includes('admin');
+// Asistente con contratos (parte 6.3): admin y secretaria.
+const canUseWizard = page.props.auth.roles?.some((role) => ['admin', 'secretaria'].includes(role));
 const filters = ref({
     student_id: props.filters.student_id ?? '',
     level_id: props.filters.level_id ?? '',
     status: props.filters.status ?? '',
+    contracts: props.filters.contracts ?? '',
 });
 
 function applyFilters() {
@@ -94,11 +98,21 @@ function money(value) {
                                 <option v-for="(label, value) in statusLabels" :key="value" :value="value">{{ label }}</option>
                             </select>
                         </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600">Contratos</label>
+                            <select v-model="filters.contracts" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option value="">Todos</option>
+                                <option value="pendientes">Contratos pendientes</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <Link :href="route('enrollments.create')">
-                        <PrimaryButton>Nueva matrícula</PrimaryButton>
-                    </Link>
+                    <div class="flex items-center gap-3">
+                        <Link v-if="canUseWizard" :href="route('enrollments.create')" class="text-sm text-gray-600 hover:text-gray-900">Formulario rápido</Link>
+                        <Link :href="canUseWizard ? route('enrollments.wizard.create') : route('enrollments.create')">
+                            <PrimaryButton>Nueva matrícula</PrimaryButton>
+                        </Link>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
@@ -131,12 +145,19 @@ function money(value) {
                                     <span class="rounded-full px-2 py-1 text-xs font-medium" :class="statusClasses[enrollment.status]">
                                         {{ statusLabels[enrollment.status] }}
                                     </span>
+                                    <span
+                                        v-if="enrollment.open_contracts_count > 0"
+                                        class="ml-1 rounded-full bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800"
+                                        :title="`${enrollment.open_contracts_count} contratos sin firmar`"
+                                    >
+                                        {{ enrollment.open_contracts_count }} por firmar
+                                    </span>
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
                                     <Link :href="route('students.account-statement', enrollment.student_id)" class="text-gray-600 hover:text-gray-900">
                                         Cuenta
                                     </Link>
-                                    <Link :href="route('enrollments.evaluation-results.create', enrollment.id)" class="ml-4 text-green-700 hover:text-green-900">
+                                    <Link v-if="isAdmin" :href="route('enrollments.evaluation-results.create', enrollment.id)" class="ml-4 text-green-700 hover:text-green-900">
                                         Evaluar
                                     </Link>
                                     <Link :href="route('enrollments.edit', enrollment.id)" class="ml-4 text-indigo-600 hover:text-indigo-900">

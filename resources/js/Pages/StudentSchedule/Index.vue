@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -95,44 +95,44 @@ function hours(value) {
 <template>
     <Head title="Horarios disponibles" />
 
-    <AuthenticatedLayout>
+    <AppLayout>
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800">
                 Horarios disponibles
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-3xl space-y-6 sm:px-6 lg:px-8">
-                <div v-if="!enrollment" class="rounded-xl border border-gray-100 bg-white p-4 text-sm text-gray-600 shadow-sm">
+        <div>
+            <div class="space-y-6">
+                <div v-if="!enrollment" class="rounded-2xl border border-gray-200/80 bg-white p-4 text-sm text-gray-600">
                     Todavía no tienes una matrícula activa.
                 </div>
 
                 <template v-else>
                     <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
-                        <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                        <div class="rounded-2xl border border-gray-200/80 bg-white p-4">
                             <p class="text-gray-500">Vistas esta semana</p>
                             <p class="text-xl font-bold tabular-nums text-gray-900">
                                 {{ hours(current_week?.attended_hours ?? 0) }} / {{ hours(enrollment.weekly_hours) }} h
                             </p>
                         </div>
-                        <div class="rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                        <div class="rounded-2xl border border-gray-200/80 bg-white p-4">
                             <p class="text-gray-500">Por recuperar (semanas anteriores)</p>
                             <p class="text-xl font-bold tabular-nums" :class="catch_up.backlog_hours > 0 ? 'text-amber-700' : 'text-gray-900'">
                                 {{ hours(catch_up.backlog_hours) }} h
                             </p>
                         </div>
-                        <div class="rounded-xl border border-indigo-100 bg-indigo-50 p-4 shadow-sm">
+                        <div class="rounded-2xl border border-indigo-100 bg-indigo-50 p-4">
                             <p class="text-indigo-700">Te faltan esta semana para estar al día</p>
                             <p class="text-xl font-bold tabular-nums text-indigo-900">{{ hours(catch_up.needed_this_week) }} h</p>
                         </div>
                     </div>
 
-                    <div v-if="sessions.length === 0" class="rounded-xl border border-gray-100 bg-white p-4 text-sm text-gray-600 shadow-sm">
+                    <div v-if="sessions.length === 0" class="rounded-2xl border border-gray-200/80 bg-white p-4 text-sm text-gray-600">
                         No hay clases programadas para tu nivel en estas dos semanas.
                     </div>
 
-                    <section v-for="week in weeks" :key="week.start" class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+                    <section v-for="week in weeks" :key="week.start" class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white">
                         <header class="border-b border-gray-100 bg-indigo-600 px-5 py-4 text-white">
                             <p class="text-xs font-medium uppercase tracking-wider text-indigo-100">
                                 {{ week.start === currentWeekStart ? 'Esta semana' : 'Próxima semana' }}
@@ -214,5 +214,5 @@ function hours(value) {
                 </template>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </AppLayout>
 </template>

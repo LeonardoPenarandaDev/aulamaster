@@ -11,6 +11,8 @@ use App\Models\Enrollment;
 use App\Models\EvaluationResult;
 use App\Models\Extension;
 use App\Models\Payment;
+use App\Models\PaymentAgreement;
+use App\Models\PaymentFollowUp;
 use App\Models\Promotion;
 use App\Models\Referral;
 use Illuminate\Database\Eloquent\Model;
@@ -42,6 +44,8 @@ class AuditObserver
         Referral::class => 'referidos',
         ClassSession::class => 'programacion_clases',
         ClassSchedule::class => 'programacion_clases',
+        PaymentAgreement::class => 'cartera',
+        PaymentFollowUp::class => 'cartera',
     ];
 
     public function created(Model $model): void

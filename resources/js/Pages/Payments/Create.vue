@@ -18,6 +18,9 @@ const props = defineProps({
 const form = useForm({
     student_id: props.students[0]?.id ?? '',
     enrollment_id: '',
+    type: 'matricula',
+    period: '',
+    due_date: '',
     concept: 'Matrícula',
     base_amount: '',
     discount_amount: 0,
@@ -79,6 +82,29 @@ function submit() {
                                 <InputError class="mt-2" :message="form.errors.enrollment_id" />
                             </div>
                         </div>
+
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                            <div>
+                                <InputLabel for="type" value="Tipo" />
+                                <select id="type" v-model="form.type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="matricula">Matrícula</option>
+                                    <option value="mensualidad">Mensualidad</option>
+                                    <option value="otro">Otro</option>
+                                </select>
+                                <InputError class="mt-2" :message="form.errors.type" />
+                            </div>
+                            <div v-if="form.type === 'mensualidad'">
+                                <InputLabel for="period" value="Mes" />
+                                <TextInput id="period" type="month" v-model="form.period" class="mt-1 block w-full" />
+                                <InputError class="mt-2" :message="form.errors.period" />
+                            </div>
+                            <div>
+                                <InputLabel for="due_date" value="Vence (opcional)" />
+                                <TextInput id="due_date" type="date" v-model="form.due_date" class="mt-1 block w-full" />
+                                <InputError class="mt-2" :message="form.errors.due_date" />
+                            </div>
+                        </div>
+                        <p class="-mt-4 text-xs text-gray-500">Si una matrícula o mensualidad no se paga hasta la fecha de vencimiento, el estudiante queda en mora.</p>
 
                         <div>
                             <InputLabel for="concept" value="Concepto" />

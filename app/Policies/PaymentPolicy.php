@@ -19,9 +19,13 @@ class PaymentPolicy
         return $user->hasRole(['admin', 'cajero']) ? true : null;
     }
 
+    /**
+     * La secretaria consulta pagos y estados de cuenta, pero no registra
+     * ni edita pagos (parte 3 del plan de mejoras).
+     */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasRole('secretaria');
     }
 
     public function view(User $user, Payment $payment): bool

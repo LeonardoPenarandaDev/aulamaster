@@ -10,7 +10,8 @@ class EnrollmentPolicy
     /**
      * Grant all abilities to administrators and to the billing clerk
      * (Fase 15 del checklist: matricula estudiantes y gestiona pagos, sin
-     * acceso operativo/académico).
+     * acceso operativo/académico). La secretaria también matricula, pero
+     * sin los demás permisos (parte 3 del plan de mejoras).
      */
     public function before(User $user): ?bool
     {
@@ -19,7 +20,7 @@ class EnrollmentPolicy
 
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasRole('secretaria');
     }
 
     public function view(User $user, Enrollment $enrollment): bool
@@ -29,12 +30,12 @@ class EnrollmentPolicy
 
     public function create(User $user): bool
     {
-        return false;
+        return $user->hasRole('secretaria');
     }
 
     public function update(User $user, Enrollment $enrollment): bool
     {
-        return false;
+        return $user->hasRole('secretaria');
     }
 
     public function delete(User $user, Enrollment $enrollment): bool

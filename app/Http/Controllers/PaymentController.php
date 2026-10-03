@@ -94,7 +94,14 @@ class PaymentController extends Controller
     {
         $wasOverdue = $payment->status === 'vencido';
 
-        $payment->update($request->validated());
+        $data = $request->safe()->except('final_amount');
+
+        if ($request->filled('final_amount') && $request->canCorrectAmount()) {
+            $data['final_amount'] = $request->validated('final_amount');
+            $data['base_amount'] = (float) $request->validated('final_amount') + (float) $payment->discount_amount;
+        }
+
+        $payment->update($data);
 
         if (! $wasOverdue && $payment->status === 'vencido') {
             $notifyStudent->handle($payment->student, new PaymentOverdueNotification($payment));

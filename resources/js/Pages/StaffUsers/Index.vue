@@ -43,7 +43,7 @@ function applySearch() {
                 </div>
 
                 <p class="text-sm text-gray-500">
-                    Cuentas de administradores, coordinadores y cajeros. Los accesos de profesores y estudiantes se crean desde sus propias fichas.
+                    Cuentas de administradores, coordinadores, cajeros y secretarias. Los accesos de profesores y estudiantes se crean desde sus propias fichas.
                 </p>
 
                 <div class="flex items-center justify-between gap-4">

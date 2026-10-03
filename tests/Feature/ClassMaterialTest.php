@@ -10,6 +10,8 @@ use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 use Tests\Concerns\InteractsWithRoles;
 use Tests\TestCase;
@@ -164,5 +166,81 @@ class ClassMaterialTest extends TestCase
         $this->actingAs($user)
             ->get(route('student-materials.index'))
             ->assertInertia(fn (AssertableInertia $page) => $page->has('sessions', 1));
+    }
+
+    public function test_teacher_uploads_a_pdf_that_only_present_students_can_open(): void
+    {
+        Storage::fake('local');
+        [$teacherUser, $session] = $this->teacherWithSession();
+
+        $this->actingAs($teacherUser)
+            ->post(route('class-materials.store', $session), [
+                'type' => 'pdf',
+                'title' => 'Guía',
+                'file' => UploadedFile::fake()->create('guia.pdf', 300, 'application/pdf'),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $material = ClassMaterial::query()->sole();
+        $this->assertSame('pdf', $material->type);
+        $this->assertNull($material->url);
+        Storage::disk('local')->assertExists($material->file_path);
+
+        [$present] = $this->studentIn($session, 'presente');
+        [$absent] = $this->studentIn($session, 'ausente');
+
+        $this->actingAs($teacherUser)->get(route('class-materials.file', $material))->assertOk();
+        $this->actingAs($present)->get(route('class-materials.file', $material))->assertOk();
+        $this->actingAs($absent)->get(route('class-materials.file', $material))->assertForbidden();
+
+        $this->actingAs($teacherUser)->delete(route('class-materials.destroy', $material));
+        Storage::disk('local')->assertMissing($material->file_path);
+    }
+
+    public function test_files_must_match_the_type_and_size_limits(): void
+    {
+        Storage::fake('local');
+        [$user, $session] = $this->teacherWithSession();
+
+        $this->actingAs($user)
+            ->post(route('class-materials.store', $session), [
+                'type' => 'pdf',
+                'title' => 'Muy grande',
+                'file' => UploadedFile::fake()->create('grande.pdf', 6000, 'application/pdf'),
+            ])
+            ->assertSessionHasErrors('file');
+
+        $this->actingAs($user)
+            ->post(route('class-materials.store', $session), [
+                'type' => 'imagen',
+                'title' => 'No es imagen',
+                'file' => UploadedFile::fake()->create('foto.jpg', 100, 'application/pdf'),
+            ])
+            ->assertSessionHasErrors('file');
+
+        $this->actingAs($user)
+            ->post(route('class-materials.store', $session), [
+                'type' => 'imagen',
+                'title' => 'Foto',
+                'file' => UploadedFile::fake()->image('foto.png', 800, 600),
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(1, ClassMaterial::query()->count());
+    }
+
+    public function test_youtube_material_needs_a_youtube_link(): void
+    {
+        [$user, $session] = $this->teacherWithSession();
+
+        $this->actingAs($user)
+            ->post(route('class-materials.store', $session), ['type' => 'youtube', 'title' => 'Video', 'url' => 'https://vimeo.com/123'])
+            ->assertSessionHasErrors('url');
+
+        $this->actingAs($user)
+            ->post(route('class-materials.store', $session), ['type' => 'youtube', 'title' => 'Video', 'url' => 'https://youtu.be/dQw4w9WgXcQ'])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame('dQw4w9WgXcQ', ClassMaterial::query()->sole()->toPortalArray()['youtube_id']);
     }
 }

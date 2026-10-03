@@ -36,6 +36,7 @@ class UpdateEnrollmentRequest extends FormRequest
             ])],
             'required_hours' => ['required', 'numeric', 'min:0'],
             'weekly_hours' => ['required', 'numeric', 'min:1', 'max:60'],
+            'monthly_fee' => ['nullable', 'numeric', 'min:0'],
             'base_price' => ['required', 'numeric', 'min:0'],
             'final_price' => ['required', 'numeric', 'min:0'],
         ];

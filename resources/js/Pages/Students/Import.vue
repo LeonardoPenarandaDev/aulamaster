@@ -26,12 +26,20 @@ const rowErrors = computed(() =>
 const columnHelp = {
     codigo: 'Obligatorio. Único por estudiante (máx. 20 caracteres).',
     nombre: 'Obligatorio.',
+    tipo_documento: 'Opcional: CC, TI, RC, CE, PA o PPT.',
     documento: 'Opcional.',
+    fecha_nacimiento: 'Opcional: AAAA-MM-DD o DD/MM/AAAA. Necesaria para enviar contratos.',
     correo: 'Opcional. Obligatorio si se indica contraseña.',
     telefono: 'Opcional.',
     direccion: 'Opcional.',
     estado: 'Opcional: activo o inactivo (por defecto activo).',
     contrasena: 'Opcional. Si se indica, se crea el acceso al portal con el correo.',
+    acudiente_nombre: 'Obligatorio para enviar contratos si el estudiante es menor de edad.',
+    acudiente_tipo_documento: 'Opcional: CC, CE, PA o PPT.',
+    acudiente_documento: 'Opcional.',
+    acudiente_parentesco: 'Opcional (madre, padre, tío…).',
+    acudiente_correo: 'Obligatorio para enviar contratos si el estudiante es menor de edad.',
+    acudiente_telefono: 'Opcional. Con indicativo, p. ej. +57 300 123 4567.',
 };
 
 function submit() {

@@ -45,6 +45,7 @@ class InstitutionSettingController extends Controller
         }
 
         $settings->update($data);
+        InstitutionSetting::forgetBranding();
 
         return to_route('institution-settings.edit')->with('success', 'Configuración institucional actualizada.');
     }

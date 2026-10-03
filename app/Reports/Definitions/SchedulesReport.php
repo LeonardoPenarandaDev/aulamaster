@@ -35,7 +35,7 @@ class SchedulesReport extends BaseReport
             $row->date->toDateString(),
             substr($row->start_time, 0, 5).' - '.substr($row->end_time, 0, 5),
             "{$row->level->course->name} {$row->level->name}",
-            $row->teacher->name,
+            $row->teacher?->name ?? 'Sin docente',
             $row->classroom->name,
             $row->status,
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\InstitutionSetting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -35,9 +36,12 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'roles' => fn () => $request->user()?->getRoleNames() ?? [],
             ],
+            'institution' => fn () => InstitutionSetting::branding(),
+            'studentTheme' => fn () => $this->studentTheme($request),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),
+                'contractLink' => fn () => $request->session()->get('contractLink'),
             ],
             'notifications' => [
                 'unreadCount' => fn () => $request->user()?->unreadNotifications()->count() ?? 0,
@@ -49,5 +53,20 @@ class HandleInertiaRequests extends Middleware
                     ?? [],
             ],
         ];
+    }
+
+    /**
+     * Color del nivel actual del estudiante, que se usa como fondo de su
+     * portal (parte 4 del plan de mejoras). Null para los demás roles o si
+     * todavía no tiene matrículas: en ese caso se mantiene el fondo gris.
+     *
+     * @return array{color: string}|null
+     */
+    protected function studentTheme(Request $request): ?array
+    {
+        $student = $request->user()?->hasRole('estudiante') ? $request->user()->student : null;
+        $color = $student?->currentEnrollment()?->level?->color;
+
+        return $color ? ['color' => $color] : null;
     }
 }

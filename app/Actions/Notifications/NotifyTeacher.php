@@ -8,8 +8,15 @@ use Illuminate\Support\Facades\Notification as NotificationFacade;
 
 class NotifyTeacher
 {
-    public function handle(Teacher $teacher, Notification $notification): void
+    /**
+     * Las clases sin docente (parte 11 del plan de mejoras) no notifican a nadie.
+     */
+    public function handle(?Teacher $teacher, Notification $notification): void
     {
+        if (! $teacher) {
+            return;
+        }
+
         if ($teacher->user) {
             $teacher->user->notify($notification);
 

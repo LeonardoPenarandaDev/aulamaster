@@ -18,7 +18,7 @@ class CheckClassSessionConflicts
      */
     public function handle(
         int $classroomId,
-        int $teacherId,
+        ?int $teacherId,
         string $date,
         string $startTime,
         string $endTime,
@@ -45,7 +45,7 @@ class CheckClassSessionConflicts
             $errors['classroom_id'] = 'El aula ya tiene una clase programada que se superpone con este horario.';
         }
 
-        if ($overlapping(ClassSession::query()->where('teacher_id', $teacherId))->exists()) {
+        if ($teacherId && $overlapping(ClassSession::query()->where('teacher_id', $teacherId))->exists()) {
             $errors['teacher_id'] = 'El profesor ya tiene una clase programada que se superpone con este horario.';
         }
 

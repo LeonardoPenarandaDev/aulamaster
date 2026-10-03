@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\ValidatesStudentGuardian;
 use App\Models\Student;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -10,6 +11,8 @@ use Illuminate\Validation\Rules\Password;
 
 class StoreStudentRequest extends FormRequest
 {
+    use ValidatesStudentGuardian;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -39,7 +42,24 @@ class StoreStudentRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(['activo', 'inactivo'])],
+            ...$this->guardianRules(),
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return $this->guardianMessages();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function attributes(): array
+    {
+        return $this->guardianAttributes();
     }
 }

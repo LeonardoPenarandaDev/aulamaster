@@ -1,8 +1,8 @@
 <script setup>
-import { ref } from 'vue';
-import ApplicationLogo from '@/Components/ApplicationLogo.vue';
+import { computed, ref } from 'vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
+import InstitutionLogo from '@/Components/InstitutionLogo.vue';
 import NavDropdown from '@/Components/NavDropdown.vue';
 import NavLink from '@/Components/NavLink.vue';
 import NotificationBell from '@/Components/NotificationBell.vue';
@@ -14,12 +14,22 @@ const page = usePage();
 const isAdmin = () => page.props.auth.roles?.includes('admin');
 const isCoordinador = () => page.props.auth.roles?.includes('coordinador');
 const isCajero = () => page.props.auth.roles?.includes('cajero');
+const isSecretaria = () => page.props.auth.roles?.includes('secretaria');
 const isStudent = () => page.props.auth.roles?.includes('estudiante');
+const isTeacher = () => page.props.auth.roles?.includes('profesor');
+
+// Fondo del estudiante: degradado suave del color de su nivel actual hacia
+// blanco (parte 4 del plan de mejoras). Sin nivel, se mantiene el gris.
+const studentBackground = computed(() => {
+    const color = page.props.studentTheme?.color;
+
+    return color ? { backgroundImage: `linear-gradient(to bottom, ${color}, #ffffff 70%)` } : null;
+});
 </script>
 
 <template>
     <div>
-        <div class="min-h-screen bg-gray-100">
+        <div class="min-h-screen" :class="{ 'bg-gray-100': !studentBackground }" :style="studentBackground">
             <nav
                 class="border-b border-gray-100 bg-white"
             >
@@ -30,10 +40,8 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
                             <!-- Logo -->
                             <div class="flex shrink-0 items-center">
                                 <Link :href="route('dashboard')" class="flex items-center gap-2">
-                                    <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
-                                        <ApplicationLogo class="h-5 w-5 fill-current text-white" />
-                                    </span>
-                                    <span class="hidden text-lg font-bold tracking-tight text-gray-800 sm:block">AulaMaster</span>
+                                    <InstitutionLogo />
+                                    <span class="hidden max-w-[14rem] truncate text-lg font-bold tracking-tight text-gray-800 sm:block">{{ page.props.institution.name }}</span>
                                 </Link>
                             </div>
 
@@ -46,6 +54,13 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
                                     :active="route().current('dashboard')"
                                 >
                                     Dashboard
+                                </NavLink>
+                                <NavLink
+                                    v-if="isStudent() || isTeacher()"
+                                    :href="route('calendar.index')"
+                                    :active="route().current('calendar.*')"
+                                >
+                                    Calendario
                                 </NavLink>
                                 <NavLink
                                     v-if="isStudent()"
@@ -61,6 +76,13 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
                                 >
                                     Material de clase
                                 </NavLink>
+                                <NavLink
+                                    v-if="isStudent()"
+                                    :href="route('student-contracts.index')"
+                                    :active="route().current('student-contracts.*')"
+                                >
+                                    Mis contratos
+                                </NavLink>
                                 <NavDropdown
                                     v-if="isAdmin() || isCoordinador()"
                                     label="Académico"
@@ -69,14 +91,15 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
                                     <DropdownLink :href="route('courses.index')">Cursos</DropdownLink>
                                     <DropdownLink :href="route('levels.index')">Niveles</DropdownLink>
                                     <DropdownLink :href="route('classrooms.index')">Aulas</DropdownLink>
-                                    <DropdownLink :href="route('class-sessions.index')">Calendario</DropdownLink>
+                                    <DropdownLink :href="route('calendar.index')">Calendario</DropdownLink>
+                                    <DropdownLink :href="route('class-sessions.index')">Clases (lista)</DropdownLink>
                                 </NavDropdown>
                                 <NavDropdown
-                                    v-if="isAdmin() || isCajero()"
+                                    v-if="isAdmin() || isCajero() || isSecretaria()"
                                     label="Personas"
                                     :active="route().current('students.*') || route().current('teachers.*') || route().current('enrollments.*')"
                                 >
-                                    <DropdownLink v-if="isAdmin()" :href="route('students.index')">Estudiantes</DropdownLink>
+                                    <DropdownLink v-if="isAdmin() || isSecretaria()" :href="route('students.index')">Estudiantes</DropdownLink>
                                     <DropdownLink v-if="isAdmin()" :href="route('teachers.index')">Profesores</DropdownLink>
                                     <DropdownLink :href="route('enrollments.index')">Matrículas</DropdownLink>
                                 </NavDropdown>
@@ -91,22 +114,25 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
                                     <DropdownLink :href="route('recovery.index')">Recuperaciones</DropdownLink>
                                 </NavDropdown>
                                 <NavDropdown
-                                    v-if="isAdmin() || isCajero()"
+                                    v-if="isAdmin() || isCajero() || isSecretaria()"
                                     label="Finanzas"
-                                    :active="route().current('payments.*') || route().current('promotions.*') || route().current('referrals.*') || route().current('reports.*')"
+                                    :active="route().current('payments.*') || route().current('collections.*') || route().current('promotions.*') || route().current('referrals.*') || route().current('reports.*')"
                                 >
                                     <DropdownLink :href="route('payments.index')">Pagos</DropdownLink>
-                                    <DropdownLink :href="route('promotions.index')">Promociones</DropdownLink>
-                                    <DropdownLink :href="route('reports.index')">Reportes</DropdownLink>
+                                    <DropdownLink :href="route('collections.index')">Cartera en mora</DropdownLink>
+                                    <DropdownLink v-if="!isSecretaria()" :href="route('promotions.index')">Promociones</DropdownLink>
+                                    <DropdownLink v-if="!isSecretaria()" :href="route('reports.index')">Reportes</DropdownLink>
                                 </NavDropdown>
                                 <NavDropdown
-                                    v-if="isAdmin()"
+                                    v-if="isAdmin() || isCoordinador()"
                                     label="Sistema"
-                                    :active="route().current('audit-logs.*') || route().current('institution-settings.*') || route().current('staff-users.*')"
+                                    :active="route().current('audit-logs.*') || route().current('institution-settings.*') || route().current('staff-users.*') || route().current('password-resets.*') || route().current('contract-templates.*')"
                                 >
-                                    <DropdownLink :href="route('staff-users.index')">Usuarios del personal</DropdownLink>
-                                    <DropdownLink :href="route('audit-logs.index')">Auditoría</DropdownLink>
-                                    <DropdownLink :href="route('institution-settings.edit')">Configuración institucional</DropdownLink>
+                                    <DropdownLink v-if="isAdmin()" :href="route('staff-users.index')">Usuarios del personal</DropdownLink>
+                                    <DropdownLink :href="route('password-resets.index')">Restablecer contraseñas</DropdownLink>
+                                    <DropdownLink v-if="isAdmin()" :href="route('contract-templates.index')">Plantillas de contrato</DropdownLink>
+                                    <DropdownLink v-if="isAdmin()" :href="route('audit-logs.index')">Auditoría</DropdownLink>
+                                    <DropdownLink v-if="isAdmin()" :href="route('institution-settings.edit')">Configuración institucional</DropdownLink>
                                 </NavDropdown>
                             </div>
                         </div>
@@ -145,14 +171,14 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
                                         <DropdownLink
                                             :href="route('profile.edit')"
                                         >
-                                            Profile
+                                            Mi perfil
                                         </DropdownLink>
                                         <DropdownLink
                                             :href="route('logout')"
                                             method="post"
                                             as="button"
                                         >
-                                            Log Out
+                                            Cerrar sesión
                                         </DropdownLink>
                                     </template>
                                 </Dropdown>
@@ -219,6 +245,13 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
                             Dashboard
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
+                            v-if="isStudent() || isTeacher()"
+                            :href="route('calendar.index')"
+                            :active="route().current('calendar.*')"
+                        >
+                            Calendario
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
                             v-if="isStudent()"
                             :href="route('student-schedule.index')"
                             :active="route().current('student-schedule.*')"
@@ -232,17 +265,25 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
                         >
                             Material de clase
                         </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            v-if="isStudent()"
+                            :href="route('student-contracts.index')"
+                            :active="route().current('student-contracts.*')"
+                        >
+                            Mis contratos
+                        </ResponsiveNavLink>
                         <template v-if="isAdmin() || isCoordinador()">
                             <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Académico</div>
                             <ResponsiveNavLink :href="route('courses.index')" :active="route().current('courses.*')">Cursos</ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('levels.index')" :active="route().current('levels.*')">Niveles</ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('classrooms.index')" :active="route().current('classrooms.*')">Aulas</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('class-sessions.index')" :active="route().current('class-sessions.*') || route().current('class-schedules.*')">Calendario</ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('calendar.index')" :active="route().current('calendar.*')">Calendario</ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('class-sessions.index')" :active="route().current('class-sessions.*') || route().current('class-schedules.*')">Clases (lista)</ResponsiveNavLink>
                         </template>
 
-                        <template v-if="isAdmin() || isCajero()">
+                        <template v-if="isAdmin() || isCajero() || isSecretaria()">
                             <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Personas</div>
-                            <ResponsiveNavLink v-if="isAdmin()" :href="route('students.index')" :active="route().current('students.*')">Estudiantes</ResponsiveNavLink>
+                            <ResponsiveNavLink v-if="isAdmin() || isSecretaria()" :href="route('students.index')" :active="route().current('students.*')">Estudiantes</ResponsiveNavLink>
                             <ResponsiveNavLink v-if="isAdmin()" :href="route('teachers.index')" :active="route().current('teachers.*')">Profesores</ResponsiveNavLink>
                             <ResponsiveNavLink :href="route('enrollments.index')" :active="route().current('enrollments.*')">Matrículas</ResponsiveNavLink>
                         </template>
@@ -255,18 +296,21 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
                             <ResponsiveNavLink :href="route('recovery.index')" :active="route().current('recovery.*') || route().current('recovery-settings.*')">Recuperaciones</ResponsiveNavLink>
                         </template>
 
-                        <template v-if="isAdmin() || isCajero()">
+                        <template v-if="isAdmin() || isCajero() || isSecretaria()">
                             <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Finanzas</div>
                             <ResponsiveNavLink :href="route('payments.index')" :active="route().current('payments.*')">Pagos</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('promotions.index')" :active="route().current('promotions.*') || route().current('referrals.*')">Promociones</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('reports.index')" :active="route().current('reports.*')">Reportes</ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('collections.index')" :active="route().current('collections.*')">Cartera en mora</ResponsiveNavLink>
+                            <ResponsiveNavLink v-if="!isSecretaria()" :href="route('promotions.index')" :active="route().current('promotions.*') || route().current('referrals.*')">Promociones</ResponsiveNavLink>
+                            <ResponsiveNavLink v-if="!isSecretaria()" :href="route('reports.index')" :active="route().current('reports.*')">Reportes</ResponsiveNavLink>
                         </template>
 
-                        <template v-if="isAdmin()">
+                        <template v-if="isAdmin() || isCoordinador()">
                             <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Sistema</div>
-                            <ResponsiveNavLink :href="route('staff-users.index')" :active="route().current('staff-users.*')">Usuarios del personal</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('audit-logs.index')" :active="route().current('audit-logs.*')">Auditoría</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('institution-settings.edit')" :active="route().current('institution-settings.*')">Configuración institucional</ResponsiveNavLink>
+                            <ResponsiveNavLink v-if="isAdmin()" :href="route('staff-users.index')" :active="route().current('staff-users.*')">Usuarios del personal</ResponsiveNavLink>
+                            <ResponsiveNavLink :href="route('password-resets.index')" :active="route().current('password-resets.*')">Restablecer contraseñas</ResponsiveNavLink>
+                            <ResponsiveNavLink v-if="isAdmin()" :href="route('contract-templates.index')" :active="route().current('contract-templates.*')">Plantillas de contrato</ResponsiveNavLink>
+                            <ResponsiveNavLink v-if="isAdmin()" :href="route('audit-logs.index')" :active="route().current('audit-logs.*')">Auditoría</ResponsiveNavLink>
+                            <ResponsiveNavLink v-if="isAdmin()" :href="route('institution-settings.edit')" :active="route().current('institution-settings.*')">Configuración institucional</ResponsiveNavLink>
                         </template>
                     </div>
 
@@ -287,14 +331,14 @@ const isStudent = () => page.props.auth.roles?.includes('estudiante');
 
                         <div class="mt-3 space-y-1">
                             <ResponsiveNavLink :href="route('profile.edit')">
-                                Profile
+                                Mi perfil
                             </ResponsiveNavLink>
                             <ResponsiveNavLink
                                 :href="route('logout')"
                                 method="post"
                                 as="button"
                             >
-                                Log Out
+                                Cerrar sesión
                             </ResponsiveNavLink>
                         </div>
                     </div>

@@ -86,16 +86,22 @@ class AttendanceController extends Controller
 
         $classSession->load(['level.course', 'teacher', 'classroom']);
 
-        $roster = Enrollment::query()
+        $enrollments = Enrollment::query()
             ->with('student:id,name,code')
             ->where('level_id', $classSession->level_id)
             ->whereIn('status', ['activa', 'en_recuperacion', 'extendida'])
             ->orderBy('id')
-            ->get()
-            ->map(fn (Enrollment $enrollment) => [
-                'enrollment_id' => $enrollment->id,
-                'student' => $enrollment->student,
-            ]);
+            ->get();
+
+        // Al estudiante en mora el docente no le toma asistencia (parte 8 del
+        // plan de mejoras); se muestra deshabilitado en la lista.
+        $blockedStudentIds = Student::blockedForDebtIds($enrollments->pluck('student_id')->all());
+
+        $roster = $enrollments->map(fn (Enrollment $enrollment) => [
+            'enrollment_id' => $enrollment->id,
+            'student' => $enrollment->student,
+            'is_blocked' => in_array($enrollment->student_id, $blockedStudentIds, true),
+        ]);
 
         $existing = Attendance::query()
             ->where('class_session_id', $classSession->id)

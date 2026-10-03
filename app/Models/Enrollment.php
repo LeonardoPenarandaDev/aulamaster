@@ -9,10 +9,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'student_id',
     'level_id',
+    'previous_enrollment_id',
+    'prerequisite_waived',
     'enrolled_at',
     'start_date',
     'estimated_end_date',
@@ -27,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'referral_id',
     'referral_discount',
     'final_price',
+    'monthly_fee',
 ])]
 class Enrollment extends Model
 {
@@ -42,6 +46,7 @@ class Enrollment extends Model
             'start_date' => 'date',
             'estimated_end_date' => 'date',
             'actual_end_date' => 'date',
+            'prerequisite_waived' => 'boolean',
         ];
     }
 
@@ -53,6 +58,25 @@ class Enrollment extends Model
     public function level(): BelongsTo
     {
         return $this->belongsTo(Level::class);
+    }
+
+    /**
+     * Matrícula del nivel anterior que se aprobó para llegar a esta (parte 5
+     * del plan de mejoras).
+     */
+    public function previousEnrollment(): BelongsTo
+    {
+        return $this->belongsTo(Enrollment::class, 'previous_enrollment_id');
+    }
+
+    public function nextEnrollment(): HasOne
+    {
+        return $this->hasOne(Enrollment::class, 'previous_enrollment_id');
+    }
+
+    public function contractSignatures(): HasMany
+    {
+        return $this->hasMany(ContractSignature::class);
     }
 
     public function attendances(): HasMany
@@ -83,6 +107,17 @@ class Enrollment extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Valor de la mensualidad: el ajustado para este estudiante o, si no
+     * tiene, el del nivel (parte 8 del plan de mejoras).
+     */
+    public function effectiveMonthlyFee(): ?float
+    {
+        $fee = $this->monthly_fee ?? $this->level?->monthly_fee;
+
+        return $fee !== null ? (float) $fee : null;
     }
 
     /**

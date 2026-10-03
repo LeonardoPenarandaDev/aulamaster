@@ -28,6 +28,7 @@ class PortalAccessController extends Controller
             'email' => $student->email,
             'password' => $password,
         ]);
+        $user->forceFill(['must_change_password' => true])->save();
         $user->assignRole('estudiante');
         $student->update(['user_id' => $user->id]);
 
@@ -49,6 +50,7 @@ class PortalAccessController extends Controller
             'email' => $teacher->email,
             'password' => $password,
         ]);
+        $user->forceFill(['must_change_password' => true])->save();
         $user->assignRole('profesor');
         $teacher->update(['user_id' => $user->id]);
 

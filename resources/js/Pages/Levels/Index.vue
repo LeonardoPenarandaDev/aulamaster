@@ -7,6 +7,7 @@ import { ref } from 'vue';
 
 const props = defineProps({
     levels: Object,
+    routes: Array,
     filters: Object,
 });
 
@@ -47,6 +48,38 @@ function destroy(level) {
                     {{ page.props.flash.success }}
                 </div>
 
+                <div v-if="routes.length" class="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <h3 class="text-sm font-medium text-gray-900">Rutas de niveles</h3>
+                    <p class="mt-1 text-xs text-gray-500">
+                        Al aprobar un nivel, el estudiante queda matriculado en el siguiente. Configúralo con "Nivel siguiente" al editar cada nivel.
+                    </p>
+                    <div class="mt-4 space-y-4">
+                        <div v-for="courseRoute in routes" :key="courseRoute.course">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">{{ courseRoute.course }}</p>
+                            <div class="mt-2 space-y-2">
+                                <ol
+                                    v-for="(path, pathIndex) in courseRoute.paths"
+                                    :key="pathIndex"
+                                    class="flex flex-wrap items-center gap-2"
+                                >
+                                    <template v-for="(step, index) in path" :key="step.id">
+                                        <li>
+                                            <Link
+                                                :href="route('levels.edit', step.id)"
+                                                class="block rounded-full border border-gray-200 px-3 py-1 text-sm text-gray-800 hover:border-gray-400"
+                                                :style="{ backgroundColor: step.color }"
+                                            >
+                                                {{ step.name }}
+                                            </Link>
+                                        </li>
+                                        <li v-if="index < path.length - 1" aria-hidden="true" class="text-gray-400">→</li>
+                                    </template>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="flex items-center justify-between gap-4">
                     <TextInput
                         v-model="search"
@@ -68,6 +101,7 @@ function destroy(level) {
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Código</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nombre</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Curso</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nivel siguiente</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Horas requeridas</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Precio</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estado</th>
@@ -77,8 +111,18 @@ function destroy(level) {
                         <tbody class="divide-y divide-gray-200 bg-white">
                             <tr v-for="level in levels.data" :key="level.id">
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ level.code }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ level.name }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                                    <span class="flex items-center gap-2">
+                                        <span
+                                            class="inline-block h-4 w-4 shrink-0 rounded-full border border-gray-300"
+                                            :style="{ backgroundColor: level.color }"
+                                            :title="level.color"
+                                        />
+                                        {{ level.name }}
+                                    </span>
+                                </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ level.course?.name }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ level.next_level?.name ?? '—' }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ level.required_hours }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ Number(level.price).toLocaleString('es-CO') }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm">
@@ -106,7 +150,7 @@ function destroy(level) {
                                 </td>
                             </tr>
                             <tr v-if="levels.data.length === 0">
-                                <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                                <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">
                                     No hay niveles registrados.
                                 </td>
                             </tr>

@@ -4,16 +4,21 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import LevelColorPicker from '@/Components/LevelColorPicker.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 const props = defineProps({
     courses: Array,
+    levelOptions: Array,
 });
 
 const form = useForm({
     course_id: props.courses[0]?.id ?? '',
     name: '',
+    color: '#DBEAFE',
+    next_level_id: null,
     code: '',
     duration_months: 4,
     weekly_hours: '',
@@ -21,10 +26,15 @@ const form = useForm({
     required_hours: '',
     minimum_grade: 70,
     price: '',
+    monthly_fee: '',
     start_date: '',
     end_date: '',
     status: 'activo',
 });
+
+const nextLevelOptions = computed(() =>
+    props.levelOptions.filter((option) => option.course_id === Number(form.course_id)),
+);
 
 function submit() {
     form.post(route('levels.store'));
@@ -78,6 +88,23 @@ function submit() {
                             </div>
                         </div>
 
+                        <div>
+                            <InputLabel value="Color del nivel" />
+                            <p class="mt-1 text-xs text-gray-500">Se usa como fondo del portal de los estudiantes de este nivel.</p>
+                            <LevelColorPicker v-model="form.color" class="mt-2" />
+                            <InputError class="mt-2" :message="form.errors.color" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="next_level_id" value="Nivel siguiente" />
+                            <select id="next_level_id" v-model="form.next_level_id" class="mt-1 block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <option :value="null">Ninguno (último nivel de la ruta)</option>
+                                <option v-for="option in nextLevelOptions" :key="option.id" :value="option.id">{{ option.name }} ({{ option.code }})</option>
+                            </select>
+                            <p class="mt-1 text-xs text-gray-500">Al aprobar este nivel, el estudiante queda matriculado automáticamente en el siguiente como pendiente.</p>
+                            <InputError class="mt-2" :message="form.errors.next_level_id" />
+                        </div>
+
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
                             <div>
                                 <InputLabel for="duration_months" value="Duración (meses)" />
@@ -112,10 +139,19 @@ function submit() {
                             </div>
                         </div>
 
-                        <div>
-                            <InputLabel for="price" value="Precio" />
-                            <TextInput id="price" type="number" step="0.01" v-model="form.price" class="mt-1 block w-full max-w-xs" required />
-                            <InputError class="mt-2" :message="form.errors.price" />
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                                <InputLabel for="price" value="Precio de la matrícula" />
+                                <TextInput id="price" type="number" step="0.01" v-model="form.price" class="mt-1 block w-full" required />
+                                <InputError class="mt-2" :message="form.errors.price" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="monthly_fee" value="Mensualidad (opcional)" />
+                                <TextInput id="monthly_fee" type="number" step="1000" min="0" v-model="form.monthly_fee" class="mt-1 block w-full" />
+                                <InputError class="mt-2" :message="form.errors.monthly_fee" />
+                                <p class="mt-1 text-xs text-gray-500">Valor de referencia; se puede ajustar en cada matrícula. Vacío: el nivel no cobra mensualidad.</p>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">

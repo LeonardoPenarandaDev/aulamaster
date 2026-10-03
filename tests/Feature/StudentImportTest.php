@@ -101,7 +101,7 @@ class StudentImportTest extends TestCase
             ->assertOk()
             ->assertDownload('plantilla_estudiantes.csv');
 
-        $this->assertStringContainsString('codigo,nombre,documento,correo', $response->streamedContent());
+        $this->assertStringContainsString('codigo,nombre,tipo_documento,documento,fecha_nacimiento,correo', $response->streamedContent());
     }
 
     public function test_non_admin_cannot_import_students(): void

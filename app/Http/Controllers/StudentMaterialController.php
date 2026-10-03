@@ -37,7 +37,7 @@ class StudentMaterialController extends Controller
                     'start_time' => substr($attendance->classSession->start_time, 0, 5),
                     'end_time' => substr($attendance->classSession->end_time, 0, 5),
                     'materials' => $attendance->classSession->materials
-                        ->map->only(['id', 'title', 'url', 'description'])
+                        ->map->toPortalArray()
                         ->values(),
                 ])
                 ->values()

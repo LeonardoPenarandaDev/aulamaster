@@ -12,7 +12,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Cuentas del personal administrativo (admin, coordinador, cajero). No se
+ * Cuentas del personal administrativo (admin, coordinador, cajero,
+ * secretaria). No se
  * eliminan porque pagos, asistencias y demás registros guardan quién los
  * hizo; en su lugar se desactivan, lo que bloquea el inicio de sesión.
  */

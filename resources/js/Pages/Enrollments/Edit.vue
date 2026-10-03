@@ -1,19 +1,33 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import EnrollmentContractsPanel from '@/Components/Contracts/EnrollmentContractsPanel.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     enrollment: Object,
     students: Array,
     levels: Array,
+    contracts: Object,
 });
 
-const isAdmin = usePage().props.auth.roles?.includes('admin');
+const page = usePage();
+const isAdmin = page.props.auth.roles?.includes('admin');
+
+const canPromote = isAdmin
+    && props.enrollment.status === 'aprobada'
+    && props.enrollment.level?.next_level
+    && !props.enrollment.next_enrollment;
+
+function promote() {
+    if (confirm(`¿Matricular al estudiante en ${props.enrollment.level.next_level.name} como pendiente?`)) {
+        router.post(route('enrollments.promote', props.enrollment.id));
+    }
+}
 
 const form = useForm({
     student_id: props.enrollment.student_id,
@@ -27,6 +41,7 @@ const form = useForm({
     weekly_hours: props.enrollment.weekly_hours,
     base_price: props.enrollment.base_price,
     final_price: props.enrollment.final_price,
+    monthly_fee: props.enrollment.monthly_fee ?? '',
 });
 
 function submit() {
@@ -161,6 +176,13 @@ function submitExtension() {
                             </div>
                         </div>
 
+                        <div>
+                            <InputLabel for="monthly_fee" value="Mensualidad" />
+                            <TextInput id="monthly_fee" type="number" step="1000" min="0" v-model="form.monthly_fee" class="mt-1 block w-full max-w-xs" />
+                            <InputError class="mt-2" :message="form.errors.monthly_fee" />
+                            <p class="mt-1 text-xs text-gray-500">Tomada del nivel; ajústala si este estudiante paga otro valor. Vacía: no se cobra mensualidad.</p>
+                        </div>
+
                         <div class="flex items-center gap-4">
                             <PrimaryButton :disabled="form.processing">Guardar</PrimaryButton>
                             <Link :href="route('enrollments.index')">
@@ -177,7 +199,47 @@ function submitExtension() {
                     </form>
                 </div>
 
-                <div class="mt-6 bg-white p-6 shadow-sm sm:rounded-lg">
+                <EnrollmentContractsPanel v-if="contracts" :enrollment="enrollment" :contracts="contracts" />
+
+                <div
+                    v-if="enrollment.previous_enrollment || enrollment.next_enrollment || enrollment.level?.next_level || enrollment.prerequisite_waived"
+                    class="mt-6 bg-white p-6 shadow-sm sm:rounded-lg"
+                >
+                    <h3 class="text-sm font-medium text-gray-900">Ruta de niveles</h3>
+
+                    <div v-if="page.props.flash?.success" class="mt-3 rounded-md bg-green-50 p-3 text-sm text-green-700">
+                        {{ page.props.flash.success }}
+                    </div>
+
+                    <ul class="mt-3 space-y-2 text-sm text-gray-600">
+                        <li v-if="enrollment.previous_enrollment">
+                            Viene de
+                            <Link :href="route('enrollments.edit', enrollment.previous_enrollment.id)" class="font-medium text-indigo-600 hover:text-indigo-800">
+                                {{ enrollment.previous_enrollment.level?.name }}
+                            </Link>
+                            (aprobado).
+                        </li>
+                        <li v-if="enrollment.prerequisite_waived" class="text-amber-700">
+                            Matriculado sin haber aprobado el nivel anterior: el administrador omitió el requisito.
+                        </li>
+                        <li v-if="enrollment.level?.next_level">
+                            Nivel siguiente: <strong>{{ enrollment.level.next_level.name }}</strong>
+                            <template v-if="enrollment.next_enrollment">
+                                ·
+                                <Link :href="route('enrollments.edit', enrollment.next_enrollment.id)" class="font-medium text-indigo-600 hover:text-indigo-800">
+                                    ver matrícula ({{ enrollment.next_enrollment.status }})
+                                </Link>
+                            </template>
+                        </li>
+                        <li v-else class="text-gray-500">Este es el último nivel de la ruta.</li>
+                    </ul>
+
+                    <PrimaryButton v-if="canPromote" class="mt-4" type="button" @click="promote">
+                        Pasar al siguiente nivel
+                    </PrimaryButton>
+                </div>
+
+                <div v-if="isAdmin" class="mt-6 bg-white p-6 shadow-sm sm:rounded-lg">
                     <h3 class="text-sm font-medium text-gray-900">Extensión de nivel</h3>
                     <p class="mt-1 text-xs text-gray-500">
                         Registra un cambio en la fecha estimada de finalización (por ejemplo, por un proceso de recuperación).

@@ -40,7 +40,8 @@ class StudentImportController extends Controller
             $output = fopen('php://output', 'w');
             fwrite($output, "\xEF\xBB\xBF");
             fputcsv($output, StudentsImport::COLUMNS);
-            fputcsv($output, ['EST-001', 'Ana Gómez', '1234567890', 'ana@correo.com', '3001234567', 'Calle 1 # 2-3', 'activo', '']);
+            fputcsv($output, ['EST-001', 'Ana Gómez', 'CC', '1234567890', '1995-04-20', 'ana@correo.com', '3001234567', 'Calle 1 # 2-3', 'activo', '', '', '', '', '', '', '']);
+            fputcsv($output, ['EST-002', 'Luis Pérez', 'TI', '1098765432', '2012-08-15', 'luis@correo.com', '3009876543', 'Calle 4 # 5-6', 'activo', '', 'Marta Pérez', 'CC', '52123456', 'Madre', 'marta@correo.com', '+57 310 555 1234']);
             fclose($output);
         }, 'plantilla_estudiantes.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }

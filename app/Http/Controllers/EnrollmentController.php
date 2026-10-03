@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Contracts\GenerateEnrollmentContracts;
+use App\Actions\Contracts\ResolveContractSigner;
+use App\Actions\Evaluations\PromoteToNextLevel;
 use App\Actions\Pricing\CalculateEnrollmentPrice;
 use App\Http\Requests\StoreEnrollmentRequest;
 use App\Http\Requests\UpdateEnrollmentRequest;
 use App\Models\AuditLog;
+use App\Models\ContractSignature;
 use App\Models\Enrollment;
 use App\Models\InstitutionSetting;
 use App\Models\Level;
@@ -37,10 +41,12 @@ class EnrollmentController extends Controller
                 ->when(request('student_id'), fn ($query, $id) => $query->where('student_id', $id))
                 ->when(request('level_id'), fn ($query, $id) => $query->where('level_id', $id))
                 ->when(request('status'), fn ($query, $status) => $query->where('status', $status))
+                ->when(request('contracts') === 'pendientes', fn ($query) => $query->whereHas('contractSignatures', fn ($query) => $query->open()))
+                ->withCount(['contractSignatures as open_contracts_count' => fn ($query) => $query->open()])
                 ->orderByDesc('enrolled_at')
                 ->paginate(15)
                 ->withQueryString(),
-            'filters' => request()->only('student_id', 'level_id', 'status'),
+            'filters' => request()->only('student_id', 'level_id', 'status', 'contracts'),
             'students' => Student::query()->orderBy('name')->get(['id', 'name', 'code']),
             'levels' => Level::query()->orderBy('name')->get(['id', 'name']),
         ]);
@@ -55,8 +61,8 @@ class EnrollmentController extends Controller
 
         return Inertia::render('Enrollments/Create', [
             'students' => Student::query()->orderBy('name')->get(['id', 'name', 'code']),
-            'levels' => Level::query()->with('course:id,name')->orderBy('name')->get([
-                'id', 'name', 'course_id', 'duration_months', 'required_hours', 'weekly_hours', 'price',
+            'levels' => Level::query()->with(['course:id,name', 'previousLevel:id,name,next_level_id'])->orderBy('name')->get([
+                'id', 'name', 'course_id', 'duration_months', 'required_hours', 'weekly_hours', 'price', 'monthly_fee',
             ]),
             'promotions' => Promotion::query()->where('status', 'activo')->orderBy('name')->get([
                 'id', 'name', 'discount_type', 'value', 'course_id', 'level_id',
@@ -79,21 +85,55 @@ class EnrollmentController extends Controller
         $pricing = $calculatePrice->handle($level, $student, $promotion, $referral, $basePrice !== null ? (float) $basePrice : null);
 
         Enrollment::create([
-            ...$request->validated(),
+            ...$request->safe()->except('skip_prerequisite'),
             ...$pricing,
+            'monthly_fee' => $request->validated('monthly_fee') ?? $level->monthly_fee,
+            'prerequisite_waived' => $request->isMissingPrerequisite() && $request->prerequisiteWaived(),
         ]);
 
         return to_route('enrollments.index')->with('success', 'Matrícula registrada correctamente.');
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Botón manual "Pasar al siguiente nivel" (parte 5 del plan de mejoras),
+     * por si la matrícula se aprobó antes de configurar la ruta de niveles.
      */
-    public function edit(Enrollment $enrollment): Response
+    public function promote(Enrollment $enrollment, PromoteToNextLevel $promoteToNextLevel): RedirectResponse
     {
         Gate::authorize('update', $enrollment);
 
-        $enrollment->load(['extensions.extendedBy:id,name', 'promotion:id,name', 'referral.referrer:id,name']);
+        if ($enrollment->status !== 'aprobada') {
+            return back()->with('error', 'Solo se puede pasar al siguiente nivel una matrícula aprobada.');
+        }
+
+        if (! $enrollment->level->next_level_id) {
+            return back()->with('error', 'Este nivel no tiene un nivel siguiente configurado.');
+        }
+
+        $nextEnrollment = $promoteToNextLevel->handle($enrollment);
+
+        if (! $nextEnrollment) {
+            return back()->with('error', 'El estudiante ya tiene una matrícula en el nivel siguiente.');
+        }
+
+        return to_route('enrollments.edit', $nextEnrollment)->with('success', 'Matrícula del siguiente nivel creada como pendiente.');
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Enrollment $enrollment, GenerateEnrollmentContracts $generateContracts, ResolveContractSigner $resolveSigner): Response
+    {
+        Gate::authorize('update', $enrollment);
+
+        $enrollment->load([
+            'extensions.extendedBy:id,name',
+            'promotion:id,name',
+            'referral.referrer:id,name',
+            'level.nextLevel:id,name',
+            'nextEnrollment:id,previous_enrollment_id,level_id,status',
+            'previousEnrollment.level:id,name',
+        ]);
 
         return Inertia::render('Enrollments/Edit', [
             'enrollment' => [
@@ -105,9 +145,55 @@ class EnrollmentController extends Controller
             ],
             'students' => Student::query()->orderBy('name')->get(['id', 'name', 'code']),
             'levels' => Level::query()->with('course:id,name')->orderBy('name')->get([
-                'id', 'name', 'course_id', 'duration_months', 'required_hours', 'weekly_hours', 'price',
+                'id', 'name', 'course_id', 'duration_months', 'required_hours', 'weekly_hours', 'price', 'monthly_fee',
             ]),
+            'contracts' => Gate::allows('manage', ContractSignature::class)
+                ? $this->contractsSummary($enrollment, $generateContracts, $resolveSigner)
+                : null,
         ]);
+    }
+
+    /**
+     * Pestaña "Contratos" de la matrícula (parte 6.5 del plan de mejoras).
+     *
+     * @return array<string, mixed>
+     */
+    private function contractsSummary(Enrollment $enrollment, GenerateEnrollmentContracts $generateContracts, ResolveContractSigner $resolveSigner): array
+    {
+        $enrollment->loadMissing('student');
+
+        return [
+            'items' => $enrollment->contractSignatures()
+                ->with(['template:id,name,acceptance_mode', 'sentBy:id,name'])
+                ->orderBy('id')
+                ->get()
+                ->map(fn (ContractSignature $signature) => [
+                    'id' => $signature->id,
+                    'name' => $signature->template->name,
+                    'version' => $signature->template_version,
+                    'is_optional' => $signature->template->acceptance_mode === 'opcional',
+                    'status' => $signature->status,
+                    'status_label' => ContractSignature::STATUS_LABELS[$signature->status],
+                    'decision' => $signature->decision,
+                    'signing_method' => $signature->signing_method,
+                    'signer_name' => $signature->signer_name,
+                    'signer_role' => $signature->signer_role,
+                    'signed_at' => $signature->signed_at?->format('Y-m-d H:i'),
+                    'sent_via' => $signature->sent_via,
+                    'sent_at' => $signature->sent_at?->format('Y-m-d H:i'),
+                    'opened_at' => $signature->opened_at?->format('Y-m-d H:i'),
+                    'link_expires_at' => $signature->link_expires_at?->toDateString(),
+                    'has_id_photos' => $signature->hasIdPhotos(),
+                    'has_id_back' => $signature->id_back_path !== null,
+                    'special_clauses' => $signature->special_clauses,
+                    'void_reason' => $signature->void_reason,
+                ]),
+            'pendingTemplates' => $generateContracts->pendingTemplates($enrollment)
+                ->map->only(['id', 'name', 'acceptance_mode', 'scope'])
+                ->values(),
+            'signer' => $resolveSigner->handle($enrollment->student),
+            'missingData' => $enrollment->student->missingContractData(),
+        ];
     }
 
     /**

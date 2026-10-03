@@ -11,6 +11,8 @@ const props = defineProps({
 });
 
 const page = usePage();
+// La secretaria solo consulta los pagos (parte 3 del plan de mejoras).
+const canManagePayments = page.props.auth.roles?.some((role) => ['admin', 'cajero'].includes(role));
 const filters = ref({
     student_id: props.filters.student_id ?? '',
     status: props.filters.status ?? '',
@@ -73,7 +75,7 @@ function money(value) {
                         </div>
                     </div>
 
-                    <Link :href="route('payments.create')">
+                    <Link v-if="canManagePayments" :href="route('payments.create')">
                         <PrimaryButton>Registrar pago</PrimaryButton>
                     </Link>
                 </div>
@@ -106,7 +108,7 @@ function money(value) {
                                     </span>
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
-                                    <Link :href="route('payments.edit', payment.id)" class="text-indigo-600 hover:text-indigo-900">
+                                    <Link v-if="canManagePayments" :href="route('payments.edit', payment.id)" class="text-indigo-600 hover:text-indigo-900">
                                         Editar
                                     </Link>
                                 </td>

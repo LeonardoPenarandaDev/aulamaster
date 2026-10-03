@@ -6,6 +6,7 @@ use App\Models\ClassSession;
 use App\Models\Enrollment;
 use App\Models\Student;
 use App\Notifications\ClassCancelledNotification;
+use App\Notifications\ClassRescheduledNotification;
 use App\Notifications\ClassroomChangedNotification;
 use Illuminate\Support\Collection;
 
@@ -30,6 +31,17 @@ class NotifyClassSessionChange
 
         $this->enrolledStudents($session)->each(fn (Student $student) => $this->notifyStudent->handle($student, clone $notification));
         $this->notifyTeacher->handle($session->teacher, $notification);
+    }
+
+    public function rescheduled(ClassSession $session, string $previousSchedule): void
+    {
+        $notification = new ClassRescheduledNotification($session, $previousSchedule);
+
+        $this->enrolledStudents($session)->each(fn (Student $student) => $this->notifyStudent->handle($student, clone $notification));
+
+        if ($session->teacher) {
+            $this->notifyTeacher->handle($session->teacher, $notification);
+        }
     }
 
     /**

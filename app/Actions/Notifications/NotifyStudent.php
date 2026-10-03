@@ -26,4 +26,17 @@ class NotifyStudent
             NotificationFacade::route('mail', $student->email)->notify($notification);
         }
     }
+
+    /**
+     * Igual que handle(), y si el estudiante es menor de edad también le
+     * llega por correo al acudiente (parte 8 del plan de mejoras).
+     */
+    public function handleWithGuardian(Student $student, Notification $notification): void
+    {
+        $this->handle($student, $notification);
+
+        if ($student->isMinor() && $student->guardian_email && $student->guardian_email !== $student->email) {
+            NotificationFacade::route('mail', $student->guardian_email)->notify($notification);
+        }
+    }
 }

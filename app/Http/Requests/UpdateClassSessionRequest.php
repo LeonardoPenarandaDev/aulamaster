@@ -27,7 +27,7 @@ class UpdateClassSessionRequest extends FormRequest
     {
         return [
             'level_id' => ['required', 'exists:levels,id'],
-            'teacher_id' => ['required', 'exists:teachers,id'],
+            'teacher_id' => ['nullable', 'exists:teachers,id'],
             'classroom_id' => ['required', 'exists:classrooms,id'],
             'modality' => ['sometimes', Rule::in(['presencial', 'virtual'])],
             'meeting_url' => ['nullable', 'url:http,https', 'max:2048'],
@@ -36,6 +36,7 @@ class UpdateClassSessionRequest extends FormRequest
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'status' => ['required', Rule::in(['programada', 'dictada', 'cancelada', 'reprogramada'])],
             'notes' => ['nullable', 'string'],
+            'return_to' => ['nullable', Rule::in(['calendar'])],
         ];
     }
 
@@ -51,7 +52,7 @@ class UpdateClassSessionRequest extends FormRequest
 
             $conflicts = app(CheckClassSessionConflicts::class)->handle(
                 classroomId: (int) $this->input('classroom_id'),
-                teacherId: (int) $this->input('teacher_id'),
+                teacherId: $this->filled('teacher_id') ? (int) $this->input('teacher_id') : null,
                 date: $this->input('date'),
                 startTime: $this->input('start_time'),
                 endTime: $this->input('end_time'),

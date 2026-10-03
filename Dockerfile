@@ -35,6 +35,7 @@ COPY --from=node-build /app/public/build /var/www/html/public/build
 
 COPY docker/nginx.conf /etc/nginx/sites-available/default
 COPY docker/php-fpm-pool.conf /usr/local/etc/php-fpm.d/www.conf
+COPY docker/php-uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh

@@ -15,6 +15,7 @@ class EvaluateLevelCompletion
 {
     public function __construct(
         protected NotifyStudent $notifyStudent,
+        protected PromoteToNextLevel $promoteToNextLevel,
     ) {}
 
     /**
@@ -54,6 +55,7 @@ class EvaluateLevelCompletion
         if ($allApproved && $hoursComplete) {
             $enrollment->update(['status' => 'aprobada', 'actual_end_date' => now()->toDateString()]);
             $this->notifyStudent->handle($enrollment->student, new LevelApprovedNotification($enrollment));
+            $this->promoteToNextLevel->handle($enrollment);
 
             return;
         }
@@ -102,6 +104,7 @@ class EvaluateLevelCompletion
 
         $enrollment->update(['status' => 'aprobada', 'actual_end_date' => now()->toDateString()]);
         $this->notifyStudent->handle($enrollment->student, new LevelApprovedNotification($enrollment));
+        $this->promoteToNextLevel->handle($enrollment);
 
         return true;
     }

@@ -16,11 +16,13 @@ class StudentPolicy
     }
 
     /**
-     * Determine whether the user can view any models.
+     * Determine whether the user can view any models. La secretaria
+     * registra y edita estudiantes, pero no los elimina ni importa
+     * (parte 3 del plan de mejoras).
      */
     public function viewAny(User $user): bool
     {
-        return false;
+        return $user->hasRole('secretaria');
     }
 
     /**
@@ -36,7 +38,7 @@ class StudentPolicy
      */
     public function create(User $user): bool
     {
-        return false;
+        return $user->hasRole('secretaria');
     }
 
     /**
@@ -44,7 +46,7 @@ class StudentPolicy
      */
     public function update(User $user, Student $student): bool
     {
-        return false;
+        return $user->hasRole('secretaria');
     }
 
     /**

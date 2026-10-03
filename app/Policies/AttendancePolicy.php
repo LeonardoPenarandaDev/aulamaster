@@ -15,8 +15,14 @@ class AttendancePolicy
      * edited or removed directly (sección 16 del plan), even by an admin.
      * Corrections go through AttendanceCorrectionController instead.
      */
-    public function before(User $user): ?bool
+    public function before(User $user, string $ability, mixed ...$arguments): ?bool
     {
+        // Sin docente no se toma asistencia, ni siquiera el admin (parte 11
+        // del plan de mejoras): la asistencia queda a nombre del docente.
+        if ($ability === 'create' && ($arguments[1] ?? null) instanceof ClassSession && ! $arguments[1]->teacher_id) {
+            return false;
+        }
+
         return $user->hasRole('admin') ? true : null;
     }
 
@@ -39,7 +45,7 @@ class AttendancePolicy
      */
     public function create(User $user, ClassSession $classSession): bool
     {
-        return $classSession->teacher->user_id === $user->id && $classSession->date->isToday();
+        return $classSession->teacher?->user_id === $user->id && $classSession->date->isToday();
     }
 
     /**

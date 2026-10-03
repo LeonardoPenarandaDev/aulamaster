@@ -91,5 +91,44 @@ defineProps({
             <path d="M3.5 10h17" />
             <circle cx="17" cy="14.5" r="1" fill="currentColor" stroke="none" />
         </template>
+
+        <template v-else-if="name === 'home'">
+            <path d="M4 10.5 12 4l8 6.5" />
+            <path d="M6 9v10.5h4.5V15h3v4.5H18V9" />
+        </template>
+
+        <template v-else-if="name === 'document'">
+            <path d="M7 3.5h7l4 4V20.5H7z" />
+            <path d="M14 3.5v4h4" />
+            <path d="M9.5 12h6M9.5 15.5h6" />
+        </template>
+
+        <template v-else-if="name === 'user'">
+            <circle cx="12" cy="8.5" r="3.5" />
+            <path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5" />
+        </template>
+
+        <template v-else-if="name === 'video'">
+            <rect x="3.5" y="6.5" width="12" height="11" rx="2" />
+            <path d="m15.5 10.5 5-3v9l-5-3" />
+        </template>
+
+        <template v-else-if="name === 'logout'">
+            <path d="M14 4.5H6.5v15H14" />
+            <path d="M10.5 12h10M17 8.5l3.5 3.5-3.5 3.5" />
+        </template>
+
+        <template v-else-if="name === 'folder'">
+            <path d="M3.5 7a1.5 1.5 0 0 1 1.5-1.5h4l2 2h8A1.5 1.5 0 0 1 20.5 9v8.5A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z" />
+        </template>
+
+        <template v-else-if="name === 'link'">
+            <path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1 1" />
+            <path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1-1" />
+        </template>
+
+        <template v-else-if="name === 'chevron-right'">
+            <path d="m9.5 6 6 6-6 6" />
+        </template>
     </svg>
 </template>

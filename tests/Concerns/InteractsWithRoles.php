@@ -13,7 +13,7 @@ trait InteractsWithRoles
 {
     protected function ensureRolesExist(): void
     {
-        foreach (['admin', 'profesor', 'estudiante', 'coordinador', 'cajero'] as $role) {
+        foreach (['admin', 'profesor', 'estudiante', 'coordinador', 'cajero', 'secretaria'] as $role) {
             Role::findOrCreate($role);
         }
     }
@@ -64,6 +64,16 @@ trait InteractsWithRoles
 
         $user = User::factory()->create();
         $user->assignRole('cajero');
+
+        return $user;
+    }
+
+    protected function secretariaUser(): User
+    {
+        $this->ensureRolesExist();
+
+        $user = User::factory()->create();
+        $user->assignRole('secretaria');
 
         return $user;
     }

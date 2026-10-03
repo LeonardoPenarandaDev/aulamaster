@@ -28,12 +28,13 @@ class User extends Authenticatable
         'admin' => 'Administrador',
         'coordinador' => 'Coordinador',
         'cajero' => 'Cajero / Facturación',
+        'secretaria' => 'Secretaria',
     ];
 
     /**
      * @var list<string>
      */
-    public const STAFF_ROLES = ['admin', 'coordinador', 'cajero'];
+    public const STAFF_ROLES = ['admin', 'coordinador', 'cajero', 'secretaria'];
 
     /**
      * Get the attributes that should be cast.
@@ -46,6 +47,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'must_change_password' => 'boolean',
         ];
     }
 

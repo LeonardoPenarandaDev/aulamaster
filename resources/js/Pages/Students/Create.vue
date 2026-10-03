@@ -4,19 +4,32 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import StudentGuardianFields from '@/Components/StudentGuardianFields.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+
+defineProps({
+    documentTypes: Object,
+});
 
 const form = useForm({
     code: '',
     name: '',
+    document_type: null,
     document: '',
+    birth_date: '',
     email: '',
     phone: '',
     address: '',
     status: 'activo',
     password: '',
     password_confirmation: '',
+    guardian_name: '',
+    guardian_document_type: null,
+    guardian_document: '',
+    guardian_relationship: '',
+    guardian_email: '',
+    guardian_phone: '',
 });
 
 function submit() {
@@ -63,9 +76,24 @@ function submit() {
 
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
+                                <InputLabel for="document_type" value="Tipo de documento" />
+                                <select id="document_type" v-model="form.document_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option :value="null">Sin especificar</option>
+                                    <option v-for="(label, value) in documentTypes" :key="value" :value="value">{{ label }}</option>
+                                </select>
+                                <InputError class="mt-2" :message="form.errors.document_type" />
+                            </div>
+
+                            <div>
                                 <InputLabel for="document" value="Documento" />
                                 <TextInput id="document" v-model="form.document" class="mt-1 block w-full" />
                                 <InputError class="mt-2" :message="form.errors.document" />
+                            </div>
+
+                            <div>
+                                <InputLabel for="birth_date" value="Fecha de nacimiento" />
+                                <TextInput id="birth_date" type="date" v-model="form.birth_date" class="mt-1 block w-full" />
+                                <InputError class="mt-2" :message="form.errors.birth_date" />
                             </div>
 
                             <div>
@@ -86,6 +114,8 @@ function submit() {
                                 <InputError class="mt-2" :message="form.errors.address" />
                             </div>
                         </div>
+
+                        <StudentGuardianFields :form="form" :document-types="documentTypes" />
 
                         <div class="border-t border-gray-200 pt-6">
                             <h3 class="text-sm font-medium text-gray-900">Acceso al portal (opcional)</h3>

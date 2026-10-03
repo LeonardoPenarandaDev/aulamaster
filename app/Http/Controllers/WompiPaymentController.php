@@ -30,7 +30,9 @@ class WompiPaymentController extends Controller
     {
         Gate::authorize('view', $payment);
 
-        abort_unless($payment->status === 'pendiente', 422, 'Este pago ya no está pendiente.');
+        // Los vencidos también se pagan en línea: es la forma de desbloquear
+        // al estudiante en mora (parte 8 del plan de mejoras).
+        abort_unless(in_array($payment->status, ['pendiente', 'vencido'], true), 422, 'Este pago ya no está pendiente.');
         abort_unless($wompi->isConfigured(), 503, 'La pasarela de pagos no está configurada todavía.');
 
         if (! $payment->gateway_reference) {

@@ -123,16 +123,20 @@ class ClassSessionController extends Controller
     {
         $wasCancelled = $classSession->status !== 'cancelada';
         $previousClassroom = $classSession->classroom;
+        $previousSchedule = $classSession->date->format('d/m/Y').' de '.substr($classSession->start_time, 0, 5).' a '.substr($classSession->end_time, 0, 5);
 
-        $classSession->update($request->validated());
+        $classSession->update($request->safe()->except('return_to'));
 
         if ($wasCancelled && $classSession->status === 'cancelada') {
             $notifyChange->cancelled($classSession);
+        } elseif ($classSession->wasChanged(['date', 'start_time', 'end_time'])) {
+            $notifyChange->rescheduled($classSession, $previousSchedule);
         } elseif ($classSession->classroom_id !== $previousClassroom->id) {
             $notifyChange->classroomChanged($classSession, $previousClassroom->name);
         }
 
-        return to_route('class-sessions.index')->with('success', 'Clase actualizada correctamente.');
+        return redirect($request->input('return_to') === 'calendar' ? route('calendar.index', ['date' => $classSession->date->toDateString()]) : route('class-sessions.index'))
+            ->with('success', 'Clase actualizada correctamente.');
     }
 
     /**

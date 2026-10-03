@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
+use App\Models\ContractSignature;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
@@ -29,7 +30,12 @@ class StudentController extends Controller
                 ))
                 ->orderBy('name')
                 ->paginate(15)
-                ->withQueryString(),
+                ->withQueryString()
+                ->through(fn (Student $student) => [
+                    ...$student->toArray(),
+                    'is_minor' => $student->isMinor(),
+                    'missing_contract_data' => $student->missingContractData(),
+                ]),
             'filters' => request()->only('search'),
         ]);
     }
@@ -41,7 +47,9 @@ class StudentController extends Controller
     {
         Gate::authorize('create', Student::class);
 
-        return Inertia::render('Students/Create');
+        return Inertia::render('Students/Create', [
+            'documentTypes' => Student::DOCUMENT_TYPES,
+        ]);
     }
 
     /**
@@ -76,7 +84,26 @@ class StudentController extends Controller
         Gate::authorize('update', $student);
 
         return Inertia::render('Students/Edit', [
-            'student' => $student->load('user:id,email'),
+            'student' => [
+                ...$student->load('user:id,email')->toArray(),
+                'birth_date' => $student->birth_date?->toDateString(),
+            ],
+            'documentTypes' => Student::DOCUMENT_TYPES,
+            'signedContracts' => $student->contractSignatures()
+                ->where('status', 'firmado')
+                ->with(['template:id,name,acceptance_mode', 'enrollment.level:id,name'])
+                ->latest('signed_at')
+                ->get()
+                ->map(fn (ContractSignature $signature) => [
+                    'id' => $signature->id,
+                    'name' => $signature->template->name,
+                    'version' => $signature->template_version,
+                    'level' => $signature->enrollment?->level?->name,
+                    'signer_name' => $signature->signer_name,
+                    'signer_role' => $signature->signer_role,
+                    'signed_at' => $signature->signed_at?->format('Y-m-d H:i'),
+                    'decision' => $signature->template->acceptance_mode === 'opcional' ? $signature->decision : null,
+                ]),
         ]);
     }
 

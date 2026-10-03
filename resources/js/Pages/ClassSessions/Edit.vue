@@ -25,6 +25,8 @@ const form = useForm({
     end_time: props.classSession.end_time,
     status: props.classSession.status,
     notes: props.classSession.notes,
+    // Si se abrió desde el calendario, se vuelve al calendario al guardar.
+    return_to: new URLSearchParams(window.location.search).get('return_to'),
 });
 
 function submit() {
@@ -58,6 +60,7 @@ function submit() {
                             <div>
                                 <InputLabel for="teacher_id" value="Profesor" />
                                 <select id="teacher_id" v-model="form.teacher_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option :value="null">Sin docente (asignar después)</option>
                                     <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">{{ teacher.name }}</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.teacher_id" />

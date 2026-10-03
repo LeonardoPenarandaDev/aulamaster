@@ -40,14 +40,18 @@ class DashboardController extends Controller
             return to_route('enrollments.index');
         }
 
+        if ($user->hasRole('secretaria')) {
+            return to_route('students.index');
+        }
+
         if ($user->hasRole('profesor') && $user->teacher) {
-            return Inertia::render('Dashboard', [
+            return Inertia::render('Portal/TeacherDashboard', [
                 'teacherData' => $getTeacherData->handle($user->teacher),
             ]);
         }
 
         if ($user->hasRole('estudiante') && $user->student) {
-            return Inertia::render('Dashboard', [
+            return Inertia::render('Portal/StudentDashboard', [
                 'studentData' => $getStudentData->handle($user->student),
             ]);
         }

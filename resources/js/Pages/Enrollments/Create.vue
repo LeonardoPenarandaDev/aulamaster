@@ -5,7 +5,7 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed, watch } from 'vue';
 
 const props = defineProps({
@@ -15,6 +15,7 @@ const props = defineProps({
     referrals: Array,
 });
 
+const isAdmin = usePage().props.auth.roles?.includes('admin');
 const today = new Date().toISOString().slice(0, 10);
 
 const form = useForm({
@@ -29,6 +30,8 @@ const form = useForm({
     base_price: '',
     promotion_id: '',
     referral_id: '',
+    monthly_fee: '',
+    skip_prerequisite: false,
 });
 
 function applyLevelDefaults(levelId) {
@@ -40,6 +43,7 @@ function applyLevelDefaults(levelId) {
     form.required_hours = level.required_hours;
     form.weekly_hours = level.weekly_hours;
     form.base_price = level.price;
+    form.monthly_fee = level.monthly_fee ?? '';
 
     if (level.duration_months) {
         const end = new Date(form.start_date || today);
@@ -117,6 +121,13 @@ function submit() {
                                     <option v-for="level in levels" :key="level.id" :value="level.id">{{ level.course?.name }} {{ level.name }}</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.level_id" />
+                                <p v-if="selectedLevel?.previous_level" class="mt-1 text-xs text-gray-500">
+                                    Requiere haber aprobado {{ selectedLevel.previous_level.name }}.
+                                </p>
+                                <label v-if="isAdmin && selectedLevel?.previous_level" class="mt-2 flex items-start gap-2 text-sm text-amber-700">
+                                    <input v-model="form.skip_prerequisite" type="checkbox" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                                    Omitir requisito (queda registrado en la auditoría)
+                                </label>
                             </div>
                         </div>
 
@@ -196,6 +207,13 @@ function submit() {
                             <p class="mt-1 text-xs text-gray-500">
                                 Sugerido: precio del nivel (${{ money(selectedLevel?.price ?? 0) }}). Ajústalo según la intensidad horaria contratada.
                             </p>
+                        </div>
+
+                        <div>
+                            <InputLabel for="monthly_fee" value="Mensualidad" />
+                            <TextInput id="monthly_fee" type="number" step="1000" min="0" v-model="form.monthly_fee" class="mt-1 block w-full max-w-xs" />
+                            <InputError class="mt-2" :message="form.errors.monthly_fee" />
+                            <p class="mt-1 text-xs text-gray-500">Tomada del nivel; ajústala si este estudiante paga otro valor. Vacía: no se cobra mensualidad.</p>
                         </div>
 
                         <div class="rounded-md border border-gray-200 bg-gray-50 p-4 text-sm">

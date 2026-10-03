@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\Notifications\NotifyStaff;
 use App\Actions\Notifications\NotifyStudent;
 use App\Actions\Notifications\NotifyTeacher;
 use App\Actions\Recovery\GetPendingRecoveries;
@@ -10,6 +11,7 @@ use App\Models\Enrollment;
 use App\Models\Student;
 use App\Notifications\HoursBehindNotification;
 use App\Notifications\RecoveryDeadlineApproachingNotification;
+use App\Notifications\UnassignedClassAlertNotification;
 use App\Notifications\UpcomingClassNotification;
 use App\Notifications\UpcomingEvaluationNotification;
 use Illuminate\Console\Attributes\Description;
@@ -36,8 +38,31 @@ class SendNotificationReminders extends Command
         $this->remindUpcomingEvaluations($notifyStudent);
         $this->remindRecoveryDeadlines($notifyStudent, $getPendingRecoveries);
         $this->remindHoursBehind($notifyStudent);
+        $this->alertUnassignedClasses(app(NotifyStaff::class));
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Clases sin docente en las próximas 48 horas: se avisa una sola vez al
+     * admin y al coordinador (parte 11 del plan de mejoras).
+     */
+    protected function alertUnassignedClasses(NotifyStaff $notifyStaff): void
+    {
+        $sessions = ClassSession::query()
+            ->whereNull('teacher_id')
+            ->whereNull('unassigned_alert_sent_at')
+            ->where('status', 'programada')
+            ->whereDate('date', '>=', today())
+            ->whereDate('date', '<=', today()->addDays(2))
+            ->get();
+
+        foreach ($sessions as $session) {
+            $session->forceFill(['unassigned_alert_sent_at' => now()])->save();
+            $notifyStaff->handle(['admin', 'coordinador'], new UnassignedClassAlertNotification($session));
+        }
+
+        $this->info("Alertas de clases sin docente: {$sessions->count()}.");
     }
 
     protected function remindUpcomingClasses(NotifyStudent $notifyStudent, NotifyTeacher $notifyTeacher): void

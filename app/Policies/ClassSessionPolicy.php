@@ -23,7 +23,7 @@ class ClassSessionPolicy
 
     public function view(User $user, ClassSession $classSession): bool
     {
-        return $classSession->teacher->user_id === $user->id;
+        return $classSession->teacher?->user_id === $user->id;
     }
 
     public function create(User $user): bool

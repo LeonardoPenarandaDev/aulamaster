@@ -1,5 +1,5 @@
 <script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
@@ -15,9 +15,14 @@ const page = usePage();
 
 // Todos inician como ausentes: el profesor marca presentes a quienes
 // asistieron ingresando su código al final de la clase.
+const isAdmin = page.props.auth?.roles?.includes('admin');
+
+// El docente no toma asistencia a quien está en mora (parte 8 del plan de mejoras).
+const isLocked = (entry) => entry.is_blocked && !isAdmin;
+
 const form = useForm({
     records: props.roster
-        .filter((entry) => !(entry.enrollment_id in props.existing))
+        .filter((entry) => !(entry.enrollment_id in props.existing) && !isLocked(entry))
         .map((entry) => ({ enrollment_id: entry.enrollment_id, status: 'ausente' })),
 });
 
@@ -39,6 +44,8 @@ function markPresentByCode() {
 
     if (!entry) {
         codeFeedback.value = { type: 'error', message: `No hay ningún estudiante con el código "${code.value.trim()}" en este nivel.` };
+    } else if (isLocked(entry)) {
+        codeFeedback.value = { type: 'error', message: `${entry.student.name} tiene pagos vencidos: no se le puede tomar asistencia.` };
     } else if (entry.enrollment_id in props.existing) {
         codeFeedback.value = { type: 'error', message: `${entry.student.name} ya tiene la asistencia registrada.` };
     } else if (statusFor(entry.enrollment_id) === 'presente') {
@@ -65,6 +72,12 @@ function setStatus(enrollmentId, status) {
     }
 }
 
+const statusOptions = [
+    { value: 'presente', label: 'Presente', active: 'bg-green-600 text-white' },
+    { value: 'ausente', label: 'Ausente', active: 'bg-red-600 text-white' },
+    { value: 'excusado', label: 'Excusado', active: 'bg-yellow-500 text-white' },
+];
+
 function submit() {
     form.post(route('attendance.store', props.classSession.id));
 }
@@ -73,15 +86,15 @@ function submit() {
 <template>
     <Head title="Tomar asistencia" />
 
-    <AuthenticatedLayout>
+    <AppLayout>
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800">
                 Tomar asistencia
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
+        <div class="py-6 sm:py-12">
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
                 <div
                     v-if="page.props.flash?.success"
                     class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700"
@@ -89,7 +102,7 @@ function submit() {
                     {{ page.props.flash.success }}
                 </div>
 
-                <div class="mb-6 rounded-lg bg-white p-6 shadow-sm">
+                <div class="mb-6 rounded-2xl border border-gray-200/80 bg-white p-6">
                     <p class="text-sm text-gray-600">
                         {{ classSession.level?.course?.name }} {{ classSession.level?.name }}
                         — {{ classSession.date }}, {{ classSession.start_time?.slice(0, 5) }} a {{ classSession.end_time?.slice(0, 5) }}
@@ -99,7 +112,7 @@ function submit() {
                     </p>
                 </div>
 
-                <div v-if="form.records.length > 0" class="mb-6 rounded-lg bg-white p-6 shadow-sm">
+                <div v-if="form.records.length > 0" class="mb-6 rounded-2xl border border-gray-200/80 bg-white p-6">
                     <form @submit.prevent="markPresentByCode">
                         <label for="student_code" class="block text-sm font-medium text-gray-700">
                             Código del estudiante que asistió
@@ -133,62 +146,48 @@ function submit() {
                     </p>
                 </div>
 
-                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Código</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estudiante</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Asistencia</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr
-                                v-for="entry in roster"
-                                :key="entry.enrollment_id"
-                                :class="{ 'bg-green-50': entry.enrollment_id === lastMarkedId }"
+                <!-- Lista cómoda en el celular: botones grandes por estudiante (parte 9 del plan de mejoras). -->
+                <ul class="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200/80 bg-white">
+                    <li
+                        v-for="entry in roster"
+                        :key="entry.enrollment_id"
+                        class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                        :class="{ 'bg-green-50': entry.enrollment_id === lastMarkedId }"
+                    >
+                        <div class="min-w-0">
+                            <p class="font-medium text-gray-900">
+                                {{ entry.student.name }}
+                                <span v-if="entry.is_blocked && isAdmin" class="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">En mora</span>
+                            </p>
+                            <p class="text-xs text-gray-500">Código {{ entry.student.code }}</p>
+                        </div>
+
+                        <span v-if="entry.enrollment_id in existing" class="text-sm text-gray-500">
+                            Ya registrada: {{ existing[entry.enrollment_id] }}
+                        </span>
+                        <span v-else-if="isLocked(entry)" class="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+                            Pagos vencidos: no se registra asistencia
+                        </span>
+                        <div v-else class="grid grid-cols-3 gap-2 sm:w-80">
+                            <button
+                                v-for="option in statusOptions"
+                                :key="option.value"
+                                type="button"
+                                class="rounded-xl px-3 py-3 text-sm font-semibold transition"
+                                :class="statusFor(entry.enrollment_id) === option.value ? option.active : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
+                                @click="setStatus(entry.enrollment_id, option.value)"
                             >
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ entry.student.code }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ entry.student.name }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm">
-                                    <span v-if="entry.enrollment_id in existing" class="text-gray-500">
-                                        Ya registrada: {{ existing[entry.enrollment_id] }}
-                                    </span>
-                                    <div v-else class="flex gap-2">
-                                        <button
-                                            type="button"
-                                            class="rounded-md px-3 py-1 text-xs font-medium"
-                                            :class="statusFor(entry.enrollment_id) === 'presente' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700'"
-                                            @click="setStatus(entry.enrollment_id, 'presente')"
-                                        >
-                                            Presente
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="rounded-md px-3 py-1 text-xs font-medium"
-                                            :class="statusFor(entry.enrollment_id) === 'ausente' ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-700'"
-                                            @click="setStatus(entry.enrollment_id, 'ausente')"
-                                        >
-                                            Ausente
-                                        </button>
-                                        <button
-                                            type="button"
-                                            class="rounded-md px-3 py-1 text-xs font-medium"
-                                            :class="statusFor(entry.enrollment_id) === 'excusado' ? 'bg-yellow-500 text-white' : 'bg-gray-100 text-gray-700'"
-                                            @click="setStatus(entry.enrollment_id, 'excusado')"
-                                        >
-                                            Excusado
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr v-if="roster.length === 0">
-                                <td colspan="3" class="px-6 py-4 text-center text-sm text-gray-500">
-                                    No hay estudiantes matriculados activamente en este nivel.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                                {{ option.label }}
+                            </button>
+                        </div>
+                    </li>
+                    <li v-if="roster.length === 0" class="p-6 text-center text-sm text-gray-500">
+                        No hay estudiantes matriculados activamente en este nivel.
+                    </li>
+                </ul>
+
+                <div v-if="form.errors.records" class="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+                    {{ form.errors.records }}
                 </div>
 
                 <div class="mt-6 flex items-center gap-4">
@@ -210,5 +209,5 @@ function submit() {
                 </p>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </AppLayout>
 </template>

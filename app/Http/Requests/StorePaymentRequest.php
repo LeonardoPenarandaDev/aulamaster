@@ -18,6 +18,16 @@ class StorePaymentRequest extends FormRequest
     }
 
     /**
+     * Sin tipo, el pago queda como "otro" y no activa la mora.
+     */
+    protected function prepareForValidation(): void
+    {
+        if (! $this->filled('type')) {
+            $this->merge(['type' => 'otro']);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      *
      * @return array<string, ValidationRule|array<mixed>|string>
@@ -27,6 +37,9 @@ class StorePaymentRequest extends FormRequest
         return [
             'student_id' => ['required', 'exists:students,id'],
             'enrollment_id' => ['nullable', 'exists:enrollments,id'],
+            'type' => ['required', Rule::in(array_keys(Payment::TYPES))],
+            'period' => ['nullable', 'required_if:type,mensualidad', 'date_format:Y-m'],
+            'due_date' => ['nullable', 'date'],
             'concept' => ['required', 'string', 'max:255'],
             'base_amount' => ['required', 'numeric', 'min:0'],
             'discount_amount' => ['required', 'numeric', 'min:0'],

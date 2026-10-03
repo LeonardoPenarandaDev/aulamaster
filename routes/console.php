@@ -10,6 +10,9 @@ Artisan::command('inspire', function () {
 
 Schedule::command('app:send-notification-reminders')->dailyAt('07:00');
 
+// Parte 8 del plan de mejoras: mensualidades, recordatorios y mora.
+Schedule::command('app:generate-monthly-fees')->dailyAt('06:00')->onOneServer();
+
 // Sección 46 del plan: copias de seguridad. Solo la base de datos a diario
 // (los archivos de la app cambian poco y ya están en control de versiones);
 // el respaldo completo (código + BD) corre una vez por semana.

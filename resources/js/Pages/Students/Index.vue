@@ -12,6 +12,7 @@ const props = defineProps({
 });
 
 const page = usePage();
+const isAdmin = page.props.auth.roles?.includes('admin');
 const search = ref(props.filters.search ?? '');
 
 function applySearch() {
@@ -58,7 +59,7 @@ function destroy(student) {
                     />
 
                     <div class="flex items-center gap-2">
-                        <Link :href="route('students.import.create')">
+                        <Link v-if="isAdmin" :href="route('students.import.create')">
                             <SecondaryButton>Importar CSV/Excel</SecondaryButton>
                         </Link>
                         <Link :href="route('students.create')">
@@ -81,7 +82,17 @@ function destroy(student) {
                         <tbody class="divide-y divide-gray-200 bg-white">
                             <tr v-for="student in students.data" :key="student.id">
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ student.code }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ student.name }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                                    {{ student.name }}
+                                    <span v-if="student.is_minor" class="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Menor</span>
+                                    <span
+                                        v-if="student.missing_contract_data.length"
+                                        class="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700"
+                                        :title="`Falta: ${student.missing_contract_data.join(', ')}`"
+                                    >
+                                        Datos incompletos
+                                    </span>
+                                </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ student.email }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm">
                                     <span
@@ -99,6 +110,7 @@ function destroy(student) {
                                         Editar
                                     </Link>
                                     <button
+                                        v-if="isAdmin"
                                         type="button"
                                         class="ml-4 text-red-600 hover:text-red-900"
                                         @click="destroy(student)"
