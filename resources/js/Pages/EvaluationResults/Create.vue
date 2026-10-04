@@ -52,16 +52,16 @@ function submit() {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-4xl space-y-6 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
                 <div
                     v-if="page.props.flash?.success"
-                    class="rounded-md bg-green-50 p-4 text-sm text-green-700"
+                    class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700"
                 >
                     {{ page.props.flash.success }}
                 </div>
 
-                <div class="rounded-lg bg-white p-6 shadow-sm">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <p class="text-sm text-gray-600">
                         {{ enrollment.student?.name }} ({{ enrollment.student?.code }}) —
                         {{ enrollment.level?.course?.name }} {{ enrollment.level?.name }}
@@ -71,10 +71,10 @@ function submit() {
                         ({{ enrollment.progress_percentage }}%)
                     </p>
 
-                    <div v-if="missingRequirements.length === 0" class="mt-3 rounded-md bg-green-50 p-3 text-sm text-green-700">
+                    <div v-if="missingRequirements.length === 0" class="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-700">
                         ✓ Apto para presentar evaluaciones.
                     </div>
-                    <div v-else class="mt-3 rounded-md bg-red-50 p-3 text-sm text-red-700">
+                    <div v-else class="mt-3 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
                         <p class="font-medium">NO APTO PARA PRESENTAR</p>
                         <p class="mt-1">Faltan:</p>
                         <ul class="list-inside list-disc">
@@ -83,18 +83,18 @@ function submit() {
                     </div>
                 </div>
 
-                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50/80">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Evaluación</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Intentos</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Último resultado</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Próximo intento</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Evaluación</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Intentos</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Último resultado</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Próximo intento</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="evaluation in evaluations" :key="evaluation.id">
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <tr v-for="evaluation in evaluations" :key="evaluation.id" class="transition hover:bg-slate-50/70">
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ evaluation.name }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ evaluation.results.length }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm">
@@ -127,13 +127,13 @@ function submit() {
                     </table>
                 </div>
 
-                <div v-if="evaluations.length > 0" class="rounded-lg bg-white p-6 shadow-sm">
+                <div v-if="evaluations.length > 0" class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <h3 class="mb-4 text-sm font-medium text-gray-900">Registrar nuevo resultado</h3>
 
                     <form @submit.prevent="submit" class="space-y-6">
                         <div>
                             <InputLabel for="evaluation_id" value="Evaluación" />
-                            <select id="evaluation_id" v-model="form.evaluation_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select id="evaluation_id" v-model="form.evaluation_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option v-for="evaluation in evaluations" :key="evaluation.id" :value="evaluation.id">{{ evaluation.name }}</option>
                             </select>
                             <InputError class="mt-2" :message="form.errors.evaluation_id" />
@@ -141,7 +141,7 @@ function submit() {
 
                         <div>
                             <InputLabel for="teacher_id" value="Profesor evaluador" />
-                            <select id="teacher_id" v-model="form.teacher_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select id="teacher_id" v-model="form.teacher_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">{{ teacher.name }}</option>
                             </select>
                             <InputError class="mt-2" :message="form.errors.teacher_id" />
@@ -167,12 +167,12 @@ function submit() {
                                 id="notes"
                                 v-model="form.notes"
                                 rows="3"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
                             ></textarea>
                             <InputError class="mt-2" :message="form.errors.notes" />
                         </div>
 
-                        <div v-if="selectedTerms?.blocked" class="rounded-md bg-red-50 p-3 text-sm text-red-700">
+                        <div v-if="selectedTerms?.blocked" class="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
                             {{ selectedTerms.block_reason }}
                         </div>
 

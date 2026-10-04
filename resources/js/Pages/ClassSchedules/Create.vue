@@ -52,9 +52,9 @@ function submit() {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+        <div class="py-8">
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <p class="mb-6 text-sm text-gray-600">
                         Se generará una clase independiente por cada día seleccionado dentro del rango de fechas.
                         Si una fecha genera un conflicto de aula o profesor con una clase existente, esa fecha se omitirá.
@@ -63,7 +63,7 @@ function submit() {
                     <form @submit.prevent="submit" class="space-y-6">
                         <div>
                             <InputLabel for="level_id" value="Curso / Nivel" />
-                            <select id="level_id" v-model="form.level_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select id="level_id" v-model="form.level_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option v-for="level in levels" :key="level.id" :value="level.id">{{ level.name }}</option>
                             </select>
                             <InputError class="mt-2" :message="form.errors.level_id" />
@@ -72,7 +72,7 @@ function submit() {
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="teacher_id" value="Profesor" />
-                                <select id="teacher_id" v-model="form.teacher_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="teacher_id" v-model="form.teacher_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">{{ teacher.name }}</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.teacher_id" />
@@ -80,7 +80,7 @@ function submit() {
 
                             <div>
                                 <InputLabel for="classroom_id" value="Aula" />
-                                <select id="classroom_id" v-model="form.classroom_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="classroom_id" v-model="form.classroom_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option v-for="classroom in classrooms" :key="classroom.id" :value="classroom.id">{{ classroom.name }}</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.classroom_id" />
@@ -90,7 +90,7 @@ function submit() {
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="modality" value="Modalidad" />
-                                <select id="modality" v-model="form.modality" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="modality" v-model="form.modality" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="presencial">Presencial</option>
                                     <option value="virtual">Virtual (Meet)</option>
                                 </select>
@@ -144,7 +144,7 @@ function submit() {
                                 id="notes"
                                 v-model="form.notes"
                                 rows="3"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
                             ></textarea>
                             <InputError class="mt-2" :message="form.errors.notes" />
                         </div>

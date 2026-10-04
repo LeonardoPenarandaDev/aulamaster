@@ -69,11 +69,11 @@ function submitCorrection() {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 px-4 sm:px-6 lg:px-8">
                 <div
                     v-if="page.props.flash?.success"
-                    class="rounded-md bg-green-50 p-4 text-sm text-green-700"
+                    class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700"
                 >
                     {{ page.props.flash.success }}
                 </div>
@@ -81,39 +81,39 @@ function submitCorrection() {
                 <div class="flex flex-wrap gap-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-600">Fecha</label>
-                        <input type="date" v-model="filters.date" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                        <input type="date" v-model="filters.date" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500" />
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600">Estudiante</label>
-                        <select v-model="filters.student_id" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <select v-model="filters.student_id" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="">Todos</option>
                             <option v-for="s in students" :key="s.id" :value="s.id">{{ s.code }} - {{ s.name }}</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600">Nivel</label>
-                        <select v-model="filters.level_id" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <select v-model="filters.level_id" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="">Todos</option>
                             <option v-for="l in levels" :key="l.id" :value="l.id">{{ l.name }}</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50/80">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Fecha</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estudiante</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Curso / Nivel</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Profesor</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estado original</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estado efectivo</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estudiante</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Curso / Nivel</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Profesor</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estado original</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estado efectivo</th>
                                 <th class="px-6 py-3"></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="attendance in attendances.data" :key="attendance.id">
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <tr v-for="attendance in attendances.data" :key="attendance.id" class="transition hover:bg-slate-50/70">
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ attendance.class_date }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                                     {{ attendance.enrollment?.student?.code }} - {{ attendance.enrollment?.student?.name }}
@@ -165,7 +165,7 @@ function submitCorrection() {
                 <form @submit.prevent="submitCorrection" class="mt-4 space-y-4">
                     <div>
                         <InputLabel for="new_status" value="Nuevo estado" />
-                        <select id="new_status" v-model="correctionForm.new_status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <select id="new_status" v-model="correctionForm.new_status" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="presente">Presente</option>
                             <option value="ausente">Ausente</option>
                             <option value="excusado">Excusado</option>
@@ -180,7 +180,7 @@ function submitCorrection() {
                             v-model="correctionForm.reason"
                             rows="3"
                             required
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
                         ></textarea>
                         <InputError class="mt-2" :message="correctionForm.errors.reason" />
                     </div>

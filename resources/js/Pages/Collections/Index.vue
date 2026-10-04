@@ -102,7 +102,7 @@ function cancelAgreement(row) {
     }
 }
 
-const selectClasses = 'mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500';
+const selectClasses = 'mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500';
 </script>
 
 <template>
@@ -113,9 +113,9 @@ const selectClasses = 'mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:b
             <h2 class="text-xl font-semibold leading-tight text-gray-800">Cartera en mora</h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
-                <div v-if="page.props.flash?.success" class="rounded-md bg-green-50 p-4 text-sm text-green-700">
+        <div class="py-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 px-4 sm:px-6 lg:px-8">
+                <div v-if="page.props.flash?.success" class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700">
                     {{ page.props.flash.success }}
                 </div>
 
@@ -145,19 +145,19 @@ const selectClasses = 'mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:b
                     {{ totals.students }} estudiante{{ totals.students === 1 ? '' : 's' }} en mora · ${{ money(totals.amount) }} vencidos.
                 </p>
 
-                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50/80">
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Mora</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estudiante</th>
-                                <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Saldo vencido</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Contactar a</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Último contacto</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Mora</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estudiante</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">Saldo vencido</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Contactar a</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Último contacto</th>
                                 <th class="px-4 py-3"></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
+                        <tbody class="divide-y divide-slate-100 bg-white">
                             <template v-for="row in students" :key="row.student.id">
                                 <tr>
                                     <td class="whitespace-nowrap px-4 py-4 text-sm">
@@ -259,7 +259,7 @@ const selectClasses = 'mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:b
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600">Nota</label>
-                    <textarea v-model="followUpForm.note" rows="3" class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" placeholder="Ej: dice que paga el viernes"></textarea>
+                    <textarea v-model="followUpForm.note" rows="3" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500" placeholder="Ej: dice que paga el viernes"></textarea>
                     <InputError :message="followUpForm.errors.note" />
                 </div>
                 <div class="flex justify-end gap-2">
@@ -280,7 +280,7 @@ const selectClasses = 'mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:b
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-600">Condiciones</label>
-                    <textarea v-model="agreementForm.notes" rows="3" class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"></textarea>
+                    <textarea v-model="agreementForm.notes" rows="3" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500"></textarea>
                 </div>
                 <div class="flex justify-end gap-2">
                     <SecondaryButton type="button" @click="agreementRow = null">Cancelar</SecondaryButton>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Contracts\GenerateEnrollmentContracts;
 use App\Actions\Contracts\SendContractsForSigning;
 use App\Actions\Pricing\CalculateEnrollmentPrice;
+use App\Actions\Students\StoreStudentPhoto;
 use App\Http\Requests\StoreEnrollmentWizardRequest;
 use App\Models\ContractSignature;
 use App\Models\ContractTemplate;
@@ -40,10 +41,10 @@ class EnrollmentWizardController extends Controller
 
         return Inertia::render('Enrollments/Wizard', [
             'students' => Student::query()->orderBy('name')->get([
-                'id', 'code', 'name', 'document_type', 'document', 'birth_date', 'email',
+                'id', 'code', 'name', 'photo_path', 'document_type', 'document', 'birth_date', 'email',
                 'guardian_name', 'guardian_email',
             ])->map(fn (Student $student) => [
-                ...$student->only(['id', 'code', 'name', 'email', 'guardian_name', 'guardian_email']),
+                ...$student->only(['id', 'code', 'name', 'email', 'guardian_name', 'guardian_email', 'photo_url']),
                 'birth_date' => $student->birth_date?->toDateString(),
                 'is_minor' => $student->isMinor(),
                 'missing_contract_data' => $student->missingContractData(),
@@ -76,11 +77,16 @@ class EnrollmentWizardController extends Controller
         CalculateEnrollmentPrice $calculatePrice,
         GenerateEnrollmentContracts $generateContracts,
         SendContractsForSigning $sendContracts,
+        StoreStudentPhoto $storePhoto,
     ): RedirectResponse {
-        $enrollment = DB::transaction(function () use ($request, $calculatePrice, $generateContracts) {
+        $enrollment = DB::transaction(function () use ($request, $calculatePrice, $generateContracts, $storePhoto) {
             $student = $request->filled('student_id')
                 ? Student::findOrFail($request->validated('student_id'))
                 : Student::create([...$request->validated('new_student'), 'status' => 'activo']);
+
+            if ($request->hasFile('photo')) {
+                $storePhoto->handle($student, $request->file('photo'));
+            }
 
             $level = Level::findOrFail($request->validated('level_id'));
             $promotion = $request->validated('promotion_id') ? Promotion::find($request->validated('promotion_id')) : null;

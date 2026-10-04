@@ -1,6 +1,7 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import StudentAvatar from '@/Components/StudentAvatar.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
@@ -97,7 +98,7 @@ function submit() {
             <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
                 <div
                     v-if="page.props.flash?.success"
-                    class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700"
+                    class="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700"
                 >
                     {{ page.props.flash.success }}
                 </div>
@@ -154,12 +155,15 @@ function submit() {
                         class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
                         :class="{ 'bg-green-50': entry.enrollment_id === lastMarkedId }"
                     >
-                        <div class="min-w-0">
+                        <div class="flex min-w-0 items-center gap-3">
+                            <StudentAvatar :name="entry.student.name" :photo-url="entry.student.photo_url" size="lg" />
+                            <div class="min-w-0">
                             <p class="font-medium text-gray-900">
                                 {{ entry.student.name }}
                                 <span v-if="entry.is_blocked && isAdmin" class="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">En mora</span>
                             </p>
                             <p class="text-xs text-gray-500">Código {{ entry.student.code }}</p>
+                            </div>
                         </div>
 
                         <span v-if="entry.enrollment_id in existing" class="text-sm text-gray-500">
@@ -186,7 +190,7 @@ function submit() {
                     </li>
                 </ul>
 
-                <div v-if="form.errors.records" class="mt-4 rounded-md bg-red-50 p-3 text-sm text-red-700">
+                <div v-if="form.errors.records" class="mt-4 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
                     {{ form.errors.records }}
                 </div>
 

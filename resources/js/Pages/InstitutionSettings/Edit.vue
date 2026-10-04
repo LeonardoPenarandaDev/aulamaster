@@ -4,7 +4,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 const props = defineProps({
@@ -29,11 +29,6 @@ const form = useForm({
 
 const logoPreview = ref(props.settings.logo_url);
 
-function onLogoChange(event) {
-    const file = event.target.files[0] ?? null;
-    form.logo = file;
-    logoPreview.value = file ? URL.createObjectURL(file) : props.settings.logo_url;
-}
 
 function submit() {
     form.post(route('institution-settings.update'), { forceFormData: true });
@@ -50,20 +45,21 @@ function submit() {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-2xl sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
                 <div
                     v-if="page.props.flash?.success"
-                    class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700"
+                    class="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700"
                 >
                     {{ page.props.flash.success }}
                 </div>
 
                 <p class="mb-4 text-sm text-gray-500">
-                    Estos datos se usan como membrete de los certificados de nivel aprobado (logo, nombre, contacto y firma).
+                    El nombre y el logo se muestran en toda la aplicación: barra lateral, inicio de sesión, portal de alumnos y docentes,
+                    y la pestaña del navegador. También se usan como membrete de los certificados y contratos.
                 </p>
 
-                <div class="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <form @submit.prevent="submit" class="space-y-6">
                         <div>
                             <InputLabel value="Logo" />
@@ -81,6 +77,11 @@ function submit() {
                             </div>
                             <InputError class="mt-2" :message="form.errors.logo" />
                         </div>
+
+                        <p class="-mt-2 text-sm text-slate-500">
+                            Los colores y el estilo del menú se configuran en
+                            <Link :href="route('appearance.edit')" class="font-medium text-indigo-600 hover:text-indigo-800">Sistema → Apariencia</Link>.
+                        </p>
 
                         <div>
                             <InputLabel for="name" value="Nombre del instituto" />

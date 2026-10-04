@@ -5,6 +5,7 @@ import PortalCard from '@/Components/Portal/PortalCard.vue';
 import PortalEmptyState from '@/Components/Portal/PortalEmptyState.vue';
 import PortalStat from '@/Components/Portal/PortalStat.vue';
 import PortalLayout from '@/Layouts/PortalLayout.vue';
+import StudentAvatar from '@/Components/StudentAvatar.vue';
 import { Head, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -46,10 +47,13 @@ function longDate(value) {
 
     <PortalLayout>
         <div class="space-y-6">
-            <div>
-                <p class="text-sm capitalize text-gray-600">{{ today }}</p>
-                <h1 class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">Hola, {{ firstName }}</h1>
-                <p v-if="data.has_enrollment" class="mt-1 text-gray-600">{{ data.enrollment.course }} · {{ data.enrollment.level }}</p>
+            <div class="flex items-center gap-4">
+                <StudentAvatar :name="page.props.auth.user.name" :photo-url="page.props.auth.avatar_url" size="lg" />
+                <div>
+                    <p class="text-sm capitalize text-gray-600">{{ today }}</p>
+                    <h1 class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">Hola, {{ firstName }}</h1>
+                    <p v-if="data.has_enrollment" class="mt-1 text-gray-600">{{ data.enrollment.course }} · {{ data.enrollment.level }}</p>
+                </div>
             </div>
 
             <div v-if="data.pending_payments?.length" class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
@@ -91,6 +95,7 @@ function longDate(value) {
                         <li
                             class="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm"
                             :class="{
+                                'on-level-color': step.state !== 'proximo',
                                 'font-semibold text-gray-900 ring-2 ring-indigo-600 ring-offset-2': step.state === 'actual',
                                 'text-gray-700': step.state === 'aprobado',
                                 'border border-dashed border-gray-300 text-gray-400': step.state === 'proximo',

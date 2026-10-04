@@ -51,14 +51,14 @@ function submit() {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+        <div class="py-8">
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <form @submit.prevent="submit" class="space-y-6">
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="course_id" value="Curso" />
-                                <select id="course_id" v-model="form.course_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="course_id" v-model="form.course_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option v-for="course in courses" :key="course.id" :value="course.id">{{ course.name }}</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.course_id" />
@@ -66,7 +66,7 @@ function submit() {
 
                             <div>
                                 <InputLabel for="status" value="Estado" />
-                                <select id="status" v-model="form.status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="status" v-model="form.status" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="activo">Activo</option>
                                     <option value="inactivo">Inactivo</option>
                                 </select>
@@ -97,7 +97,7 @@ function submit() {
 
                         <div>
                             <InputLabel for="next_level_id" value="Nivel siguiente" />
-                            <select id="next_level_id" v-model="form.next_level_id" class="mt-1 block w-full max-w-md rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select id="next_level_id" v-model="form.next_level_id" class="mt-1 block w-full max-w-md rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option :value="null">Ninguno (último nivel de la ruta)</option>
                                 <option v-for="option in nextLevelOptions" :key="option.id" :value="option.id">{{ option.name }} ({{ option.code }})</option>
                             </select>

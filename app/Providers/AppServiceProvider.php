@@ -15,7 +15,9 @@ use App\Models\PaymentAgreement;
 use App\Models\PaymentFollowUp;
 use App\Models\Promotion;
 use App\Models\Referral;
+use App\Models\User;
 use App\Observers\AuditObserver;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -44,6 +46,9 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->isProduction()) {
             URL::forceScheme('https');
         }
+
+        // Apariencia de la aplicación (colores y menú): solo el administrador.
+        Gate::define('update-appearance', fn (User $user) => $user->hasRole('admin'));
 
         // Nombre y logo de la institución para el <title> y el favicon de
         // la vista raíz de Inertia (parte 1 del plan de mejoras).

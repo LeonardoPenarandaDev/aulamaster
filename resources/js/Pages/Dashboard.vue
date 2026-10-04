@@ -43,9 +43,9 @@ function money(value) {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-screen-2xl space-y-6 sm:px-6 lg:px-8">
-                <div class="rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 px-6 py-6 text-white shadow-sm sm:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-screen-2xl space-y-6 px-4 sm:px-6 lg:px-8">
+                <div class="rounded-2xl bg-gradient-to-br from-indigo-700 via-indigo-600 to-accent-500 px-6 py-7 text-white sm:px-8">
                     <p class="text-sm font-medium text-indigo-100 capitalize">{{ today }}</p>
                     <h3 class="mt-1 text-2xl font-bold">Hola, {{ userName }} 👋</h3>
                 </div>
@@ -53,7 +53,7 @@ function money(value) {
                 <!-- Dashboard administrativo -->
                 <template v-if="stats">
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        <div class="rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 shadow-sm sm:col-span-2 lg:col-span-1">
+                        <div class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-5 sm:col-span-2 lg:col-span-1">
                             <div class="flex items-center gap-4">
                                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
                                     <Icon name="coins" class="h-6 w-6" />
@@ -75,7 +75,7 @@ function money(value) {
                     </div>
                 </template>
 
-                <div v-else class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+                <div v-else class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white">
                     <div class="p-6 text-gray-900">
         Tu perfil todavía no está vinculado a un registro de estudiante o profesor, así que no
                         hay un panel para mostrar. Pide al administrador que te asocie desde su panel.

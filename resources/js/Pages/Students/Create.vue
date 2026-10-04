@@ -4,6 +4,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import IdPhotoInput from '@/Components/Contracts/IdPhotoInput.vue';
 import StudentGuardianFields from '@/Components/StudentGuardianFields.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
@@ -24,6 +25,7 @@ const form = useForm({
     status: 'activo',
     password: '',
     password_confirmation: '',
+    photo: null,
     guardian_name: '',
     guardian_document_type: null,
     guardian_document: '',
@@ -33,7 +35,7 @@ const form = useForm({
 });
 
 function submit() {
-    form.post(route('students.store'));
+    form.post(route('students.store'), { forceFormData: true });
 }
 </script>
 
@@ -47,9 +49,9 @@ function submit() {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+        <div class="py-8">
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <form @submit.prevent="submit" class="space-y-6">
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
@@ -60,12 +62,17 @@ function submit() {
 
                             <div>
                                 <InputLabel for="status" value="Estado" />
-                                <select id="status" v-model="form.status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="status" v-model="form.status" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="activo">Activo</option>
                                     <option value="inactivo">Inactivo</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.status" />
                             </div>
+                        </div>
+
+                        <div>
+                            <IdPhotoInput v-model="form.photo" label="Foto de perfil (opcional)" :max-kb="8192" facing-mode="user" />
+                            <InputError class="mt-2" :message="form.errors.photo" />
                         </div>
 
                         <div>
@@ -77,7 +84,7 @@ function submit() {
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="document_type" value="Tipo de documento" />
-                                <select id="document_type" v-model="form.document_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="document_type" v-model="form.document_type" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option :value="null">Sin especificar</option>
                                     <option v-for="(label, value) in documentTypes" :key="value" :value="value">{{ label }}</option>
                                 </select>

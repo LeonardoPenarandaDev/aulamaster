@@ -38,26 +38,26 @@ function money(value) {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-5xl space-y-6 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
                 <Link :href="route('payments.index')" class="text-sm text-indigo-600 hover:text-indigo-900">
                     ← Volver a pagos
                 </Link>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                    <div class="rounded-lg bg-white p-4 shadow-sm">
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-4">
                         <p class="text-xs text-gray-500">Total facturado</p>
                         <p class="mt-1 text-lg font-semibold text-gray-900">${{ money(statement.total_billed) }}</p>
                     </div>
-                    <div class="rounded-lg bg-white p-4 shadow-sm">
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-4">
                         <p class="text-xs text-gray-500">Total pagado</p>
                         <p class="mt-1 text-lg font-semibold text-gray-900">${{ money(statement.total_paid) }}</p>
                     </div>
-                    <div class="rounded-lg bg-white p-4 shadow-sm">
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-4">
                         <p class="text-xs text-gray-500">Saldo pendiente</p>
                         <p class="mt-1 text-lg font-semibold text-gray-900">${{ money(statement.balance) }}</p>
                     </div>
-                    <div class="rounded-lg bg-white p-4 shadow-sm">
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-4">
                         <p class="text-xs text-gray-500">Estado</p>
                         <span class="mt-1 inline-block rounded-full px-2 py-1 text-xs font-medium" :class="accountStatusClasses[statement.status]">
                             {{ accountStatusLabels[statement.status] }}
@@ -65,19 +65,19 @@ function money(value) {
                     </div>
                 </div>
 
-                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50/80">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Concepto</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Valor final</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Fecha</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Método</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Concepto</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Valor final</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Fecha</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Método</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estado</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="payment in payments" :key="payment.id">
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <tr v-for="payment in payments" :key="payment.id" class="transition hover:bg-slate-50/70">
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ payment.concept }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">${{ money(payment.final_amount) }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ payment.paid_at ?? '—' }}</td>

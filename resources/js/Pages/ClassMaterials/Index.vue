@@ -189,7 +189,7 @@ function dayLabel(date) {
                                 id="description"
                                 v-model="form.description"
                                 rows="2"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
                             />
                             <InputError class="mt-2" :message="form.errors.description" />
                         </div>

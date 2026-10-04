@@ -47,7 +47,7 @@ const isCustom = computed(() => !palette.some((color) => color.value === normali
             class="mt-3 flex h-20 items-center justify-center rounded-lg border border-gray-200 text-xs text-gray-500"
             :style="{ backgroundImage: `linear-gradient(to bottom, ${model}, #ffffff)` }"
         >
-            <span class="rounded-md bg-white px-3 py-1.5 shadow-sm">Así se verá el fondo del portal del estudiante</span>
+            <span class="on-level-color rounded-md bg-white px-3 py-1.5 shadow-sm">Así se verá el fondo del portal del estudiante</span>
         </div>
     </div>
 </template>

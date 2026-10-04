@@ -22,7 +22,7 @@ class InstitutionSettingController extends Controller
         return Inertia::render('InstitutionSettings/Edit', [
             'settings' => [
                 ...$settings->toArray(),
-                'logo_url' => $settings->logo_path ? Storage::disk('public')->url($settings->logo_path) : null,
+                'logo_url' => $settings->logoUrl(),
             ],
         ]);
     }

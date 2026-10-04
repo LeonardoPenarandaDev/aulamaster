@@ -130,5 +130,46 @@ defineProps({
         <template v-else-if="name === 'chevron-right'">
             <path d="m9.5 6 6 6-6 6" />
         </template>
+
+        <template v-else-if="name === 'chevron-down'">
+            <path d="m6 9.5 6 6 6-6" />
+        </template>
+
+        <template v-else-if="name === 'settings'">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M6 18l1.4-1.4M16.6 7.4 18 6" />
+        </template>
+
+        <template v-else-if="name === 'chart'">
+            <path d="M4 20.5h16" />
+            <path d="M7 16.5v-5M12 16.5V7M17 16.5v-8" />
+        </template>
+
+        <template v-else-if="name === 'shield'">
+            <path d="M12 3.5 19 6v5.5c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6z" />
+            <path d="m9 12 2 2 4-4" />
+        </template>
+
+        <template v-else-if="name === 'sun'">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4" />
+        </template>
+
+        <template v-else-if="name === 'moon'">
+            <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
+        </template>
+
+        <template v-else-if="name === 'monitor'">
+            <rect x="3.5" y="4.5" width="17" height="11.5" rx="2" />
+            <path d="M9 20h6M12 16v4" />
+        </template>
+
+        <template v-else-if="name === 'menu'">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+        </template>
+
+        <template v-else-if="name === 'x'">
+            <path d="M6 6l12 12M18 6 6 18" />
+        </template>
     </svg>
 </template>

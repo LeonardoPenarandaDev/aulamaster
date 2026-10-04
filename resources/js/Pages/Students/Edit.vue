@@ -4,9 +4,11 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import IdPhotoInput from '@/Components/Contracts/IdPhotoInput.vue';
+import StudentAvatar from '@/Components/StudentAvatar.vue';
 import StudentGuardianFields from '@/Components/StudentGuardianFields.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     student: Object,
@@ -39,6 +41,22 @@ function submit() {
     form.put(route('students.update', props.student.id));
 }
 
+const photoForm = useForm({ photo: null });
+
+function savePhoto() {
+    photoForm.post(route('students.photo.update', props.student.id), {
+        forceFormData: true,
+        preserveScroll: true,
+        onSuccess: () => photoForm.reset(),
+    });
+}
+
+function removePhoto() {
+    if (confirm('¿Eliminar la foto de perfil?')) {
+        router.delete(route('students.photo.destroy', props.student.id), { preserveScroll: true });
+    }
+}
+
 const accessForm = useForm({});
 
 function grantAccess() {
@@ -56,9 +74,25 @@ function grantAccess() {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+        <div class="py-8">
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+                <div class="mb-6 flex flex-wrap items-center gap-5 rounded-2xl border border-slate-200/80 bg-white p-6">
+                    <StudentAvatar :name="student.name" :photo-url="student.photo_url" size="xl" />
+                    <div class="min-w-0 flex-1 space-y-3">
+                        <div>
+                            <p class="text-lg font-semibold text-slate-900">{{ student.name }}</p>
+                            <p class="text-sm text-slate-500">Código {{ student.code }}</p>
+                        </div>
+                        <IdPhotoInput v-model="photoForm.photo" :label="student.photo_url ? 'Cambiar foto de perfil' : 'Foto de perfil'" :max-kb="8192" facing-mode="user" />
+                        <InputError :message="photoForm.errors.photo" />
+                        <div class="flex flex-wrap items-center gap-3">
+                            <PrimaryButton type="button" :disabled="!photoForm.photo || photoForm.processing" @click="savePhoto">Guardar foto</PrimaryButton>
+                            <button v-if="student.photo_url" type="button" class="text-sm text-red-600 hover:text-red-800" @click="removePhoto">Eliminar foto</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <form @submit.prevent="submit" class="space-y-6">
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
@@ -69,7 +103,7 @@ function grantAccess() {
 
                             <div>
                                 <InputLabel for="status" value="Estado" />
-                                <select id="status" v-model="form.status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="status" v-model="form.status" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="activo">Activo</option>
                                     <option value="inactivo">Inactivo</option>
                                 </select>
@@ -86,7 +120,7 @@ function grantAccess() {
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="document_type" value="Tipo de documento" />
-                                <select id="document_type" v-model="form.document_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="document_type" v-model="form.document_type" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option :value="null">Sin especificar</option>
                                     <option v-for="(label, value) in documentTypes" :key="value" :value="value">{{ label }}</option>
                                 </select>
@@ -135,7 +169,7 @@ function grantAccess() {
                     </form>
                 </div>
 
-                <div class="mt-6 bg-white p-6 shadow-sm sm:rounded-lg">
+                <div class="mt-6 rounded-2xl border border-slate-200/80 bg-white p-6">
                     <h3 class="text-sm font-medium text-gray-900">Contratos firmados</h3>
                     <ul v-if="signedContracts.length" class="mt-3 divide-y divide-gray-100 text-sm">
                         <li v-for="contract in signedContracts" :key="contract.id" class="flex flex-wrap items-center justify-between gap-2 py-2">
@@ -153,12 +187,12 @@ function grantAccess() {
                     <p v-else class="mt-2 text-sm text-gray-500">Todavía no tiene contratos firmados.</p>
                 </div>
 
-                <div v-if="isAdmin" class="mt-6 bg-white p-6 shadow-sm sm:rounded-lg">
+                <div v-if="isAdmin" class="mt-6 rounded-2xl border border-slate-200/80 bg-white p-6">
                     <h3 class="text-sm font-medium text-gray-900">Acceso al portal</h3>
 
                     <div
                         v-if="page.props.flash?.success"
-                        class="mt-3 rounded-md bg-green-50 p-3 text-sm text-green-700"
+                        class="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-700"
                     >
                         {{ page.props.flash.success }}
                     </div>

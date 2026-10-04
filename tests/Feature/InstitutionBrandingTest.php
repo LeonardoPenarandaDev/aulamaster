@@ -47,7 +47,7 @@ class InstitutionBrandingTest extends TestCase
             ])
             ->assertSessionHasNoErrors();
 
-        $logoUrl = Storage::disk('public')->url(InstitutionSetting::current()->logo_path);
+        $logoUrl = InstitutionSetting::current()->logoUrl();
 
         $this->actingAs($admin)->get('/dashboard')
             ->assertSee('<link rel="icon" href="'.$logoUrl.'">', false)

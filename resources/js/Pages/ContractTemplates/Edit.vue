@@ -30,7 +30,7 @@ const form = useForm({
     requires_guardian: props.template?.requires_guardian ?? false,
 });
 
-const selectClasses = 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-50';
+const selectClasses = 'mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-50';
 
 const variableGroups = computed(() => {
     const groups = { Estudiante: [], Acudiente: [], Firmante: [], Matrícula: [], Institución: [], Otros: [] };
@@ -141,13 +141,13 @@ function destroy() {
             </div>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
-                <div v-if="page.props.flash?.success" class="rounded-md bg-green-50 p-4 text-sm text-green-700">
+        <div class="py-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 px-4 sm:px-6 lg:px-8">
+                <div v-if="page.props.flash?.success" class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700">
                     {{ page.props.flash.success }}
                 </div>
 
-                <div v-if="!canEdit" class="flex flex-wrap items-center justify-between gap-4 rounded-md bg-blue-50 p-4 text-sm text-blue-800">
+                <div v-if="!canEdit" class="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">
                     <span>Esta versión está {{ template.status }} y no se puede editar. Para cambiarla, crea una versión nueva.</span>
                     <div class="flex gap-2">
                         <PrimaryButton type="button" @click="createVersion">Crear nueva versión</PrimaryButton>
@@ -156,7 +156,7 @@ function destroy() {
                 </div>
 
                 <form class="grid grid-cols-1 gap-6 xl:grid-cols-2" @submit.prevent="submit">
-                    <div class="space-y-6 bg-white p-6 shadow-sm sm:rounded-lg">
+                    <div class="space-y-6 rounded-2xl border border-slate-200/80 bg-white p-6">
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="name" value="Nombre" />
@@ -224,7 +224,7 @@ function destroy() {
                                 v-model="form.body"
                                 rows="22"
                                 :disabled="!canEdit"
-                                class="mt-3 block w-full rounded-md border-gray-300 font-mono text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-50"
+                                class="mt-3 block w-full rounded-xl border-slate-200 font-mono text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:bg-gray-50"
                                 required
                             ></textarea>
                             <InputError class="mt-2" :message="form.errors.body" />
@@ -242,7 +242,7 @@ function destroy() {
                         <Link v-else :href="route('contract-templates.index')" class="text-sm text-gray-600 hover:text-gray-900">Volver</Link>
                     </div>
 
-                    <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                    <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                         <h3 class="text-sm font-medium text-gray-900">Vista previa</h3>
                         <p class="mt-1 text-xs text-gray-500">Con datos de ejemplo (una estudiante menor de edad y su acudiente).</p>
                         <article

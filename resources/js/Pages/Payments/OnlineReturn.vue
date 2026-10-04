@@ -27,9 +27,9 @@ const statusMeta = computed(() => ({
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-lg sm:px-6 lg:px-8">
-                <div class="rounded-xl border border-gray-100 bg-white p-8 text-center shadow-sm">
+        <div class="py-8">
+            <div class="mx-auto max-w-lg px-4 sm:px-6 lg:px-8">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-8 text-center">
                     <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full" :class="statusMeta.bg">
                         <Icon :name="statusMeta.icon" class="h-8 w-8" :class="statusMeta.color" />
                     </div>

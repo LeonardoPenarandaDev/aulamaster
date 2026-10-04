@@ -34,16 +34,16 @@ function submit() {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-2xl sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
                 <div
                     v-if="page.props.flash?.success"
-                    class="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700"
+                    class="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700"
                 >
                     {{ page.props.flash.success }}
                 </div>
 
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <form @submit.prevent="submit" class="space-y-6">
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>

@@ -46,8 +46,8 @@ function exportUrl(format) {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 px-4 sm:px-6 lg:px-8">
                 <Link :href="route('reports.index')" class="text-sm text-indigo-600 hover:text-indigo-900">
                     ← Todos los reportes
                 </Link>
@@ -56,36 +56,36 @@ function exportUrl(format) {
                     <div class="flex flex-wrap gap-3">
                         <div>
                             <label class="block text-xs font-medium text-gray-600">Desde</label>
-                            <input type="date" v-model="filters.from" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                            <input type="date" v-model="filters.from" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500" />
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600">Hasta</label>
-                            <input type="date" v-model="filters.to" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                            <input type="date" v-model="filters.to" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500" />
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600">Curso</label>
-                            <select v-model="filters.course_id" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select v-model="filters.course_id" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="">Todos</option>
                                 <option v-for="c in courses" :key="c.id" :value="c.id">{{ c.name }}</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600">Nivel</label>
-                            <select v-model="filters.level_id" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select v-model="filters.level_id" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="">Todos</option>
                                 <option v-for="l in levels" :key="l.id" :value="l.id">{{ l.name }}</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600">Profesor</label>
-                            <select v-model="filters.teacher_id" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select v-model="filters.teacher_id" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="">Todos</option>
                                 <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.name }}</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600">Aula</label>
-                            <select v-model="filters.classroom_id" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select v-model="filters.classroom_id" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="">Todas</option>
                                 <option v-for="c in classrooms" :key="c.id" :value="c.id">{{ c.name }}</option>
                             </select>
@@ -99,17 +99,17 @@ function exportUrl(format) {
                     </div>
                 </div>
 
-                <div class="overflow-x-auto rounded-lg bg-white shadow-sm">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50/80">
                             <tr>
-                                <th v-for="heading in headings" :key="heading" class="whitespace-nowrap px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                                <th v-for="heading in headings" :key="heading" class="whitespace-nowrap px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                                     {{ heading }}
                                 </th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="(row, index) in rows" :key="index">
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <tr v-for="(row, index) in rows" :key="index" class="transition hover:bg-slate-50/70">
                                 <td v-for="(cell, cellIndex) in row" :key="cellIndex" class="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
                                     {{ cell }}
                                 </td>

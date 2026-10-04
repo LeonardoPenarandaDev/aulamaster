@@ -109,11 +109,11 @@ function destroy(classSession) {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 px-4 sm:px-6 lg:px-8">
                 <div
                     v-if="page.props.flash?.success"
-                    class="rounded-md bg-green-50 p-4 text-sm text-green-700"
+                    class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700"
                 >
                     {{ page.props.flash.success }}
                 </div>
@@ -141,28 +141,28 @@ function destroy(classSession) {
 
                         <div>
                             <label class="block text-xs font-medium text-gray-600">Aula</label>
-                            <select v-model="filters.classroom_id" @change="applyFilters()" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select v-model="filters.classroom_id" @change="applyFilters()" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="">Todas</option>
                                 <option v-for="c in classrooms" :key="c.id" :value="c.id">{{ c.name }}</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600">Profesor</label>
-                            <select v-model="filters.teacher_id" @change="applyFilters()" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select v-model="filters.teacher_id" @change="applyFilters()" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="">Todos</option>
                                 <option v-for="t in teachers" :key="t.id" :value="t.id">{{ t.name }}</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600">Nivel</label>
-                            <select v-model="filters.level_id" @change="applyFilters()" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select v-model="filters.level_id" @change="applyFilters()" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="">Todos</option>
                                 <option v-for="l in levels" :key="l.id" :value="l.id">{{ l.name }}</option>
                             </select>
                         </div>
                         <div v-if="view === 'list'">
                             <label class="block text-xs font-medium text-gray-600">Fecha</label>
-                            <input type="date" v-model="filters.date" @change="applyFilters()" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                            <input type="date" v-model="filters.date" @change="applyFilters()" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500" />
                         </div>
                     </div>
 
@@ -177,7 +177,7 @@ function destroy(classSession) {
                 </div>
 
                 <!-- Vista de calendario -->
-                <div v-if="view === 'calendar'" class="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
+                <div v-if="view === 'calendar'" class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white">
                     <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3">
                         <button type="button" class="rounded-md px-2 py-1 text-gray-500 hover:bg-gray-100" @click="changeMonth(-1)">‹ Anterior</button>
                         <h3 class="text-sm font-semibold capitalize text-gray-800">{{ monthLabel }}</h3>
@@ -222,21 +222,21 @@ function destroy(classSession) {
 
                 <!-- Vista de lista -->
                 <template v-else>
-                    <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
+                    <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white">
+                        <table class="min-w-full divide-y divide-slate-100">
+                            <thead class="bg-slate-50/80">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Fecha</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Hora</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Curso / Nivel</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Profesor</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Aula</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estado</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Fecha</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Hora</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Curso / Nivel</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Profesor</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Aula</th>
+                                    <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estado</th>
                                     <th class="px-6 py-3"></th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-gray-200 bg-white">
-                                <tr v-for="session in classSessions.data" :key="session.id">
+                            <tbody class="divide-y divide-slate-100 bg-white">
+                                <tr v-for="session in classSessions.data" :key="session.id" class="transition hover:bg-slate-50/70">
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ session.date }}</td>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ session.start_time?.slice(0, 5) }} - {{ session.end_time?.slice(0, 5) }}</td>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
@@ -276,9 +276,9 @@ function destroy(classSession) {
                             :key="link.label"
                             :href="link.url ?? '#'"
                             v-html="link.label"
-                            class="rounded-md border px-3 py-1 text-sm"
+                            class="rounded-lg border px-3 py-1.5 text-sm"
                             :class="[
-                                link.active ? 'border-indigo-500 bg-indigo-50 text-indigo-600' : 'border-gray-200 text-gray-600',
+                                link.active ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
                                 !link.url ? 'pointer-events-none opacity-50' : '',
                             ]"
                         />

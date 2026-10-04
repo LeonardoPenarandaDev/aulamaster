@@ -41,8 +41,8 @@ function longDate(value) {
             <h2 class="text-xl font-semibold leading-tight text-gray-800">Vista previa de la importación</h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 px-4 sm:px-6 lg:px-8">
                 <p class="text-sm text-gray-600">
                     Semana del {{ longDate(week) }}<template v-if="repeatWeeks > 1">, repetida durante {{ repeatWeeks }} semanas</template>.
                     Todavía no se ha guardado nada.
@@ -67,9 +67,9 @@ function longDate(value) {
                     </div>
                 </div>
 
-                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-50">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white">
+                    <table class="min-w-full divide-y divide-slate-100 text-sm">
+                        <thead class="bg-slate-50/80">
                             <tr class="text-left text-xs uppercase tracking-wider text-gray-500">
                                 <th class="px-4 py-3 font-medium">Fila</th>
                                 <th class="px-4 py-3 font-medium">Estado</th>
@@ -81,7 +81,7 @@ function longDate(value) {
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            <tr v-for="row in visibleRows" :key="row.line">
+                            <tr v-for="row in visibleRows" :key="row.line" class="transition hover:bg-slate-50/70">
                                 <td class="px-4 py-3 text-gray-500">{{ row.line }}</td>
                                 <td class="whitespace-nowrap px-4 py-3">
                                     <span class="rounded-full px-2 py-1 text-xs font-medium" :class="statusStyles[row.status].class">{{ statusStyles[row.status].label }}</span>

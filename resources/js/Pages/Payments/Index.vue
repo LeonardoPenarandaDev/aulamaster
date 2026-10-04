@@ -48,11 +48,11 @@ function money(value) {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 px-4 sm:px-6 lg:px-8">
                 <div
                     v-if="page.props.flash?.success"
-                    class="rounded-md bg-green-50 p-4 text-sm text-green-700"
+                    class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700"
                 >
                     {{ page.props.flash.success }}
                 </div>
@@ -61,14 +61,14 @@ function money(value) {
                     <div class="flex flex-wrap gap-3">
                         <div>
                             <label class="block text-xs font-medium text-gray-600">Estudiante</label>
-                            <select v-model="filters.student_id" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select v-model="filters.student_id" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="">Todos</option>
                                 <option v-for="s in students" :key="s.id" :value="s.id">{{ s.code }} - {{ s.name }}</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-600">Estado</label>
-                            <select v-model="filters.status" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select v-model="filters.status" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="">Todos</option>
                                 <option v-for="(label, value) in statusLabels" :key="value" :value="value">{{ label }}</option>
                             </select>
@@ -80,20 +80,20 @@ function money(value) {
                     </Link>
                 </div>
 
-                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50/80">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estudiante</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Concepto</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Valor final</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Fecha de pago</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estudiante</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Concepto</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Valor final</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Fecha de pago</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estado</th>
                                 <th class="px-6 py-3"></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="payment in payments.data" :key="payment.id">
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <tr v-for="payment in payments.data" :key="payment.id" class="transition hover:bg-slate-50/70">
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                                     <Link :href="route('students.account-statement', payment.student_id)" class="hover:underline">
                                         {{ payment.student?.code }} - {{ payment.student?.name }}
@@ -128,9 +128,9 @@ function money(value) {
                         :key="link.label"
                         :href="link.url ?? '#'"
                         v-html="link.label"
-                        class="rounded-md border px-3 py-1 text-sm"
+                        class="rounded-lg border px-3 py-1.5 text-sm"
                         :class="[
-                            link.active ? 'border-indigo-500 bg-indigo-50 text-indigo-600' : 'border-gray-200 text-gray-600',
+                            link.active ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
                             !link.url ? 'pointer-events-none opacity-50' : '',
                         ]"
                     />

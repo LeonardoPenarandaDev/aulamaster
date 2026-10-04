@@ -10,6 +10,8 @@ const model = defineModel({ type: [File, null], default: null });
 const props = defineProps({
     label: { type: String, required: true },
     maxKb: { type: Number, default: 5120 },
+    // 'user' para fotos de perfil (cámara frontal del celular).
+    facingMode: { type: String, default: 'environment' },
 });
 
 const preview = ref(null);
@@ -34,7 +36,7 @@ async function startCamera() {
     error.value = '';
 
     try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1920 } } });
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: props.facingMode, width: { ideal: 1920 } } });
         cameraOn.value = true;
         await new Promise((resolve) => requestAnimationFrame(resolve));
         video.value.srcObject = stream;
@@ -83,7 +85,7 @@ onBeforeUnmount(stopCamera);
             </button>
             <label class="cursor-pointer rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50">
                 Subir archivo
-                <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" class="hidden" @change="setFile($event.target.files[0] ?? null)" />
+                <input type="file" accept="image/jpeg,image/png,image/webp" class="hidden" @change="setFile($event.target.files[0] ?? null)" />
             </label>
             <button v-if="preview" type="button" class="text-sm text-gray-500 underline" @click="setFile(null)">Quitar</button>
         </div>

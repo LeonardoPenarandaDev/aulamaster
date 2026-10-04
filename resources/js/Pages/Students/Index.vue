@@ -2,6 +2,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import StudentAvatar from '@/Components/StudentAvatar.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
@@ -40,11 +41,11 @@ function destroy(student) {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 px-4 sm:px-6 lg:px-8">
                 <div
                     v-if="page.props.flash?.success"
-                    class="rounded-md bg-green-50 p-4 text-sm text-green-700"
+                    class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700"
                 >
                     {{ page.props.flash.success }}
                 </div>
@@ -68,22 +69,24 @@ function destroy(student) {
                     </div>
                 </div>
 
-                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50/80">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Código</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nombre</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Correo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Código</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Nombre</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Correo</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estado</th>
                                 <th class="px-6 py-3"></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="student in students.data" :key="student.id">
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <tr v-for="student in students.data" :key="student.id" class="transition hover:bg-slate-50/70">
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ student.code }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
-                                    {{ student.name }}
+                                    <div class="flex items-center gap-3">
+                                    <StudentAvatar :name="student.name" :photo-url="student.photo_url" size="sm" />
+                                    <span>{{ student.name }}</span>
                                     <span v-if="student.is_minor" class="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Menor</span>
                                     <span
                                         v-if="student.missing_contract_data.length"
@@ -92,6 +95,7 @@ function destroy(student) {
                                     >
                                         Datos incompletos
                                     </span>
+                                    </div>
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ student.email }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm">
@@ -134,9 +138,9 @@ function destroy(student) {
                         :key="link.label"
                         :href="link.url ?? '#'"
                         v-html="link.label"
-                        class="rounded-md border px-3 py-1 text-sm"
+                        class="rounded-lg border px-3 py-1.5 text-sm"
                         :class="[
-                            link.active ? 'border-indigo-500 bg-indigo-50 text-indigo-600' : 'border-gray-200 text-gray-600',
+                            link.active ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
                             !link.url ? 'pointer-events-none opacity-50' : '',
                         ]"
                     />

@@ -30,8 +30,8 @@ const moduleLabels = {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-5xl space-y-8 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-5xl space-y-8 px-4 sm:px-6 lg:px-8">
                 <div v-for="(items, moduleKey) in reports" :key="moduleKey">
                     <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
                         {{ moduleLabels[moduleKey] ?? moduleKey }}

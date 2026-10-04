@@ -60,14 +60,14 @@ function submit() {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+        <div class="py-8">
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <form @submit.prevent="submit" class="space-y-6">
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="student_id" value="Estudiante" />
-                                <select id="student_id" v-model="form.student_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="student_id" v-model="form.student_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option v-for="student in students" :key="student.id" :value="student.id">{{ student.code }} - {{ student.name }}</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.student_id" />
@@ -75,7 +75,7 @@ function submit() {
 
                             <div>
                                 <InputLabel for="enrollment_id" value="Matrícula (opcional)" />
-                                <select id="enrollment_id" v-model="form.enrollment_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="enrollment_id" v-model="form.enrollment_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="">Sin matrícula asociada</option>
                                     <option v-for="enrollment in studentEnrollments" :key="enrollment.id" :value="enrollment.id">{{ enrollment.level?.name }}</option>
                                 </select>
@@ -86,7 +86,7 @@ function submit() {
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
                             <div>
                                 <InputLabel for="type" value="Tipo" />
-                                <select id="type" v-model="form.type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="type" v-model="form.type" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="matricula">Matrícula</option>
                                     <option value="mensualidad">Mensualidad</option>
                                     <option value="otro">Otro</option>
@@ -135,7 +135,7 @@ function submit() {
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="promotion_id" value="Promoción" />
-                                <select id="promotion_id" v-model="form.promotion_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="promotion_id" v-model="form.promotion_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="">Ninguna</option>
                                     <option v-for="promotion in promotions" :key="promotion.id" :value="promotion.id">{{ promotion.name }}</option>
                                 </select>
@@ -144,7 +144,7 @@ function submit() {
 
                             <div>
                                 <InputLabel for="referral_id" value="Referido" />
-                                <select id="referral_id" v-model="form.referral_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="referral_id" v-model="form.referral_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="">Ninguno</option>
                                     <option v-for="referral in referrals" :key="referral.id" :value="referral.id">
                                         {{ referral.referrer?.name }} → {{ referral.referred?.name }}
@@ -176,7 +176,7 @@ function submit() {
 
                         <div>
                             <InputLabel for="status" value="Estado" />
-                            <select id="status" v-model="form.status" class="mt-1 block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select id="status" v-model="form.status" class="mt-1 block w-full max-w-xs rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="pendiente">Pendiente</option>
                                 <option value="pagado">Pagado</option>
                                 <option value="vencido">Vencido</option>

@@ -35,6 +35,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
                 'roles' => fn () => $request->user()?->getRoleNames() ?? [],
+                'avatar_url' => fn () => $request->user()?->hasRole('estudiante') ? $request->user()->student?->photo_url : null,
             ],
             'institution' => fn () => InstitutionSetting::branding(),
             'studentTheme' => fn () => $this->studentTheme($request),

@@ -43,6 +43,7 @@ class StoreStudentRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:255'],
             'status' => ['required', Rule::in(['activo', 'inactivo'])],
             ...$this->guardianRules(),
+            'photo' => Student::photoRules(required: false),
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ];
     }
@@ -52,7 +53,7 @@ class StoreStudentRequest extends FormRequest
      */
     public function messages(): array
     {
-        return $this->guardianMessages();
+        return [...$this->guardianMessages(), ...Student::photoMessages()];
     }
 
     /**

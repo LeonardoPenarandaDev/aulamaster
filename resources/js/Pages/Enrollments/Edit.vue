@@ -72,14 +72,14 @@ function submitExtension() {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+        <div class="py-8">
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <form @submit.prevent="submit" class="space-y-6">
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="student_id" value="Estudiante" />
-                                <select id="student_id" v-model="form.student_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="student_id" v-model="form.student_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option v-for="student in students" :key="student.id" :value="student.id">{{ student.code }} - {{ student.name }}</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.student_id" />
@@ -87,7 +87,7 @@ function submitExtension() {
 
                             <div>
                                 <InputLabel for="level_id" value="Curso / Nivel" />
-                                <select id="level_id" v-model="form.level_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                <select id="level_id" v-model="form.level_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                     <option v-for="level in levels" :key="level.id" :value="level.id">{{ level.course?.name }} {{ level.name }}</option>
                                 </select>
                                 <InputError class="mt-2" :message="form.errors.level_id" />
@@ -122,7 +122,7 @@ function submitExtension() {
 
                         <div>
                             <InputLabel for="status" value="Estado" />
-                            <select id="status" v-model="form.status" class="mt-1 block w-full max-w-xs rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <select id="status" v-model="form.status" class="mt-1 block w-full max-w-xs rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                 <option value="pendiente">Pendiente</option>
                                 <option value="activa">Activa</option>
                                 <option value="en_recuperacion">En recuperación</option>
@@ -203,11 +203,11 @@ function submitExtension() {
 
                 <div
                     v-if="enrollment.previous_enrollment || enrollment.next_enrollment || enrollment.level?.next_level || enrollment.prerequisite_waived"
-                    class="mt-6 bg-white p-6 shadow-sm sm:rounded-lg"
+                    class="mt-6 rounded-2xl border border-slate-200/80 bg-white p-6"
                 >
                     <h3 class="text-sm font-medium text-gray-900">Ruta de niveles</h3>
 
-                    <div v-if="page.props.flash?.success" class="mt-3 rounded-md bg-green-50 p-3 text-sm text-green-700">
+                    <div v-if="page.props.flash?.success" class="mt-3 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-700">
                         {{ page.props.flash.success }}
                     </div>
 
@@ -239,7 +239,7 @@ function submitExtension() {
                     </PrimaryButton>
                 </div>
 
-                <div v-if="isAdmin" class="mt-6 bg-white p-6 shadow-sm sm:rounded-lg">
+                <div v-if="isAdmin" class="mt-6 rounded-2xl border border-slate-200/80 bg-white p-6">
                     <h3 class="text-sm font-medium text-gray-900">Extensión de nivel</h3>
                     <p class="mt-1 text-xs text-gray-500">
                         Registra un cambio en la fecha estimada de finalización (por ejemplo, por un proceso de recuperación).
@@ -279,7 +279,7 @@ function submitExtension() {
                                 id="extension_notes"
                                 v-model="extensionForm.notes"
                                 rows="2"
-                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
                             ></textarea>
                             <InputError class="mt-2" :message="extensionForm.errors.notes" />
                         </div>

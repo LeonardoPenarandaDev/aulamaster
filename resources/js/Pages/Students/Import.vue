@@ -59,9 +59,9 @@ function submit() {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-3xl space-y-6 sm:px-6 lg:px-8">
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+        <div class="py-8">
+            <div class="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:px-8">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <h3 class="text-sm font-medium text-gray-900">Formato del archivo</h3>
                     <p class="mt-1 text-sm text-gray-500">
                         Sube un archivo CSV o Excel (.xlsx) con una fila de encabezados y un estudiante por fila
@@ -69,9 +69,9 @@ function submit() {
                         así puedes corregir el archivo y volver a subirlo.
                     </p>
 
-                    <table class="mt-4 min-w-full divide-y divide-gray-200 text-sm">
+                    <table class="mt-4 min-w-full divide-y divide-slate-100 text-sm">
                         <tbody class="divide-y divide-gray-100">
-                            <tr v-for="column in columns" :key="column">
+                            <tr v-for="column in columns" :key="column" class="transition hover:bg-slate-50/70">
                                 <td class="whitespace-nowrap py-2 pr-4 font-mono text-gray-900">{{ column }}</td>
                                 <td class="py-2 text-gray-500">{{ columnHelp[column] }}</td>
                             </tr>
@@ -86,7 +86,7 @@ function submit() {
                     </a>
                 </div>
 
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <form @submit.prevent="submit" class="space-y-6">
                         <div>
                             <InputLabel for="file" value="Archivo" />
@@ -101,7 +101,7 @@ function submit() {
                             <InputError class="mt-2" :message="form.errors.file" />
                         </div>
 
-                        <div v-if="rowErrors.length" class="rounded-md bg-red-50 p-4 text-sm text-red-700">
+                        <div v-if="rowErrors.length" class="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
                             <p class="font-medium">
                                 No se registró ningún estudiante. Corrige {{ rowErrors.length === 1 ? 'la siguiente fila' : `las siguientes ${rowErrors.length} filas` }} y vuelve a subir el archivo:
                             </p>

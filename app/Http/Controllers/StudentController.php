@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Students\StoreStudentPhoto;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\ContractSignature;
@@ -55,10 +56,14 @@ class StudentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreStudentRequest $request): RedirectResponse
+    public function store(StoreStudentRequest $request, StoreStudentPhoto $storePhoto): RedirectResponse
     {
-        DB::transaction(function () use ($request) {
-            $student = Student::create($request->safe()->except('password'));
+        DB::transaction(function () use ($request, $storePhoto) {
+            $student = Student::create($request->safe()->except(['password', 'photo']));
+
+            if ($request->hasFile('photo')) {
+                $storePhoto->handle($student, $request->file('photo'));
+            }
 
             if ($request->filled('password')) {
                 $user = User::create([

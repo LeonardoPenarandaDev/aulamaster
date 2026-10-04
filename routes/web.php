@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppearanceController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceCorrectionController;
 use App\Http\Controllers\AuditLogController;
@@ -37,6 +38,7 @@ use App\Http\Controllers\StudentContractController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentImportController;
 use App\Http\Controllers\StudentMaterialController;
+use App\Http\Controllers\StudentPhotoController;
 use App\Http\Controllers\StudentScheduleController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserPasswordResetController;
@@ -91,6 +93,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('contract-templates/{contract_template}/new-version', [ContractTemplateController::class, 'createVersion'])->name('contract-templates.new-version');
     Route::post('contract-templates/{contract_template}/archive', [ContractTemplateController::class, 'archive'])->name('contract-templates.archive');
 
+    Route::get('apariencia', [AppearanceController::class, 'edit'])->name('appearance.edit');
+    Route::put('apariencia', [AppearanceController::class, 'update'])->name('appearance.update');
+
     Route::get('institution-settings', [InstitutionSettingController::class, 'edit'])->name('institution-settings.edit');
     Route::post('institution-settings', [InstitutionSettingController::class, 'update'])->name('institution-settings.update');
 });
@@ -120,6 +125,8 @@ Route::middleware(['auth', 'verified', 'role:admin|coordinador'])->group(functio
 // y consulta pagos sin poder registrarlos ni editarlos.
 Route::middleware(['auth', 'verified', 'role:admin|secretaria'])->group(function () {
     Route::resource('students', StudentController::class)->only(['index', 'create', 'store', 'edit', 'update']);
+    Route::post('students/{student}/photo', [StudentPhotoController::class, 'update'])->name('students.photo.update');
+    Route::delete('students/{student}/photo', [StudentPhotoController::class, 'destroy'])->name('students.photo.destroy');
 });
 
 // Contratos de la matrícula (partes 6.5 a 6.8 del plan de mejoras).
@@ -200,6 +207,11 @@ Route::post('firmar/{enrollment}/codigo', [RemoteContractSigningController::clas
 Route::post('firmar/{enrollment}/contratos/{contract_signature}', [RemoteContractSigningController::class, 'sign'])
     ->middleware('throttle:20,1')
     ->name('contracts.remote.sign');
+
+// Foto de perfil del estudiante (privada: StudentPolicy@viewPhoto).
+Route::get('students/{student}/photo', [StudentPhotoController::class, 'show'])
+    ->middleware(['auth', 'verified'])
+    ->name('students.photo');
 
 // Calendario por rol (parte 10 del plan de mejoras).
 Route::get('calendario', [CalendarController::class, 'index'])

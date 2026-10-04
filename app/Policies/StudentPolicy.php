@@ -34,6 +34,15 @@ class StudentPolicy
     }
 
     /**
+     * La foto de perfil la ven el personal, los docentes (para reconocer a
+     * sus alumnos en la asistencia) y el propio estudiante.
+     */
+    public function viewPhoto(User $user, Student $student): bool
+    {
+        return $user->hasRole(['secretaria', 'cajero', 'coordinador', 'profesor']) || $student->user_id === $user->id;
+    }
+
+    /**
      * Determine whether the user can create models.
      */
     public function create(User $user): bool

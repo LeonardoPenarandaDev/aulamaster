@@ -4,6 +4,9 @@ import DropdownLink from '@/Components/DropdownLink.vue';
 import Icon from '@/Components/Icon.vue';
 import InstitutionLogo from '@/Components/InstitutionLogo.vue';
 import NotificationBell from '@/Components/NotificationBell.vue';
+import StudentAvatar from '@/Components/StudentAvatar.vue';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
+import { useTheme } from '@/theme';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 
@@ -29,10 +32,19 @@ const navigation = computed(() => (isStudent.value
         { label: 'Mi perfil', icon: 'user', route: 'profile.edit', active: 'profile.*' },
     ]));
 
+const { isDark } = useTheme();
+
+// En modo oscuro el color del nivel se usa más tenue, sobre el fondo oscuro.
 const background = computed(() => {
     const color = isStudent.value ? page.props.studentTheme?.color : null;
 
-    return color ? { backgroundImage: `linear-gradient(to bottom, ${color}, #f9fafb 420px)` } : null;
+    if (!color) {
+        return null;
+    }
+
+    return isDark.value
+        ? { backgroundImage: `linear-gradient(to bottom, ${color}33, transparent 420px)` }
+        : { backgroundImage: `linear-gradient(to bottom, ${color}, #fafafa 420px)` };
 });
 </script>
 
@@ -59,11 +71,12 @@ const background = computed(() => {
                 </nav>
 
                 <div class="flex items-center gap-1">
+                    <ThemeToggle />
                     <NotificationBell />
                     <Dropdown align="right" width="48">
                         <template #trigger>
-                            <button type="button" class="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-600 text-sm font-semibold text-white" :aria-label="page.props.auth.user.name">
-                                {{ page.props.auth.user.name.charAt(0).toUpperCase() }}
+                            <button type="button" class="rounded-full" :aria-label="page.props.auth.user.name">
+                                <StudentAvatar :name="page.props.auth.user.name" :photo-url="page.props.auth.avatar_url" size="sm" />
                             </button>
                         </template>
                         <template #content>

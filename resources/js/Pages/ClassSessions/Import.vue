@@ -42,16 +42,16 @@ function submit() {
             <h2 class="text-xl font-semibold leading-tight text-gray-800">Programar la semana desde CSV / Excel</h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-3xl space-y-6 sm:px-6 lg:px-8">
-                <div class="bg-white p-6 shadow-sm sm:rounded-lg">
+        <div class="py-8">
+            <div class="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:px-8">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <h3 class="text-sm font-medium text-gray-900">Formato del archivo</h3>
                     <p class="mt-1 text-sm text-gray-500">
                         Una clase por fila. Descarga la plantilla: trae ejemplos, instrucciones y listas desplegables con los niveles, aulas y docentes.
                     </p>
-                    <table class="mt-4 min-w-full divide-y divide-gray-200 text-sm">
+                    <table class="mt-4 min-w-full divide-y divide-slate-100 text-sm">
                         <tbody class="divide-y divide-gray-100">
-                            <tr v-for="column in columns" :key="column">
+                            <tr v-for="column in columns" :key="column" class="transition hover:bg-slate-50/70">
                                 <td class="whitespace-nowrap py-2 pr-4 font-mono text-gray-900">{{ column }}</td>
                                 <td class="py-2 text-gray-500">{{ columnHelp[column] }}</td>
                             </tr>
@@ -62,7 +62,7 @@ function submit() {
                     </a>
                 </div>
 
-                <form class="space-y-6 bg-white p-6 shadow-sm sm:rounded-lg" @submit.prevent="submit">
+                <form class="space-y-6 rounded-2xl border border-slate-200/80 bg-white p-6" @submit.prevent="submit">
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
                             <InputLabel for="week" value="Semana (cualquier día de la semana)" />

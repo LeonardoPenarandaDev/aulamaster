@@ -85,7 +85,7 @@ const statusLabels = {
     reprogramada: 'Reprogramada',
 };
 
-const selectClasses = 'mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500';
+const selectClasses = 'mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500';
 </script>
 
 <template>
@@ -106,7 +106,7 @@ const selectClasses = 'mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:b
         </template>
 
         <div class="py-6 sm:py-10">
-            <div class="mx-auto max-w-screen-2xl space-y-4 px-2 sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 px-2 px-4 sm:px-6 lg:px-8">
                 <div v-if="page.props.flash?.success" class="rounded-xl bg-green-50 p-4 text-sm text-green-700">
                     {{ page.props.flash.success }}
                 </div>

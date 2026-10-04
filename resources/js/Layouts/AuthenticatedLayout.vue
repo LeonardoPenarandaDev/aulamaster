@@ -1,370 +1,225 @@
 <script setup>
-import { computed, ref } from 'vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
+import Icon from '@/Components/Icon.vue';
 import InstitutionLogo from '@/Components/InstitutionLogo.vue';
-import NavDropdown from '@/Components/NavDropdown.vue';
-import NavLink from '@/Components/NavLink.vue';
 import NotificationBell from '@/Components/NotificationBell.vue';
-import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { sidebarTheme } from '@/sidebarThemes';
+import ThemeToggle from '@/Components/ThemeToggle.vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, ref } from 'vue';
 
-const showingNavigationDropdown = ref(false);
+/**
+ * Layout del personal (admin, coordinador, cajero y secretaria): barra
+ * lateral con los módulos agrupados y barra superior translúcida. En el
+ * celular la barra lateral se abre como un panel.
+ */
 const page = usePage();
-const isAdmin = () => page.props.auth.roles?.includes('admin');
-const isCoordinador = () => page.props.auth.roles?.includes('coordinador');
-const isCajero = () => page.props.auth.roles?.includes('cajero');
-const isSecretaria = () => page.props.auth.roles?.includes('secretaria');
-const isStudent = () => page.props.auth.roles?.includes('estudiante');
-const isTeacher = () => page.props.auth.roles?.includes('profesor');
+const sidebarOpen = ref(false);
 
-// Fondo del estudiante: degradado suave del color de su nivel actual hacia
-// blanco (parte 4 del plan de mejoras). Sin nivel, se mantiene el gris.
-const studentBackground = computed(() => {
-    const color = page.props.studentTheme?.color;
+// Estilo del menú elegido en Sistema → Apariencia.
+const theme = computed(() => sidebarTheme(page.props.institution?.sidebar_style));
 
-    return color ? { backgroundImage: `linear-gradient(to bottom, ${color}, #ffffff 70%)` } : null;
-});
+const roles = computed(() => page.props.auth.roles ?? []);
+const has = (...names) => names.some((name) => roles.value.includes(name));
+const isCurrent = (...patterns) => patterns.some((pattern) => route().current(pattern));
+
+/**
+ * Menú por rol. Cada grupo y cada opción solo aparecen para los roles que
+ * tienen permiso sobre esas rutas.
+ */
+const navigation = computed(() => [
+    {
+        items: [
+            { label: 'Inicio', icon: 'home', route: 'dashboard', active: ['dashboard'], show: true },
+            { label: 'Calendario', icon: 'calendar', route: 'calendar.index', active: ['calendar.*'], show: has('estudiante', 'profesor') && !has('admin', 'coordinador') },
+            { label: 'Horarios disponibles', icon: 'clock', route: 'student-schedule.index', active: ['student-schedule.*'], show: has('estudiante') },
+            { label: 'Material de clase', icon: 'folder', route: 'student-materials.index', active: ['student-materials.*'], show: has('estudiante') },
+            { label: 'Mis contratos', icon: 'document', route: 'student-contracts.index', active: ['student-contracts.*'], show: has('estudiante') },
+        ],
+    },
+    {
+        label: 'Académico',
+        show: has('admin', 'coordinador'),
+        items: [
+            { label: 'Calendario', icon: 'calendar', route: 'calendar.index', active: ['calendar.*'], show: true },
+            { label: 'Clases (lista)', icon: 'clipboard', route: 'class-sessions.index', active: ['class-sessions.*', 'class-schedules.*'], show: true },
+            { label: 'Cursos', icon: 'book', route: 'courses.index', active: ['courses.*'], show: true },
+            { label: 'Niveles', icon: 'chart', route: 'levels.index', active: ['levels.*'], show: true },
+            { label: 'Aulas', icon: 'building', route: 'classrooms.index', active: ['classrooms.*'], show: true },
+        ],
+    },
+    {
+        label: 'Personas',
+        show: has('admin', 'cajero', 'secretaria'),
+        items: [
+            { label: 'Estudiantes', icon: 'users', route: 'students.index', active: ['students.*'], show: has('admin', 'secretaria') },
+            { label: 'Profesores', icon: 'teacher', route: 'teachers.index', active: ['teachers.*'], show: has('admin') },
+            { label: 'Matrículas', icon: 'document', route: 'enrollments.index', active: ['enrollments.*'], show: true },
+        ],
+    },
+    {
+        label: 'Seguimiento',
+        show: has('admin'),
+        items: [
+            { label: 'Asistencias', icon: 'check-circle', route: 'attendance.index', active: ['attendance.index'], show: true },
+            { label: 'Inasistencias', icon: 'alert-triangle', route: 'attendance.absences', active: ['attendance.absences'], show: true },
+            { label: 'Evaluaciones', icon: 'clipboard', route: 'evaluation-results.index', active: ['evaluation-results.*', 'evaluations.*'], show: true },
+            { label: 'Recuperaciones', icon: 'refresh', route: 'recovery.index', active: ['recovery.*', 'recovery-settings.*'], show: true },
+        ],
+    },
+    {
+        label: 'Finanzas',
+        show: has('admin', 'cajero', 'secretaria'),
+        items: [
+            { label: 'Pagos', icon: 'wallet', route: 'payments.index', active: ['payments.*'], show: true },
+            { label: 'Cartera en mora', icon: 'alert-triangle', route: 'collections.index', active: ['collections.*'], show: true },
+            { label: 'Promociones', icon: 'coins', route: 'promotions.index', active: ['promotions.*', 'referrals.*'], show: has('admin', 'cajero') },
+            { label: 'Reportes', icon: 'chart', route: 'reports.index', active: ['reports.*'], show: has('admin', 'cajero') },
+        ],
+    },
+    {
+        label: 'Sistema',
+        show: has('admin', 'coordinador'),
+        items: [
+            { label: 'Usuarios del personal', icon: 'users', route: 'staff-users.index', active: ['staff-users.*'], show: has('admin') },
+            { label: 'Restablecer contraseñas', icon: 'shield', route: 'password-resets.index', active: ['password-resets.*'], show: true },
+            { label: 'Plantillas de contrato', icon: 'document', route: 'contract-templates.index', active: ['contract-templates.*'], show: has('admin') },
+            { label: 'Auditoría', icon: 'clipboard', route: 'audit-logs.index', active: ['audit-logs.*'], show: has('admin') },
+            { label: 'Apariencia', icon: 'sun', route: 'appearance.edit', active: ['appearance.*'], show: has('admin') },
+            { label: 'Configuración', icon: 'settings', route: 'institution-settings.edit', active: ['institution-settings.*'], show: has('admin') },
+        ],
+    },
+]
+    .filter((group) => group.show !== false)
+    .map((group) => ({ ...group, items: group.items.filter((item) => item.show) }))
+    .filter((group) => group.items.length));
+
+const roleLabel = computed(() => ({
+    admin: 'Administrador',
+    coordinador: 'Coordinador',
+    cajero: 'Cajero',
+    secretaria: 'Secretaria',
+    profesor: 'Profesor',
+    estudiante: 'Estudiante',
+}[roles.value[0]] ?? ''));
+
+const initials = computed(() => page.props.auth.user.name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0].toUpperCase())
+    .join(''));
+
+// Al navegar en el celular se cierra el panel lateral.
+const removeListener = router.on('navigate', () => (sidebarOpen.value = false));
+onBeforeUnmount(removeListener);
 </script>
 
 <template>
-    <div>
-        <div class="min-h-screen" :class="{ 'bg-gray-100': !studentBackground }" :style="studentBackground">
-            <nav
-                class="border-b border-gray-100 bg-white"
-            >
-                <!-- Primary Navigation Menu -->
-                <div class="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
-                    <div class="flex h-16 justify-between">
-                        <div class="flex">
-                            <!-- Logo -->
-                            <div class="flex shrink-0 items-center">
-                                <Link :href="route('dashboard')" class="flex items-center gap-2">
-                                    <InstitutionLogo />
-                                    <span class="hidden max-w-[14rem] truncate text-lg font-bold tracking-tight text-gray-800 sm:block">{{ page.props.institution.name }}</span>
-                                </Link>
-                            </div>
+    <div class="min-h-screen bg-slate-50">
+        <!-- Fondo oscuro del panel en el celular -->
+        <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" leave-active-class="transition-opacity duration-150" leave-to-class="opacity-0">
+            <div v-if="sidebarOpen" class="fixed inset-0 z-40 bg-slate-900/40 lg:hidden" @click="sidebarOpen = false" />
+        </Transition>
 
-                            <!-- Navigation Links -->
-                            <div
-                                class="hidden items-center space-x-1 lg:ms-8 lg:flex"
-                            >
-                                <NavLink
-                                    :href="route('dashboard')"
-                                    :active="route().current('dashboard')"
-                                >
-                                    Dashboard
-                                </NavLink>
-                                <NavLink
-                                    v-if="isStudent() || isTeacher()"
-                                    :href="route('calendar.index')"
-                                    :active="route().current('calendar.*')"
-                                >
-                                    Calendario
-                                </NavLink>
-                                <NavLink
-                                    v-if="isStudent()"
-                                    :href="route('student-schedule.index')"
-                                    :active="route().current('student-schedule.*')"
-                                >
-                                    Horarios disponibles
-                                </NavLink>
-                                <NavLink
-                                    v-if="isStudent()"
-                                    :href="route('student-materials.index')"
-                                    :active="route().current('student-materials.*')"
-                                >
-                                    Material de clase
-                                </NavLink>
-                                <NavLink
-                                    v-if="isStudent()"
-                                    :href="route('student-contracts.index')"
-                                    :active="route().current('student-contracts.*')"
-                                >
-                                    Mis contratos
-                                </NavLink>
-                                <NavDropdown
-                                    v-if="isAdmin() || isCoordinador()"
-                                    label="Académico"
-                                    :active="route().current('courses.*') || route().current('levels.*') || route().current('classrooms.*') || route().current('class-sessions.*') || route().current('class-schedules.*')"
-                                >
-                                    <DropdownLink :href="route('courses.index')">Cursos</DropdownLink>
-                                    <DropdownLink :href="route('levels.index')">Niveles</DropdownLink>
-                                    <DropdownLink :href="route('classrooms.index')">Aulas</DropdownLink>
-                                    <DropdownLink :href="route('calendar.index')">Calendario</DropdownLink>
-                                    <DropdownLink :href="route('class-sessions.index')">Clases (lista)</DropdownLink>
-                                </NavDropdown>
-                                <NavDropdown
-                                    v-if="isAdmin() || isCajero() || isSecretaria()"
-                                    label="Personas"
-                                    :active="route().current('students.*') || route().current('teachers.*') || route().current('enrollments.*')"
-                                >
-                                    <DropdownLink v-if="isAdmin() || isSecretaria()" :href="route('students.index')">Estudiantes</DropdownLink>
-                                    <DropdownLink v-if="isAdmin()" :href="route('teachers.index')">Profesores</DropdownLink>
-                                    <DropdownLink :href="route('enrollments.index')">Matrículas</DropdownLink>
-                                </NavDropdown>
-                                <NavDropdown
-                                    v-if="isAdmin()"
-                                    label="Seguimiento"
-                                    :active="route().current('attendance.*') || route().current('evaluation-results.*') || route().current('evaluations.*') || route().current('recovery.*') || route().current('recovery-settings.*')"
-                                >
-                                    <DropdownLink :href="route('attendance.index')">Asistencias</DropdownLink>
-                                    <DropdownLink :href="route('attendance.absences')">Inasistencias</DropdownLink>
-                                    <DropdownLink :href="route('evaluation-results.index')">Evaluaciones</DropdownLink>
-                                    <DropdownLink :href="route('recovery.index')">Recuperaciones</DropdownLink>
-                                </NavDropdown>
-                                <NavDropdown
-                                    v-if="isAdmin() || isCajero() || isSecretaria()"
-                                    label="Finanzas"
-                                    :active="route().current('payments.*') || route().current('collections.*') || route().current('promotions.*') || route().current('referrals.*') || route().current('reports.*')"
-                                >
-                                    <DropdownLink :href="route('payments.index')">Pagos</DropdownLink>
-                                    <DropdownLink :href="route('collections.index')">Cartera en mora</DropdownLink>
-                                    <DropdownLink v-if="!isSecretaria()" :href="route('promotions.index')">Promociones</DropdownLink>
-                                    <DropdownLink v-if="!isSecretaria()" :href="route('reports.index')">Reportes</DropdownLink>
-                                </NavDropdown>
-                                <NavDropdown
-                                    v-if="isAdmin() || isCoordinador()"
-                                    label="Sistema"
-                                    :active="route().current('audit-logs.*') || route().current('institution-settings.*') || route().current('staff-users.*') || route().current('password-resets.*') || route().current('contract-templates.*')"
-                                >
-                                    <DropdownLink v-if="isAdmin()" :href="route('staff-users.index')">Usuarios del personal</DropdownLink>
-                                    <DropdownLink :href="route('password-resets.index')">Restablecer contraseñas</DropdownLink>
-                                    <DropdownLink v-if="isAdmin()" :href="route('contract-templates.index')">Plantillas de contrato</DropdownLink>
-                                    <DropdownLink v-if="isAdmin()" :href="route('audit-logs.index')">Auditoría</DropdownLink>
-                                    <DropdownLink v-if="isAdmin()" :href="route('institution-settings.edit')">Configuración institucional</DropdownLink>
-                                </NavDropdown>
-                            </div>
-                        </div>
-
-                        <div class="hidden lg:ms-6 lg:flex lg:items-center">
-                            <NotificationBell />
-
-                            <!-- Settings Dropdown -->
-                            <div class="relative ms-3">
-                                <Dropdown align="right" width="48">
-                                    <template #trigger>
-                                        <span class="inline-flex rounded-md">
-                                            <button
-                                                type="button"
-                                                class="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
-                                            >
-                                                <span class="max-w-[10rem] truncate">{{ $page.props.auth.user.name }}</span>
-
-                                                <svg
-                                                    class="-me-0.5 ms-2 h-4 w-4"
-                                                    xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20"
-                                                    fill="currentColor"
-                                                >
-                                                    <path
-                                                        fill-rule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clip-rule="evenodd"
-                                                    />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </template>
-
-                                    <template #content>
-                                        <DropdownLink
-                                            :href="route('profile.edit')"
-                                        >
-                                            Mi perfil
-                                        </DropdownLink>
-                                        <DropdownLink
-                                            :href="route('logout')"
-                                            method="post"
-                                            as="button"
-                                        >
-                                            Cerrar sesión
-                                        </DropdownLink>
-                                    </template>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <!-- Hamburger -->
-                        <div class="-me-2 flex items-center gap-2 lg:hidden">
-                            <NotificationBell />
-                            <button
-                                @click="
-                                    showingNavigationDropdown =
-                                        !showingNavigationDropdown
-                                "
-                                class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
-                            >
-                                <svg
-                                    class="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        :class="{
-                                            hidden: showingNavigationDropdown,
-                                            'inline-flex':
-                                                !showingNavigationDropdown,
-                                        }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        :class="{
-                                            hidden: !showingNavigationDropdown,
-                                            'inline-flex':
-                                                showingNavigationDropdown,
-                                        }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Responsive Navigation Menu -->
-                <div
-                    :class="{
-                        block: showingNavigationDropdown,
-                        hidden: !showingNavigationDropdown,
-                    }"
-                    class="lg:hidden"
+        <!-- Barra lateral -->
+        <aside
+            class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r transition-transform duration-200 lg:translate-x-0"
+            :class="[theme.aside, sidebarOpen ? 'translate-x-0' : '-translate-x-full']"
+        >
+            <div class="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-5" :class="theme.divider">
+                <Link :href="route('dashboard')" class="flex min-w-0 items-center gap-2.5">
+                    <InstitutionLogo />
+                    <span class="truncate text-[15px] font-semibold" :class="theme.name">{{ page.props.institution.name }}</span>
+                </Link>
+                <Link
+                    v-if="has('admin')"
+                    :href="route('institution-settings.edit')"
+                    class="hidden shrink-0 rounded-lg p-1.5 lg:block"
+                    :class="theme.closeButton"
+                    title="Cambiar el nombre y el logo de la institución"
+                    aria-label="Cambiar el nombre y el logo de la institución"
                 >
-                    <div class="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            :href="route('dashboard')"
-                            :active="route().current('dashboard')"
-                        >
-                            Dashboard
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            v-if="isStudent() || isTeacher()"
-                            :href="route('calendar.index')"
-                            :active="route().current('calendar.*')"
-                        >
-                            Calendario
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            v-if="isStudent()"
-                            :href="route('student-schedule.index')"
-                            :active="route().current('student-schedule.*')"
-                        >
-                            Horarios disponibles
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            v-if="isStudent()"
-                            :href="route('student-materials.index')"
-                            :active="route().current('student-materials.*')"
-                        >
-                            Material de clase
-                        </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            v-if="isStudent()"
-                            :href="route('student-contracts.index')"
-                            :active="route().current('student-contracts.*')"
-                        >
-                            Mis contratos
-                        </ResponsiveNavLink>
-                        <template v-if="isAdmin() || isCoordinador()">
-                            <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Académico</div>
-                            <ResponsiveNavLink :href="route('courses.index')" :active="route().current('courses.*')">Cursos</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('levels.index')" :active="route().current('levels.*')">Niveles</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('classrooms.index')" :active="route().current('classrooms.*')">Aulas</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('calendar.index')" :active="route().current('calendar.*')">Calendario</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('class-sessions.index')" :active="route().current('class-sessions.*') || route().current('class-schedules.*')">Clases (lista)</ResponsiveNavLink>
-                        </template>
+                    <Icon name="settings" class="h-4 w-4" />
+                </Link>
+                <button type="button" class="rounded-lg p-1.5 lg:hidden" :class="theme.closeButton" aria-label="Cerrar menú" @click="sidebarOpen = false">
+                    <Icon name="x" class="h-5 w-5" />
+                </button>
+            </div>
 
-                        <template v-if="isAdmin() || isCajero() || isSecretaria()">
-                            <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Personas</div>
-                            <ResponsiveNavLink v-if="isAdmin() || isSecretaria()" :href="route('students.index')" :active="route().current('students.*')">Estudiantes</ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="isAdmin()" :href="route('teachers.index')" :active="route().current('teachers.*')">Profesores</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('enrollments.index')" :active="route().current('enrollments.*')">Matrículas</ResponsiveNavLink>
-                        </template>
-
-                        <template v-if="isAdmin()">
-                            <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Seguimiento</div>
-                            <ResponsiveNavLink :href="route('attendance.index')" :active="route().current('attendance.index')">Asistencias</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('attendance.absences')" :active="route().current('attendance.absences')">Inasistencias</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('evaluation-results.index')" :active="route().current('evaluation-results.*') || route().current('evaluations.*')">Evaluaciones</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('recovery.index')" :active="route().current('recovery.*') || route().current('recovery-settings.*')">Recuperaciones</ResponsiveNavLink>
-                        </template>
-
-                        <template v-if="isAdmin() || isCajero() || isSecretaria()">
-                            <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Finanzas</div>
-                            <ResponsiveNavLink :href="route('payments.index')" :active="route().current('payments.*')">Pagos</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('collections.index')" :active="route().current('collections.*')">Cartera en mora</ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="!isSecretaria()" :href="route('promotions.index')" :active="route().current('promotions.*') || route().current('referrals.*')">Promociones</ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="!isSecretaria()" :href="route('reports.index')" :active="route().current('reports.*')">Reportes</ResponsiveNavLink>
-                        </template>
-
-                        <template v-if="isAdmin() || isCoordinador()">
-                            <div class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wider text-gray-400">Sistema</div>
-                            <ResponsiveNavLink v-if="isAdmin()" :href="route('staff-users.index')" :active="route().current('staff-users.*')">Usuarios del personal</ResponsiveNavLink>
-                            <ResponsiveNavLink :href="route('password-resets.index')" :active="route().current('password-resets.*')">Restablecer contraseñas</ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="isAdmin()" :href="route('contract-templates.index')" :active="route().current('contract-templates.*')">Plantillas de contrato</ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="isAdmin()" :href="route('audit-logs.index')" :active="route().current('audit-logs.*')">Auditoría</ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="isAdmin()" :href="route('institution-settings.edit')" :active="route().current('institution-settings.*')">Configuración institucional</ResponsiveNavLink>
-                        </template>
-                    </div>
-
-                    <!-- Responsive Settings Options -->
-                    <div
-                        class="border-t border-gray-200 pb-1 pt-4"
-                    >
-                        <div class="px-4">
-                            <div
-                                class="text-base font-medium text-gray-800"
+            <nav class="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+                <div v-for="(group, index) in navigation" :key="group.label ?? index">
+                    <p v-if="group.label" class="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider" :class="theme.groupLabel">{{ group.label }}</p>
+                    <ul class="space-y-0.5">
+                        <li v-for="item in group.items" :key="item.route">
+                            <Link
+                                :href="route(item.route)"
+                                class="group flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition"
+                                :class="isCurrent(...item.active) ? theme.itemActive : theme.item"
                             >
-                                {{ $page.props.auth.user.name }}
-                            </div>
-                            <div class="text-sm font-medium text-gray-500">
-                                {{ $page.props.auth.user.email }}
-                            </div>
-                        </div>
-
-                        <div class="mt-3 space-y-1">
-                            <ResponsiveNavLink :href="route('profile.edit')">
-                                Mi perfil
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                :href="route('logout')"
-                                method="post"
-                                as="button"
-                            >
-                                Cerrar sesión
-                            </ResponsiveNavLink>
-                        </div>
-                    </div>
+                                <Icon
+                                    :name="item.icon"
+                                    class="h-5 w-5 shrink-0"
+                                    :class="isCurrent(...item.active) ? theme.iconActive : theme.icon"
+                                />
+                                {{ item.label }}
+                            </Link>
+                        </li>
+                    </ul>
                 </div>
             </nav>
 
-            <!-- Page Heading -->
-            <header
-                class="bg-white shadow"
-                v-if="$slots.header"
-            >
-                <div class="mx-auto max-w-screen-2xl px-4 py-6 sm:px-6 lg:px-8">
+            <div class="border-t p-3" :class="theme.divider">
+                <Link :href="route('profile.edit')" class="flex items-center gap-3 rounded-xl px-3 py-2" :class="theme.profileHover">
+                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-accent-500 text-sm font-semibold text-white">{{ initials }}</span>
+                    <span class="min-w-0">
+                        <span class="block truncate text-sm font-medium" :class="theme.profileName">{{ page.props.auth.user.name }}</span>
+                        <span class="block truncate text-xs" :class="theme.profileRole">{{ roleLabel }}</span>
+                    </span>
+                </Link>
+            </div>
+        </aside>
+
+        <div class="lg:pl-72">
+            <!-- Barra superior -->
+            <header class="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 backdrop-blur sm:px-6 lg:px-8">
+                <button type="button" class="-ml-1 rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden" aria-label="Abrir menú" @click="sidebarOpen = true">
+                    <Icon name="menu" class="h-6 w-6" />
+                </button>
+
+                <div class="min-w-0 flex-1 [&_h2]:truncate [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:leading-tight [&_h2]:text-slate-900">
                     <slot name="header" />
                 </div>
+
+                <ThemeToggle />
+                <NotificationBell />
+
+                <Dropdown align="right" width="48">
+                    <template #trigger>
+                        <button type="button" class="flex items-center gap-2 rounded-full p-0.5 hover:bg-slate-100 sm:pr-2" :aria-label="page.props.auth.user.name">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-accent-500 text-xs font-semibold text-white">{{ initials }}</span>
+                            <Icon name="chevron-down" class="hidden h-4 w-4 text-slate-500 sm:block" />
+                        </button>
+                    </template>
+                    <template #content>
+                        <div class="border-b border-slate-100 px-4 py-2.5">
+                            <p class="truncate text-sm font-medium text-slate-900">{{ page.props.auth.user.name }}</p>
+                            <p class="truncate text-xs text-slate-500">{{ page.props.auth.user.email }}</p>
+                        </div>
+                        <DropdownLink :href="route('profile.edit')">Mi perfil</DropdownLink>
+                        <DropdownLink :href="route('logout')" method="post" as="button">Cerrar sesión</DropdownLink>
+                    </template>
+                </Dropdown>
             </header>
 
-            <div
-                v-if="page.props.flash?.error"
-                class="mx-auto mt-4 max-w-screen-2xl px-4 sm:px-6 lg:px-8"
-            >
-                <div class="rounded-md bg-red-50 p-4 text-sm text-red-700">
+            <div v-if="page.props.flash?.error" class="px-4 pt-6 sm:px-6 lg:px-8">
+                <div class="flex items-start gap-3 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">
+                    <Icon name="alert-triangle" class="h-5 w-5 shrink-0" />
                     {{ page.props.flash.error }}
                 </div>
             </div>
 
-            <!-- Page Content -->
             <main>
                 <slot />
             </main>

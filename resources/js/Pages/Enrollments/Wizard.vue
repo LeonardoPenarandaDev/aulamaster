@@ -4,6 +4,8 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import IdPhotoInput from '@/Components/Contracts/IdPhotoInput.vue';
+import StudentAvatar from '@/Components/StudentAvatar.vue';
 import StudentGuardianFields from '@/Components/StudentGuardianFields.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
@@ -25,7 +27,7 @@ const props = defineProps({
 const page = usePage();
 const isAdmin = page.props.auth.roles?.includes('admin');
 const today = new Date().toISOString().slice(0, 10);
-const selectClasses = 'mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500';
+const selectClasses = 'mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500';
 
 const steps = ['Alumno', 'Nivel y precio', 'Contratos', 'Resumen y firma'];
 const step = ref(0);
@@ -61,6 +63,7 @@ const form = useForm({
     referral_id: '',
     monthly_fee: '',
     skip_prerequisite: false,
+    photo: null,
     special_clauses: Object.fromEntries(props.templates.map((template) => [template.id, ''])),
     sign_method: 'oficina',
 });
@@ -210,6 +213,7 @@ function submit() {
             return payload;
         })
         .post(route('enrollments.wizard.store'), {
+            forceFormData: true,
             onError: (errors) => {
                 const firstStep = stepFields.findIndex((fields) => Object.keys(errors).some((key) => fields.some((field) => key === field || key.startsWith(`${field}.`))));
                 if (firstStep >= 0) {
@@ -236,7 +240,7 @@ const signMethods = [
             <h2 class="text-xl font-semibold leading-tight text-gray-800">Asistente de matrícula</h2>
         </template>
 
-        <div class="py-12">
+        <div class="py-8">
             <div class="mx-auto max-w-3xl space-y-6 px-4 sm:px-6 lg:px-8">
                 <ol class="grid grid-cols-4 gap-2 text-xs sm:text-sm">
                     <li
@@ -249,7 +253,7 @@ const signMethods = [
                     </li>
                 </ol>
 
-                <div class="space-y-6 bg-white p-6 shadow-sm sm:rounded-lg">
+                <div class="space-y-6 rounded-2xl border border-slate-200/80 bg-white p-6">
                     <!-- Paso 1 -->
                     <template v-if="step === 0">
                         <div class="flex gap-2">
@@ -272,7 +276,9 @@ const signMethods = [
                             </select>
                             <InputError :message="form.errors.student_id" />
 
-                            <div v-if="selectedStudent" class="rounded-md bg-gray-50 p-3 text-sm text-gray-700">
+                            <div v-if="selectedStudent" class="flex gap-4 rounded-xl bg-gray-50 p-4 text-sm text-gray-700">
+                                <StudentAvatar :name="selectedStudent.name" :photo-url="selectedStudent.photo_url" size="lg" />
+                                <div class="min-w-0">
                                 <p>
                                     <strong>{{ selectedStudent.name }}</strong>
                                     <span v-if="selectedStudent.is_minor" class="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">Menor de edad</span>
@@ -283,6 +289,7 @@ const signMethods = [
                                     <Link :href="route('students.edit', selectedStudent.id)" class="font-medium underline">Completar ficha</Link>
                                     (sin estos datos la matrícula se crea, pero los contratos no).
                                 </p>
+                                </div>
                             </div>
                         </div>
 
@@ -334,6 +341,17 @@ const signMethods = [
                             </div>
 
                             <StudentGuardianFields :form="form.new_student" :errors="newStudentErrors" :document-types="documentTypes" />
+                        </div>
+
+                        <div class="border-t border-gray-100 pt-5">
+                            <IdPhotoInput
+                                v-model="form.photo"
+                                :label="studentMode === 'existing' && selectedStudent?.photo_url ? 'Cambiar foto de perfil (opcional)' : 'Foto de perfil del estudiante'"
+                                :max-kb="8192"
+                                facing-mode="user"
+                            />
+                            <p class="mt-1 text-xs text-gray-500">Tómala con la cámara o súbela. Se verá en su portal y en las listas de asistencia.</p>
+                            <InputError class="mt-2" :message="form.errors.photo" />
                         </div>
                     </template>
 
@@ -418,7 +436,7 @@ const signMethods = [
 
                     <!-- Paso 3 -->
                     <template v-else-if="step === 2">
-                        <div v-if="contractsBlocked" class="rounded-md bg-red-50 p-3 text-sm text-red-700">
+                        <div v-if="contractsBlocked" class="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
                             Datos incompletos del estudiante: falta {{ student.missing_contract_data.join(', ') }}. La matrícula se creará, pero los contratos se generan cuando la ficha esté completa.
                         </div>
 
@@ -437,7 +455,7 @@ const signMethods = [
                                 <textarea
                                     v-model="form.special_clauses[template.id]"
                                     rows="2"
-                                    class="block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    class="block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
                                     placeholder="Cláusulas especiales para este estudiante (opcional)"
                                 ></textarea>
                             </li>

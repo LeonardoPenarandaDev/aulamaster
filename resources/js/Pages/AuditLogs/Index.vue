@@ -48,51 +48,51 @@ function toggle(logId) {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-wrap gap-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-600">Fecha</label>
-                        <input type="date" v-model="filters.date" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500" />
+                        <input type="date" v-model="filters.date" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500" />
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600">Módulo</label>
-                        <select v-model="filters.module" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <select v-model="filters.module" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="">Todos</option>
                             <option v-for="m in modules" :key="m" :value="m">{{ m }}</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600">Usuario</label>
-                        <select v-model="filters.user_id" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <select v-model="filters.user_id" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="">Todos</option>
                             <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600">Acción</label>
-                        <select v-model="filters.action" @change="applyFilters" class="mt-1 rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                        <select v-model="filters.action" @change="applyFilters" class="mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                             <option value="">Todas</option>
                             <option v-for="(label, value) in actionLabels" :key="value" :value="value">{{ label }}</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50/80">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Fecha y hora</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Usuario</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Rol</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Módulo</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Acción</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Descripción</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">IP</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Fecha y hora</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Usuario</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Rol</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Módulo</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Acción</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Descripción</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">IP</th>
                                 <th class="px-6 py-3"></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
+                        <tbody class="divide-y divide-slate-100 bg-white">
                             <template v-for="log in logs.data" :key="log.id">
                                 <tr>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ log.created_at?.replace('T', ' ').slice(0, 19) }}</td>
@@ -147,9 +147,9 @@ function toggle(logId) {
                         :key="link.label"
                         :href="link.url ?? '#'"
                         v-html="link.label"
-                        class="rounded-md border px-3 py-1 text-sm"
+                        class="rounded-lg border px-3 py-1.5 text-sm"
                         :class="[
-                            link.active ? 'border-indigo-500 bg-indigo-50 text-indigo-600' : 'border-gray-200 text-gray-600',
+                            link.active ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
                             !link.url ? 'pointer-events-none opacity-50' : '',
                         ]"
                     />

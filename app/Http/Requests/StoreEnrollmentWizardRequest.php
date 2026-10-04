@@ -47,6 +47,7 @@ class StoreEnrollmentWizardRequest extends StoreEnrollmentRequest
             'new_student.phone' => ['nullable', 'string', 'max:50'],
             'new_student.address' => ['nullable', 'string', 'max:255'],
             ...$studentRules,
+            'photo' => Student::photoRules(required: false),
             'special_clauses' => ['array'],
             'special_clauses.*' => ['nullable', 'string', 'max:5000'],
             'sign_method' => ['required', Rule::in(['oficina', 'correo', 'whatsapp', 'enlace', 'despues'])],

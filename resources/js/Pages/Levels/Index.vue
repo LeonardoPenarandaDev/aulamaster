@@ -39,16 +39,16 @@ function destroy(level) {
             </h2>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-screen-2xl space-y-4 sm:px-6 lg:px-8">
+        <div class="py-8">
+            <div class="mx-auto max-w-screen-2xl space-y-4 px-4 sm:px-6 lg:px-8">
                 <div
                     v-if="page.props.flash?.success"
-                    class="rounded-md bg-green-50 p-4 text-sm text-green-700"
+                    class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700"
                 >
                     {{ page.props.flash.success }}
                 </div>
 
-                <div v-if="routes.length" class="bg-white p-6 shadow-sm sm:rounded-lg">
+                <div v-if="routes.length" class="rounded-2xl border border-slate-200/80 bg-white p-6">
                     <h3 class="text-sm font-medium text-gray-900">Rutas de niveles</h3>
                     <p class="mt-1 text-xs text-gray-500">
                         Al aprobar un nivel, el estudiante queda matriculado en el siguiente. Configúralo con "Nivel siguiente" al editar cada nivel.
@@ -66,7 +66,7 @@ function destroy(level) {
                                         <li>
                                             <Link
                                                 :href="route('levels.edit', step.id)"
-                                                class="block rounded-full border border-gray-200 px-3 py-1 text-sm text-gray-800 hover:border-gray-400"
+                                                class="on-level-color block rounded-full border border-gray-200 px-3 py-1 text-sm text-gray-800 hover:border-gray-400"
                                                 :style="{ backgroundColor: step.color }"
                                             >
                                                 {{ step.name }}
@@ -94,22 +94,22 @@ function destroy(level) {
                     </Link>
                 </div>
 
-                <div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
+                <div class="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white">
+                    <table class="min-w-full divide-y divide-slate-100">
+                        <thead class="bg-slate-50/80">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Código</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nombre</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Curso</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Nivel siguiente</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Horas requeridas</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Precio</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Estado</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Código</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Nombre</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Curso</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Nivel siguiente</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Horas requeridas</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Precio</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estado</th>
                                 <th class="px-6 py-3"></th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white">
-                            <tr v-for="level in levels.data" :key="level.id">
+                        <tbody class="divide-y divide-slate-100 bg-white">
+                            <tr v-for="level in levels.data" :key="level.id" class="transition hover:bg-slate-50/70">
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ level.code }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                                     <span class="flex items-center gap-2">
@@ -164,9 +164,9 @@ function destroy(level) {
                         :key="link.label"
                         :href="link.url ?? '#'"
                         v-html="link.label"
-                        class="rounded-md border px-3 py-1 text-sm"
+                        class="rounded-lg border px-3 py-1.5 text-sm"
                         :class="[
-                            link.active ? 'border-indigo-500 bg-indigo-50 text-indigo-600' : 'border-gray-200 text-gray-600',
+                            link.active ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50',
                             !link.url ? 'pointer-events-none opacity-50' : '',
                         ]"
                     />

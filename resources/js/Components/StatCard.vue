@@ -23,14 +23,14 @@ const colorClasses = computed(() => colors[props.color] ?? colors.indigo);
 </script>
 
 <template>
-    <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition hover:shadow-md">
+    <div class="rounded-2xl border border-slate-200/80 bg-white p-5 transition hover:border-slate-300">
         <div class="flex items-center gap-4">
-            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg" :class="colorClasses">
+            <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" :class="colorClasses">
                 <Icon :name="icon" class="h-6 w-6" />
             </div>
             <div class="min-w-0">
                 <p class="truncate text-xs font-medium text-gray-500">{{ label }}</p>
-                <p class="mt-0.5 text-2xl font-bold tabular-nums text-gray-900">{{ value }}</p>
+                <p class="mt-0.5 text-2xl font-semibold tabular-nums text-slate-900">{{ value }}</p>
                 <p v-if="sublabel" class="mt-0.5 truncate text-xs text-gray-400">{{ sublabel }}</p>
             </div>
         </div>

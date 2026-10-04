@@ -5,6 +5,8 @@ namespace App\Models;
 use Carbon\CarbonInterface;
 use Database\Factories\StudentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,6 +31,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'guardian_email',
     'guardian_phone',
 ])]
+#[Hidden(['photo_path'])]
 class Student extends Model
 {
     /** @use HasFactory<StudentFactory> */
@@ -50,12 +53,51 @@ class Student extends Model
 
     public const ADULT_AGE = 18;
 
+    /**
+     * Tamaño máximo de la foto de perfil que se sube, en KB (luego se reduce).
+     */
+    public const PHOTO_MAX_KB = 8192;
+
+    protected $appends = ['photo_url'];
+
     protected function casts(): array
     {
         return [
             'birth_date' => 'date',
             'image_consent' => 'boolean',
             'image_consent_updated_at' => 'datetime',
+        ];
+    }
+
+    /**
+     * Dirección de la foto de perfil (privada, la sirve StudentPhotoController).
+     * Cambia cada vez que se reemplaza la foto, así el navegador no muestra
+     * la anterior.
+     */
+    protected function photoUrl(): Attribute
+    {
+        return Attribute::get(fn () => $this->photo_path
+            ? route('students.photo', ['student' => $this->id, 'v' => substr(md5($this->photo_path), 0, 8)], false)
+            : null);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function photoRules(bool $required = true): array
+    {
+        return [$required ? 'required' : 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:'.self::PHOTO_MAX_KB];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function photoMessages(string $field = 'photo'): array
+    {
+        return [
+            "{$field}.image" => 'La foto debe ser una imagen.',
+            "{$field}.mimes" => 'La foto debe ser JPG, PNG o WEBP.',
+            "{$field}.max" => 'La foto no puede pesar más de 8 MB.',
         ];
     }
 

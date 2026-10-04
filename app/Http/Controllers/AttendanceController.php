@@ -87,7 +87,7 @@ class AttendanceController extends Controller
         $classSession->load(['level.course', 'teacher', 'classroom']);
 
         $enrollments = Enrollment::query()
-            ->with('student:id,name,code')
+            ->with('student:id,name,code,photo_path')
             ->where('level_id', $classSession->level_id)
             ->whereIn('status', ['activa', 'en_recuperacion', 'extendida'])
             ->orderBy('id')
