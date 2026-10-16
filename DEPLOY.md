@@ -191,3 +191,79 @@ Esto no es específico de Docker, pero aplica igual una vez desplegado:
 ---
 
 **Importante — esto no se probó corriendo en un VPS real.** Se armó y se revisó con cuidado, pero no tengo acceso a tu servidor para levantarlo yo mismo (a diferencia de todo lo demás en este proyecto, que sí validé corriendo). Andá paso por paso, y si algún comando tira un error, pegame el mensaje completo y lo resolvemos juntos.
+
+---
+
+## 12. Instancia de producción: `active.codermaster.com.co`
+
+`aulamastertest` queda como entorno de **pruebas / demo para clientes**. La instancia real va en `active.codermaster.com.co`, con su propia base de datos, su propio `storage` y su propio contenedor — no comparte nada con la de pruebas.
+
+Si corre en el **mismo VPS** que la de pruebas, se diferencia por tres cosas:
+
+| | Pruebas | Producción |
+|---|---|---|
+| Carpeta en el VPS | `/root/aulamaster` | `/root/aulamaster-active` |
+| `APP_PORT` (puerto interno) | `8091` | `8092` |
+| `DOCKER_IMAGE` | `aulamaster` | `aulamaster-active` |
+
+La carpeta distinta hace que Docker Compose use otro nombre de proyecto, y por eso volúmenes (`dbdata`, `storage`) y red quedan separados automáticamente.
+
+### Pasos
+
+1. **DNS**: registro `A` con nombre `active` apuntando a la IP pública del VPS. Verificar con `ping active.codermaster.com.co`.
+
+2. **Clonar el código** en una carpeta nueva:
+   ```bash
+   cd /root
+   git clone <URL_DEL_REPO> aulamaster-active
+   cd aulamaster-active
+   ```
+
+3. **`.env`**:
+   ```bash
+   cp .env.production.example .env
+   nano .env
+   ```
+   Cambiar:
+   - `APP_URL=https://active.codermaster.com.co`
+   - `APP_PORT=8092`
+   - `DOCKER_IMAGE=aulamaster-active`
+   - `DB_PASSWORD` y `DB_ROOT_PASSWORD`: contraseñas nuevas, distintas a las de pruebas.
+   - Correo y Wompi con credenciales reales (`MAIL_MAILER`, `WOMPI_ENV=production`, llaves) cuando estén disponibles.
+
+4. **Levantar**:
+   ```bash
+   docker compose build
+   docker compose up -d
+   docker compose exec app php artisan key:generate --force
+   docker compose exec app php artisan migrate --force
+   docker compose exec app php artisan db:seed --class=RoleSeeder --force
+   ```
+   No correr `DemoDataSeeder` aquí: es solo para la instancia de pruebas.
+
+5. **Crear el admin real** con `docker compose exec app php artisan tinker` (contraseña fuerte, no la de `ACCESOS.md`).
+
+6. **Nginx + HTTPS**:
+   ```bash
+   sudo cp docker/host-nginx-active.conf.example /etc/nginx/sites-available/active.codermaster.com.co
+   sudo ln -s /etc/nginx/sites-available/active.codermaster.com.co /etc/nginx/sites-enabled/
+   sudo nginx -t
+   sudo systemctl reload nginx
+   sudo certbot --nginx -d active.codermaster.com.co
+   ```
+
+7. Abrir `https://active.codermaster.com.co/login`.
+
+### Actualizar cada instancia
+
+Después de subir cambios a GitHub, se actualiza cada una en su carpeta (primero pruebas, se valida, y luego producción):
+
+```bash
+cd /root/aulamaster-active   # o /root/aulamaster para pruebas
+git pull origin main
+docker compose build
+docker compose up -d
+docker compose exec app php artisan migrate --force
+```
+
+> El `.env` de la instancia de pruebas existente no necesita cambios: si no define `APP_PORT` ni `DOCKER_IMAGE`, sigue usando `8091` y `aulamaster` por defecto.

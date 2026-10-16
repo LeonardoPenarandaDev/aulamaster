@@ -3,14 +3,14 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: aulamaster:latest
+    image: ${DOCKER_IMAGE:-aulamaster}:latest
     restart: unless-stopped
     env_file: .env
     # Solo accesible desde el propio VPS (127.0.0.1): el Nginx que ya corre
     # en el sistema es el único que le habla a este puerto, y es el que
     # queda expuesto al público en el 80/443 para el subdominio.
     ports:
-      - "127.0.0.1:8091:80"
+      - "127.0.0.1:${APP_PORT:-8091}:80"
     volumes:
       - storage:/var/www/html/storage
     depends_on:
@@ -18,7 +18,7 @@ services:
     networks: [aulamaster]
 
   queue:
-    image: aulamaster:latest
+    image: ${DOCKER_IMAGE:-aulamaster}:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -32,7 +32,7 @@ services:
     networks: [aulamaster]
 
   scheduler:
-    image: aulamaster:latest
+    image: ${DOCKER_IMAGE:-aulamaster}:latest
     build:
       context: .
       dockerfile: Dockerfile
