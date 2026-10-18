@@ -1,14 +1,59 @@
 <script setup>
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { Head } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, router, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     enrollment: { type: Object, default: null },
     current_week: { type: Object, default: null },
     catch_up: { type: Object, default: null },
     sessions: { type: Array, default: () => [] },
+    institution_phone: { type: String, default: null },
 });
+
+const page = usePage();
+const processingId = ref(null);
+
+/**
+ * Enlace de WhatsApp del instituto para pedir cupo cuando la clase está
+ * llena (números de 10 dígitos se toman como celulares de Colombia).
+ */
+const whatsappUrl = computed(() => {
+    const digits = (props.institution_phone ?? '').replace(/\D/g, '');
+    if (!digits) {
+        return null;
+    }
+
+    return `https://wa.me/${digits.length === 10 ? `57${digits}` : digits}`;
+});
+
+function book(session) {
+    processingId.value = session.id;
+    router.post(route('class-bookings.store', session.id), {}, {
+        preserveScroll: true,
+        onFinish: () => (processingId.value = null),
+    });
+}
+
+function cancelBooking(session) {
+    if (!confirm('¿Cancelar tu cupo en esta clase?')) {
+        return;
+    }
+
+    processingId.value = session.id;
+    router.delete(route('class-bookings.destroy', session.id), {
+        preserveScroll: true,
+        onFinish: () => (processingId.value = null),
+    });
+}
+
+function seatsLabel(session) {
+    if (session.capacity === null) {
+        return null;
+    }
+
+    return session.available_seats === 1 ? 'Queda 1 cupo' : `${session.available_seats} de ${session.capacity} cupos libres`;
+}
 
 const attendanceLabels = { presente: 'Asististe', ausente: 'Ausente', excusado: 'Excusado' };
 const attendanceClasses = {
@@ -109,6 +154,19 @@ function hours(value) {
                 </div>
 
                 <template v-else>
+                    <div
+                        v-if="page.props.flash?.success"
+                        class="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-sm text-emerald-700"
+                    >
+                        {{ page.props.flash.success }}
+                    </div>
+                    <div
+                        v-if="page.props.errors?.booking"
+                        class="rounded-xl border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700"
+                    >
+                        {{ page.props.errors.booking }}
+                    </div>
+
                     <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
                         <div class="rounded-2xl border border-gray-200/80 bg-white p-4">
                             <p class="text-gray-500">Vistas esta semana</p>
@@ -181,6 +239,12 @@ function hours(value) {
                                                 >
                                                     {{ attendanceLabels[session.attendance_status] }}
                                                 </span>
+                                                <span
+                                                    v-if="session.is_booked && !session.attendance_status"
+                                                    class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-800"
+                                                >
+                                                    Programado ✅
+                                                </span>
                                             </div>
                                             <p class="text-xs text-gray-500">
                                                 {{ hours(session.hours) }} h ·
@@ -198,7 +262,43 @@ function hours(value) {
                                                     <span v-else-if="session.status !== 'cancelada'"> · el enlace se publica el día de la clase</span>
                                                 </template>
                                                 <template v-else>{{ session.classroom }}</template>
+                                                <template v-if="seatsLabel(session) && session.status !== 'cancelada'"> · {{ seatsLabel(session) }}</template>
                                             </p>
+                                            <div v-if="session.status !== 'cancelada' && !session.attendance_status" class="mt-1">
+                                                <button
+                                                    v-if="session.is_booked && session.can_cancel_booking"
+                                                    type="button"
+                                                    class="rounded-md border border-gray-300 px-2 py-0.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                                    :disabled="processingId === session.id"
+                                                    @click="cancelBooking(session)"
+                                                >
+                                                    Cancelar mi cupo
+                                                </button>
+                                                <button
+                                                    v-else-if="!session.is_booked && session.can_book"
+                                                    type="button"
+                                                    class="rounded-md bg-indigo-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
+                                                    :disabled="processingId === session.id"
+                                                    @click="book(session)"
+                                                >
+                                                    Programarme
+                                                </button>
+                                                <p
+                                                    v-else-if="!session.is_booked && session.can_cancel_booking && session.available_seats === 0"
+                                                    class="text-xs font-medium text-rose-700"
+                                                >
+                                                    Cupo lleno.
+                                                    <a
+                                                        v-if="whatsappUrl"
+                                                        :href="whatsappUrl"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        class="underline hover:text-rose-900"
+                                                    >Escríbele al instituto</a>
+                                                    <template v-else>Escríbele al instituto</template>
+                                                    para buscarte otro horario.
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </li>
@@ -208,7 +308,7 @@ function hours(value) {
                         <footer class="border-t border-gray-100 bg-gray-50 px-5 py-3 text-sm text-gray-600">
                             Recuerda programar tus clases acorde a tu intensidad horaria
                             (<span class="font-medium text-gray-900">{{ hours(enrollment.weekly_hours) }} h semanales</span>) 📝.
-                            Puedes asistir a cualquier horario de tu nivel; al final de la clase dale tu código al profesor.
+                            Prográmate en cualquier horario de tu nivel mientras haya cupos en el aula; al final de la clase dale tu código al profesor.
                         </footer>
                     </section>
                 </template>

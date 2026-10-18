@@ -97,11 +97,18 @@ class AttendanceController extends Controller
         // plan de mejoras); se muestra deshabilitado en la lista.
         $blockedStudentIds = Student::blockedForDebtIds($enrollments->pluck('student_id')->all());
 
-        $roster = $enrollments->map(fn (Enrollment $enrollment) => [
-            'enrollment_id' => $enrollment->id,
-            'student' => $enrollment->student,
-            'is_blocked' => in_array($enrollment->student_id, $blockedStudentIds, true),
-        ]);
+        // Quienes se programaron en la clase aparecen primero en la lista.
+        $bookedEnrollmentIds = $classSession->bookings()->pluck('enrollment_id')->all();
+
+        $roster = $enrollments
+            ->map(fn (Enrollment $enrollment) => [
+                'enrollment_id' => $enrollment->id,
+                'student' => $enrollment->student,
+                'is_blocked' => in_array($enrollment->student_id, $blockedStudentIds, true),
+                'is_booked' => in_array($enrollment->id, $bookedEnrollmentIds, true),
+            ])
+            ->sortByDesc('is_booked')
+            ->values();
 
         $existing = Attendance::query()
             ->where('class_session_id', $classSession->id)

@@ -5,6 +5,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceCorrectionController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\ClassBookingController;
 use App\Http\Controllers\ClassMaterialController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\ClassScheduleController;
@@ -179,6 +180,8 @@ Route::middleware(['auth', 'verified', 'role:estudiante'])->group(function () {
     Route::get('mis-contratos', [StudentContractController::class, 'index'])->name('student-contracts.index');
     Route::post('mis-contratos/autorizacion-imagenes/revocar', [StudentContractController::class, 'revokeImageConsent'])->name('student-contracts.revoke-image-consent');
     Route::get('mis-horarios', [StudentScheduleController::class, 'index'])->name('student-schedule.index');
+    Route::post('mis-horarios/{class_session}/cupo', [ClassBookingController::class, 'store'])->name('class-bookings.store');
+    Route::delete('mis-horarios/{class_session}/cupo', [ClassBookingController::class, 'destroy'])->name('class-bookings.destroy');
     Route::get('mi-material', [StudentMaterialController::class, 'index'])->name('student-materials.index');
     Route::get('mis-certificados/{enrollment}', [EnrollmentController::class, 'certificate'])->name('student-certificates.download');
 });

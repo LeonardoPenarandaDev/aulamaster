@@ -65,6 +65,28 @@ class ClassSession extends Model
         return $this->hasMany(Attendance::class);
     }
 
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(ClassBooking::class);
+    }
+
+    /**
+     * Cupos de la clase: la capacidad del aula en las presenciales. Las
+     * virtuales no tienen límite (null).
+     */
+    public function capacity(): ?int
+    {
+        return $this->modality === 'virtual' ? null : $this->classroom?->capacity;
+    }
+
+    /**
+     * Momento en que empieza la clase (fecha + hora de inicio).
+     */
+    public function startsAt(): Carbon
+    {
+        return $this->date->copy()->setTimeFromTimeString($this->start_time);
+    }
+
     /**
      * Duration of the session in hours, used for attendance-based hour accounting.
      */

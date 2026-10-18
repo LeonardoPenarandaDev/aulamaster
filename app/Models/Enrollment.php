@@ -84,6 +84,11 @@ class Enrollment extends Model
         return $this->hasMany(Attendance::class);
     }
 
+    public function classBookings(): HasMany
+    {
+        return $this->hasMany(ClassBooking::class);
+    }
+
     public function evaluationResults(): HasMany
     {
         return $this->hasMany(EvaluationResult::class);

@@ -24,8 +24,8 @@ class GetCalendarSessions
     public function handle(User $user, CarbonInterface $from, CarbonInterface $to, array $filters = []): array
     {
         $query = ClassSession::query()
-            ->with(['level:id,name,color,course_id', 'level.course:id,name', 'classroom:id,name', 'teacher:id,name,user_id'])
-            ->withCount('materials')
+            ->with(['level:id,name,color,course_id', 'level.course:id,name', 'classroom:id,name,capacity', 'teacher:id,name,user_id'])
+            ->withCount(['materials', 'bookings'])
             ->whereBetween('date', [$from->toDateString(), $to->toDateString()])
             ->orderBy('date')
             ->orderBy('start_time');
@@ -81,6 +81,8 @@ class GetCalendarSessions
                 'status' => $session->status,
                 'notes' => $session->notes,
                 'materials_count' => $session->materials_count,
+                'capacity' => $session->capacity(),
+                'booked_count' => $session->bookings_count,
                 'student_status' => $enrollment ? match (true) {
                     $session->status === 'cancelada' => 'cancelada',
                     isset($attendanceBySession[$session->id]) => $attendanceBySession[$session->id] === 'presente' ? 'asistio' : 'falto',

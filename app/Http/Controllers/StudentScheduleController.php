@@ -6,6 +6,7 @@ use App\Actions\Attendance\GetWeeklyHoursSummary;
 use App\Models\Attendance;
 use App\Models\ClassSession;
 use App\Models\Enrollment;
+use App\Models\InstitutionSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -47,14 +48,18 @@ class StudentScheduleController extends Controller
             ->get()
             ->mapWithKeys(fn (Attendance $attendance) => [$attendance->class_session_id => $attendance->effective_status]);
 
+        $bookedSessionIds = $enrollment->classBookings()->pluck('class_session_id')->all();
+
         $sessions = ClassSession::query()
             ->where('level_id', $enrollment->level_id)
             ->whereBetween('date', [$from->toDateString(), $until->toDateString()])
-            ->with('classroom:id,name')
+            ->with('classroom:id,name,capacity')
+            ->withCount('bookings')
             ->orderBy('date')
             ->orderBy('start_time')
             ->get()
             ->map(fn (ClassSession $session) => [
+                ...$this->bookingInfo($session, $bookedSessionIds),
                 'id' => $session->id,
                 'date' => $session->date->toDateString(),
                 'week_start' => $session->date->copy()->startOfWeek(Carbon::MONDAY)->toDateString(),
@@ -80,6 +85,30 @@ class StudentScheduleController extends Controller
             'current_week' => $currentWeek,
             'catch_up' => $getWeeklyHoursSummary->catchUp($enrollment),
             'sessions' => $sessions,
+            'institution_phone' => InstitutionSetting::current()->phone,
         ]);
+    }
+
+    /**
+     * Cupos de la clase (parte de "programarse"): las presenciales tienen
+     * tantos cupos como la capacidad del aula; las virtuales no tienen límite.
+     *
+     * @param  list<int>  $bookedSessionIds
+     * @return array{is_booked: bool, capacity: int|null, booked_count: int, available_seats: int|null, can_book: bool, can_cancel_booking: bool}
+     */
+    private function bookingInfo(ClassSession $session, array $bookedSessionIds): array
+    {
+        $capacity = $session->capacity();
+        $availableSeats = $capacity === null ? null : max(0, $capacity - $session->bookings_count);
+        $isOpen = $session->status !== 'cancelada' && $session->startsAt()->isFuture();
+
+        return [
+            'is_booked' => in_array($session->id, $bookedSessionIds, true),
+            'capacity' => $capacity,
+            'booked_count' => $session->bookings_count,
+            'available_seats' => $availableSeats,
+            'can_book' => $isOpen && $availableSeats !== 0,
+            'can_cancel_booking' => $isOpen,
+        ];
     }
 }

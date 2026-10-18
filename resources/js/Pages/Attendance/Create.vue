@@ -161,6 +161,7 @@ function submit() {
                             <p class="font-medium text-gray-900">
                                 {{ entry.student.name }}
                                 <span v-if="entry.is_blocked && isAdmin" class="ml-2 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">En mora</span>
+                                <span v-if="entry.is_booked" class="ml-2 rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">Programado</span>
                             </p>
                             <p class="text-xs text-gray-500">Código {{ entry.student.code }}</p>
                             </div>
