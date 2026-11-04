@@ -30,6 +30,11 @@ const form = useForm({
 
 const logoPreview = ref(props.settings.logo_url);
 
+function onLogoChange(event) {
+    const file = event.target.files[0] ?? null;
+    form.logo = file;
+    logoPreview.value = file ? URL.createObjectURL(file) : props.settings.logo_url;
+}
 
 function submit() {
     form.post(route('institution-settings.update'), { forceFormData: true });
