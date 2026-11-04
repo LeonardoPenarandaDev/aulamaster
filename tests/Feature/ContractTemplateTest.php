@@ -7,6 +7,7 @@ use App\Models\Enrollment;
 use App\Models\InstitutionSetting;
 use App\Models\Student;
 use App\Services\ContractRenderer;
+use Database\Seeders\ActiveEnglishContractTemplatesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\InteractsWithRoles;
 use Tests\TestCase;
@@ -129,5 +130,29 @@ class ContractTemplateTest extends TestCase
 
         $this->assertStringStartsWith('Marta Pérez (CC 5212), acudiente de Luis Pérez (TI 1098), pagará $1.080.000 a Instituto Horizonte. {{desconocida}}', $text);
         $this->assertStringEndsWith("CLÁUSULAS ESPECIALES\n\nDescuento por hermanos.", $text);
+    }
+
+    public function test_active_english_templates_are_seeded_published_and_fully_rendered(): void
+    {
+        $this->seed(ActiveEnglishContractTemplatesSeeder::class);
+        $this->seed(ActiveEnglishContractTemplatesSeeder::class);
+
+        $templates = ContractTemplate::query()->published()->get();
+        $this->assertCount(3, $templates);
+
+        $student = Student::factory()->create(['name' => 'Ana Gómez', 'document_type' => 'CC', 'document' => '1090']);
+        $enrollment = Enrollment::factory()->create(['student_id' => $student->id, 'final_price' => 1200000, 'monthly_fee' => 150000]);
+        $renderer = app(ContractRenderer::class);
+
+        foreach ($templates as $template) {
+            $text = $renderer->render($template->body, $renderer->values($student, $enrollment));
+
+            $this->assertStringNotContainsString('{{', $text, $template->code);
+            $this->assertStringContainsString('Ana Gómez – CC 1090', $text, $template->code);
+        }
+
+        $contract = $renderer->render($templates->firstWhere('code', 'active-contrato-matricula')->body, $renderer->values($student, $enrollment));
+        $this->assertStringContainsString("CONTRATO DE MATRÍCULA No. {$enrollment->id}", $contract);
+        $this->assertStringContainsString('Valor de la mensualidad: $150.000', $contract);
     }
 }
