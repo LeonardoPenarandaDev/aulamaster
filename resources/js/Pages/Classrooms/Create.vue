@@ -11,8 +11,6 @@ const form = useForm({
     name: '',
     code: '',
     capacity: '',
-    location: '',
-    floor: '',
     status: 'disponible',
     notes: '',
 });
@@ -50,7 +48,7 @@ function submit() {
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="capacity" value="Capacidad" />
                                 <TextInput id="capacity" type="number" v-model="form.capacity" class="mt-1 block w-full" required />
@@ -58,25 +56,13 @@ function submit() {
                             </div>
 
                             <div>
-                                <InputLabel for="location" value="Ubicación" />
-                                <TextInput id="location" v-model="form.location" class="mt-1 block w-full" placeholder="Primer piso" />
-                                <InputError class="mt-2" :message="form.errors.location" />
+                                <InputLabel for="status" value="Estado" />
+                                <select id="status" v-model="form.status" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="disponible">Disponible</option>
+                                    <option value="no_disponible">No disponible</option>
+                                </select>
+                                <InputError class="mt-2" :message="form.errors.status" />
                             </div>
-
-                            <div>
-                                <InputLabel for="floor" value="Piso" />
-                                <TextInput id="floor" v-model="form.floor" class="mt-1 block w-full" />
-                                <InputError class="mt-2" :message="form.errors.floor" />
-                            </div>
-                        </div>
-
-                        <div>
-                            <InputLabel for="status" value="Estado" />
-                            <select id="status" v-model="form.status" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
-                                <option value="disponible">Disponible</option>
-                                <option value="no_disponible">No disponible</option>
-                            </select>
-                            <InputError class="mt-2" :message="form.errors.status" />
                         </div>
 
                         <div>

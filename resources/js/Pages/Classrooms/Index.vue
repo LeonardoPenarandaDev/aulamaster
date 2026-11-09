@@ -13,12 +13,44 @@ const props = defineProps({
 const page = usePage();
 const search = ref(props.filters.search ?? '');
 
-function applySearch() {
+const columns = [
+    { key: 'code', label: 'Código' },
+    { key: 'name', label: 'Nombre' },
+    { key: 'capacity', label: 'Capacidad' },
+    { key: 'status', label: 'Estado' },
+];
+
+function reload(params) {
     router.get(
         route('classrooms.index'),
-        { search: search.value || undefined },
-        { preserveState: true, replace: true },
+        {
+            search: search.value || undefined,
+            sort: props.filters.sort,
+            direction: props.filters.direction,
+            ...params,
+        },
+        { preserveState: true, preserveScroll: true, replace: true },
     );
+}
+
+function applySearch() {
+    reload({});
+}
+
+/**
+ * Clic en el encabezado: ordena por esa columna; otro clic invierte el orden.
+ */
+function sortBy(column) {
+    const direction = props.filters.sort === column && props.filters.direction === 'asc' ? 'desc' : 'asc';
+    reload({ sort: column, direction });
+}
+
+function sortIcon(column) {
+    if (props.filters.sort !== column) {
+        return '↕';
+    }
+
+    return props.filters.direction === 'asc' ? '↑' : '↓';
 }
 
 function destroy(classroom) {
@@ -65,11 +97,22 @@ function destroy(classroom) {
                     <table class="min-w-full divide-y divide-slate-100">
                         <thead class="bg-slate-50/80">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Código</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Nombre</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Capacidad</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Ubicación</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estado</th>
+                                <th
+                                    v-for="column in columns"
+                                    :key="column.key"
+                                    class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500"
+                                    :aria-sort="filters.sort === column.key ? (filters.direction === 'asc' ? 'ascending' : 'descending') : 'none'"
+                                >
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center gap-1 uppercase tracking-wider hover:text-slate-800"
+                                        :class="{ 'text-slate-800': filters.sort === column.key }"
+                                        @click="sortBy(column.key)"
+                                    >
+                                        {{ column.label }}
+                                        <span aria-hidden="true" :class="filters.sort === column.key ? 'text-indigo-600' : 'text-slate-300'">{{ sortIcon(column.key) }}</span>
+                                    </button>
+                                </th>
                                 <th class="px-6 py-3"></th>
                             </tr>
                         </thead>
@@ -78,7 +121,6 @@ function destroy(classroom) {
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ classroom.code }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ classroom.name }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ classroom.capacity }}</td>
-                                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ classroom.location }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm">
                                     <span
                                         class="rounded-full px-2 py-1 text-xs font-medium"
@@ -104,7 +146,7 @@ function destroy(classroom) {
                                 </td>
                             </tr>
                             <tr v-if="classrooms.data.length === 0">
-                                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
                                     No hay aulas registradas.
                                 </td>
                             </tr>

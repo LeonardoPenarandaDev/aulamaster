@@ -28,8 +28,6 @@ class StoreClassroomRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:30', Rule::unique('classrooms', 'code')],
             'capacity' => ['required', 'integer', 'min:1'],
-            'location' => ['nullable', 'string', 'max:255'],
-            'floor' => ['nullable', 'string', 'max:50'],
             'status' => ['required', Rule::in(['disponible', 'no_disponible'])],
             'notes' => ['nullable', 'string'],
         ];

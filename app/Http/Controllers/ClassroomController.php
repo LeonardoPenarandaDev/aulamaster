@@ -13,22 +13,34 @@ use Inertia\Response;
 class ClassroomController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Columnas por las que se puede ordenar la tabla.
+     *
+     * @var list<string>
+     */
+    private const SORTABLE = ['code', 'name', 'capacity', 'status'];
+
+    /**
+     * Display a listing of the resource, ordenada por la columna elegida.
      */
     public function index(): Response
     {
         Gate::authorize('viewAny', Classroom::class);
 
+        $sort = in_array(request('sort'), self::SORTABLE, true) ? request('sort') : 'name';
+        $direction = request('direction') === 'desc' ? 'desc' : 'asc';
+
         return Inertia::render('Classrooms/Index', [
             'classrooms' => Classroom::query()
+                ->select(['id', 'code', 'name', 'capacity', 'status'])
                 ->when(request('search'), fn ($query, $search) => $query->where(fn ($query) => $query
                     ->where('name', 'like', "%{$search}%")
                     ->orWhere('code', 'like', "%{$search}%")
                 ))
-                ->orderBy('name')
+                ->orderBy($sort, $direction)
+                ->orderBy('id')
                 ->paginate(15)
                 ->withQueryString(),
-            'filters' => request()->only('search'),
+            'filters' => [...request()->only('search'), 'sort' => $sort, 'direction' => $direction],
         ]);
     }
 
