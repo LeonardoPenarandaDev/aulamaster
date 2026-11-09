@@ -241,6 +241,7 @@ function destroy(classSession) {
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ session.start_time?.slice(0, 5) }} - {{ session.end_time?.slice(0, 5) }}</td>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
                                         {{ session.level?.course?.name }} {{ session.level?.name }}
+                                        <span v-if="session.topic" class="block text-xs text-gray-500">📘 {{ session.topic.name }}</span>
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ session.teacher?.name }}</td>
                                     <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ session.classroom?.name }}</td>

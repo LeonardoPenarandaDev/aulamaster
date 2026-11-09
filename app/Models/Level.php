@@ -98,6 +98,16 @@ class Level extends Model
         return static::find($levelId)?->sharedClassLevelIds() ?? [$levelId];
     }
 
+    /**
+     * Temas del nivel global (los comparten todas sus intensidades).
+     *
+     * @return Collection<int, LevelTopic>
+     */
+    public function topics(): Collection
+    {
+        return LevelTopic::query()->forLevel($this)->get();
+    }
+
     public function nextLevel(): BelongsTo
     {
         return $this->belongsTo(Level::class, 'next_level_id');

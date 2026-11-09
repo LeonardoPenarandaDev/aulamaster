@@ -163,6 +163,7 @@ const selectClasses = 'mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow
                         <dd class="inline">{{ selected.booked_count }}{{ selected.capacity !== null ? ` de ${selected.capacity} cupos` : '' }}</dd>
                     </div>
                     <div><dt class="inline text-gray-500">Estado: </dt><dd class="inline">{{ statusLabels[selected.status] ?? selected.status }}</dd></div>
+                    <div v-if="selected.topic"><dt class="inline text-gray-500">Tema: </dt><dd class="inline font-medium">{{ selected.topic }}</dd></div>
                     <div v-if="selected.notes"><dt class="inline text-gray-500">Notas: </dt><dd class="inline">{{ selected.notes }}</dd></div>
                 </dl>
 

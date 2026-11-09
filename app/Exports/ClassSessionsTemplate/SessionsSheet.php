@@ -29,8 +29,8 @@ class SessionsSheet implements FromArray, WithEvents, WithTitle
 
         return [
             ParseClassSessionImport::COLUMNS,
-            ['lunes', '08:00', '10:00', $lists['levels'][0] ?? 'NIV-001', $lists['classrooms'][0] ?? 'Aula 1', 'presencial', $lists['teachers'][0] ?? '', '', ''],
-            ['miercoles', '18:00', '20:00', $lists['levels'][0] ?? 'NIV-001', $lists['classrooms'][0] ?? 'Aula 1', 'virtual', '', 'https://meet.google.com/abc-defg-hij', 'Docente por confirmar'],
+            ['lunes', '08:00', '10:00', $lists['levels'][0] ?? 'NIV-001', $lists['classrooms'][0] ?? 'Aula 1', 'presencial', $lists['teachers'][0] ?? '', '', '', ''],
+            ['miercoles', '18:00', '20:00', $lists['levels'][0] ?? 'NIV-001', $lists['classrooms'][0] ?? 'Aula 1', 'virtual', '', 'https://meet.google.com/abc-defg-hij', 'Docente por confirmar', ''],
         ];
     }
 
@@ -63,10 +63,10 @@ class SessionsSheet implements FromArray, WithEvents, WithTitle
                     $sheet->setDataValidation("{$column}2:{$column}500", clone $validation);
                 }
 
-                foreach (range('A', 'I') as $column) {
+                foreach (range('A', 'J') as $column) {
                     $sheet->getColumnDimension($column)->setAutoSize(true);
                 }
-                $sheet->getStyle('A1:I1')->getFont()->setBold(true);
+                $sheet->getStyle('A1:J1')->getFont()->setBold(true);
                 $sheet->freezePane('A2');
             },
         ];

@@ -4,6 +4,7 @@ namespace App\Actions\Scheduling;
 
 use App\Models\Classroom;
 use App\Models\Level;
+use App\Models\LevelTopic;
 use App\Models\Teacher;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
@@ -23,7 +24,7 @@ class ParseClassSessionImport
      *
      * @var list<string>
      */
-    public const COLUMNS = ['dia', 'hora_inicio', 'hora_fin', 'nivel', 'aula', 'modalidad', 'docente', 'enlace_virtual', 'notas'];
+    public const COLUMNS = ['dia', 'hora_inicio', 'hora_fin', 'nivel', 'aula', 'modalidad', 'docente', 'enlace_virtual', 'notas', 'tema'];
 
     /**
      * @var array<string, int>
@@ -42,7 +43,9 @@ class ParseClassSessionImport
      */
     public function handle(Collection $rows, CarbonInterface $weekStart, int $repeatWeeks): array
     {
-        $levels = Level::query()->get(['id', 'code', 'name'])->keyBy(fn (Level $level) => Str::lower($level->code));
+        $levels = Level::query()->get(['id', 'course_id', 'class_group', 'code', 'name'])->keyBy(fn (Level $level) => Str::lower($level->code));
+        $topics = LevelTopic::query()->get(['id', 'course_id', 'class_group', 'name'])
+            ->keyBy(fn (LevelTopic $topic) => $this->topicKey($topic->course_id, $topic->class_group, $topic->name));
         $classrooms = Classroom::query()->get(['id', 'name'])->keyBy(fn (Classroom $classroom) => Str::lower($classroom->name));
         $teachers = Teacher::query()->get(['id', 'name', 'email', 'document']);
 
@@ -55,7 +58,7 @@ class ParseClassSessionImport
                 continue;
             }
 
-            $parsed[] = $this->parseRow($index + 2, $raw, $row, $weekStart, $repeatWeeks, $levels, $classrooms, $teachers);
+            $parsed[] = $this->parseRow($index + 2, $raw, $row, $weekStart, $repeatWeeks, $levels, $classrooms, $teachers, $topics);
         }
 
         return $this->checkConflictsBetweenRows($parsed);
@@ -65,7 +68,7 @@ class ParseClassSessionImport
      * @param  array<string, string>  $raw
      * @return array{line: int, raw: array<string, string>, status: string, errors: list<string>, data: array<string, mixed>|null, dates: list<string>}
      */
-    private function parseRow(int $line, array $raw, Collection $row, CarbonInterface $weekStart, int $repeatWeeks, Collection $levels, Collection $classrooms, Collection $teachers): array
+    private function parseRow(int $line, array $raw, Collection $row, CarbonInterface $weekStart, int $repeatWeeks, Collection $levels, Collection $classrooms, Collection $teachers, Collection $topics): array
     {
         $errors = [];
 
@@ -85,6 +88,14 @@ class ParseClassSessionImport
         $level = $levels->get(Str::lower($raw['nivel']));
         if (! $level) {
             $errors[] = $raw['nivel'] === '' ? 'Falta el código del nivel.' : "No existe el nivel con código «{$raw['nivel']}».";
+        }
+
+        $topic = null;
+        if ($level && $raw['tema'] !== '') {
+            $topic = $topics->get($this->topicKey($level->course_id, $level->class_group, $raw['tema']));
+            if (! $topic) {
+                $errors[] = "El nivel «{$level->name}» no tiene el tema «{$raw['tema']}».";
+            }
         }
 
         $classroom = $classrooms->get(Str::lower($raw['aula']));
@@ -131,6 +142,8 @@ class ParseClassSessionImport
             'data' => $errors !== [] ? null : [
                 'level_id' => $level->id,
                 'level' => $level->name,
+                'level_topic_id' => $topic?->id,
+                'topic' => $topic?->name,
                 'classroom_id' => $classroom->id,
                 'classroom' => $classroom->name,
                 'teacher_id' => $teacher?->id,
@@ -143,6 +156,11 @@ class ParseClassSessionImport
             ],
             'dates' => $dates,
         ];
+    }
+
+    private function topicKey(int|string $courseId, ?string $classGroup, string $name): string
+    {
+        return $courseId.'|'.Str::lower((string) $classGroup).'|'.Str::lower(trim($name));
     }
 
     /**

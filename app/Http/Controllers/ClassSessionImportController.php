@@ -123,7 +123,7 @@ class ClassSessionImportController extends Controller
 
                 foreach ($row['dates'] as $date) {
                     $created->push(ClassSession::create([
-                        ...collect($row['data'])->only(['level_id', 'classroom_id', 'teacher_id', 'modality', 'meeting_url', 'notes', 'start_time', 'end_time'])->all(),
+                        ...collect($row['data'])->only(['level_id', 'level_topic_id', 'classroom_id', 'teacher_id', 'modality', 'meeting_url', 'notes', 'start_time', 'end_time'])->all(),
                         'date' => $date,
                         'status' => 'programada',
                     ]));

@@ -48,12 +48,19 @@ class StudentScheduleController extends Controller
             ->get()
             ->mapWithKeys(fn (Attendance $attendance) => [$attendance->class_session_id => $attendance->effective_status]);
 
+        // Temas que el estudiante ya vio (asistió a una clase con ese tema).
+        $seenTopicIds = ClassSession::query()
+            ->whereIn('id', $attendanceBySession->filter(fn (string $status) => $status === 'presente')->keys())
+            ->whereNotNull('level_topic_id')
+            ->pluck('level_topic_id')
+            ->all();
+
         $bookedSessionIds = $enrollment->classBookings()->pluck('class_session_id')->all();
 
         $sessions = ClassSession::query()
             ->whereIn('level_id', $enrollment->level->sharedClassLevelIds())
             ->whereBetween('date', [$from->toDateString(), $until->toDateString()])
-            ->with('classroom:id,name,capacity')
+            ->with(['classroom:id,name,capacity', 'topic:id,name'])
             ->withCount('bookings')
             ->orderBy('date')
             ->orderBy('start_time')
@@ -69,6 +76,8 @@ class StudentScheduleController extends Controller
                 'classroom' => $session->classroom->name,
                 'status' => $session->status,
                 'notes' => $session->notes,
+                'topic' => $session->topic?->name,
+                'topic_seen' => $session->level_topic_id !== null && in_array($session->level_topic_id, $seenTopicIds),
                 'modality' => $session->modality,
                 'meeting_url' => $session->meeting_url,
                 'attendance_status' => $attendanceBySession[$session->id] ?? null,

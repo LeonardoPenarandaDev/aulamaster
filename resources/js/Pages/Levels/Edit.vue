@@ -6,14 +6,54 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import LevelColorPicker from '@/Components/LevelColorPicker.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     level: Object,
     courses: Array,
     levelOptions: Array,
+    topics: { type: Array, default: () => [] },
+    topicSessionCounts: { type: Object, default: () => ({}) },
 });
+
+const page = usePage();
+
+const topicForm = useForm({ name: '' });
+const editingTopicId = ref(null);
+const editingTopicName = ref('');
+
+function addTopic() {
+    topicForm.post(route('level-topics.store', props.level.id), {
+        preserveScroll: true,
+        onSuccess: () => topicForm.reset(),
+    });
+}
+
+function startEditingTopic(topic) {
+    editingTopicId.value = topic.id;
+    editingTopicName.value = topic.name;
+}
+
+function saveTopic(topic) {
+    router.put(route('level-topics.update', [props.level.id, topic.id]), { name: editingTopicName.value }, {
+        preserveScroll: true,
+        onSuccess: () => (editingTopicId.value = null),
+    });
+}
+
+function moveTopic(topic, direction) {
+    router.post(route('level-topics.move', [props.level.id, topic.id]), { direction }, { preserveScroll: true });
+}
+
+function deleteTopic(topic) {
+    const used = props.topicSessionCounts[topic.id] ?? 0;
+    const warning = used > 0 ? ` ${used} clase(s) lo tienen asignado y quedarán sin tema.` : '';
+
+    if (confirm(`¿Eliminar el tema «${topic.name}»?${warning}`)) {
+        router.delete(route('level-topics.destroy', [props.level.id, topic.id]), { preserveScroll: true });
+    }
+}
 
 const form = useForm({
     course_id: props.level.course_id,
@@ -233,6 +273,54 @@ function submit() {
                             </Link>
                         </div>
                     </form>
+                </div>
+
+                <div class="mt-6 rounded-2xl border border-slate-200/80 bg-white p-6">
+                    <h3 class="text-base font-semibold text-gray-900">Temas de {{ level.class_group || level.name }}</h3>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Los comparten todas las intensidades de este nivel
+                        <template v-if="levelsSharingClasses.length">({{ [level.name, ...levelsSharingClasses].join(', ') }})</template>.
+                        Al programar una clase eliges cuál de estos temas se verá.
+                    </p>
+
+                    <div
+                        v-if="page.props.flash?.success"
+                        class="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-sm text-emerald-700"
+                    >
+                        {{ page.props.flash.success }}
+                    </div>
+
+                    <ol v-if="topics.length" class="mt-4 divide-y divide-slate-100 rounded-xl border border-slate-200">
+                        <li v-for="(topic, index) in topics" :key="topic.id" class="flex flex-wrap items-center gap-3 px-4 py-3">
+                            <span class="w-6 text-sm font-semibold tabular-nums text-gray-400">{{ index + 1 }}.</span>
+
+                            <form v-if="editingTopicId === topic.id" class="flex flex-1 gap-2" @submit.prevent="saveTopic(topic)">
+                                <TextInput v-model="editingTopicName" class="block w-full" autofocus />
+                                <PrimaryButton>Guardar</PrimaryButton>
+                                <SecondaryButton type="button" @click="editingTopicId = null">Cancelar</SecondaryButton>
+                            </form>
+
+                            <template v-else>
+                                <span class="flex-1 text-sm text-gray-900">
+                                    {{ topic.name }}
+                                    <span v-if="topicSessionCounts[topic.id]" class="ml-1 text-xs text-gray-400">· {{ topicSessionCounts[topic.id] }} clase(s)</span>
+                                </span>
+                                <div class="flex items-center gap-1 text-sm">
+                                    <button type="button" class="rounded-md px-2 py-1 text-gray-500 hover:bg-slate-100 disabled:opacity-30" :disabled="index === 0" title="Subir" @click="moveTopic(topic, 'up')">↑</button>
+                                    <button type="button" class="rounded-md px-2 py-1 text-gray-500 hover:bg-slate-100 disabled:opacity-30" :disabled="index === topics.length - 1" title="Bajar" @click="moveTopic(topic, 'down')">↓</button>
+                                    <button type="button" class="rounded-md px-2 py-1 font-medium text-indigo-600 hover:bg-indigo-50" @click="startEditingTopic(topic)">Editar</button>
+                                    <button type="button" class="rounded-md px-2 py-1 font-medium text-rose-600 hover:bg-rose-50" @click="deleteTopic(topic)">Eliminar</button>
+                                </div>
+                            </template>
+                        </li>
+                    </ol>
+                    <p v-else class="mt-4 text-sm text-gray-500">Todavía no hay temas para este nivel.</p>
+
+                    <form class="mt-4 flex gap-2" @submit.prevent="addTopic">
+                        <TextInput v-model="topicForm.name" class="block w-full" placeholder="Nuevo tema, ej: Verb to be" />
+                        <PrimaryButton :disabled="topicForm.processing || !topicForm.name.trim()">Agregar</PrimaryButton>
+                    </form>
+                    <InputError class="mt-2" :message="topicForm.errors.name" />
                 </div>
             </div>
         </div>

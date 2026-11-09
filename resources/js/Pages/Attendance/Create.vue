@@ -108,6 +108,9 @@ function submit() {
                         {{ classSession.level?.course?.name }} {{ classSession.level?.name }}
                         — {{ classSession.date }}, {{ classSession.start_time?.slice(0, 5) }} a {{ classSession.end_time?.slice(0, 5) }}
                     </p>
+                    <p v-if="classSession.topic" class="text-sm font-medium text-gray-900">
+                        Tema: {{ classSession.topic.name }}
+                    </p>
                     <p class="text-sm text-gray-600">
                         Profesor: {{ classSession.teacher?.name }} · Aula: {{ classSession.classroom?.name }}
                     </p>

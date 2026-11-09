@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreLevelRequest;
 use App\Http\Requests\UpdateLevelRequest;
+use App\Models\ClassSession;
 use App\Models\Course;
 use App\Models\Level;
+use App\Models\LevelTopic;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -108,6 +110,12 @@ class LevelController extends Controller
             ],
             'courses' => Course::query()->orderBy('name')->get(['id', 'name']),
             'levelOptions' => $this->levelOptions(),
+            'topics' => $level->topics()->map->only(['id', 'name', 'position'])->values(),
+            'topicSessionCounts' => ClassSession::query()
+                ->whereIn('level_topic_id', $level->topics()->pluck('id'))
+                ->selectRaw('level_topic_id, count(*) as total')
+                ->groupBy('level_topic_id')
+                ->pluck('total', 'level_topic_id'),
         ]);
     }
 
@@ -118,6 +126,7 @@ class LevelController extends Controller
     {
         DB::transaction(function () use ($request, $level) {
             $previousCourseId = $level->course_id;
+            $previousClassGroup = $level->class_group;
             $previousMonthlyFee = $level->monthly_fee;
 
             $level->update([
@@ -128,6 +137,8 @@ class LevelController extends Controller
             if ((float) $previousMonthlyFee !== (float) $level->monthly_fee) {
                 $this->syncActiveMonthlyFees($level, $previousMonthlyFee, $request->boolean('apply_monthly_fee_to_active'));
             }
+
+            $this->moveTopicsIfGroupWasRenamed($level, $previousCourseId, $previousClassGroup);
 
             Level::recalculatePositions($level->course_id);
             if ($previousCourseId !== $level->course_id) {
@@ -176,6 +187,27 @@ class LevelController extends Controller
      *
      * @return Collection<int, Level>
      */
+    /**
+     * Si el nivel era el último de su grupo y cambió de grupo (o de curso),
+     * sus temas pasan al grupo nuevo para no perderlos.
+     */
+    private function moveTopicsIfGroupWasRenamed(Level $level, int $previousCourseId, ?string $previousClassGroup): void
+    {
+        if (! $previousClassGroup || ($previousCourseId === $level->course_id && $previousClassGroup === $level->class_group)) {
+            return;
+        }
+
+        $groupStillUsed = Level::query()->where('course_id', $previousCourseId)->where('class_group', $previousClassGroup)->exists();
+        $newGroupHasTopics = LevelTopic::query()->where('course_id', $level->course_id)->where('class_group', $level->class_group)->exists();
+
+        if (! $groupStillUsed && ! $newGroupHasTopics) {
+            LevelTopic::query()
+                ->where('course_id', $previousCourseId)
+                ->where('class_group', $previousClassGroup)
+                ->update(['course_id' => $level->course_id, 'class_group' => $level->class_group]);
+        }
+    }
+
     private function levelOptions(): Collection
     {
         return Level::query()->orderBy('name')->get(['id', 'course_id', 'name', 'code', 'class_group']);

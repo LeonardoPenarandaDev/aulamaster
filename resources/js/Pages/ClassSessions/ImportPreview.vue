@@ -87,7 +87,10 @@ function longDate(value) {
                                     <span class="rounded-full px-2 py-1 text-xs font-medium" :class="statusStyles[row.status].class">{{ statusStyles[row.status].label }}</span>
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3 capitalize text-gray-900">{{ row.raw.dia }} {{ row.data?.start_time ?? row.raw.hora_inicio }}–{{ row.data?.end_time ?? row.raw.hora_fin }}</td>
-                                <td class="px-4 py-3 text-gray-700">{{ row.data?.level ?? row.raw.nivel }}</td>
+                                <td class="px-4 py-3 text-gray-700">
+                                    {{ row.data?.level ?? row.raw.nivel }}
+                                    <span v-if="row.data?.topic ?? row.raw.tema" class="block text-xs text-gray-500">📘 {{ row.data?.topic ?? row.raw.tema }}</span>
+                                </td>
                                 <td class="px-4 py-3 text-gray-700">{{ row.data?.classroom ?? row.raw.aula }} <span v-if="row.data?.modality === 'virtual'" class="text-xs text-gray-500">(virtual)</span></td>
                                 <td class="px-4 py-3 text-gray-700">{{ row.data ? (row.data.teacher ?? '—') : row.raw.docente }}</td>
                                 <td class="px-4 py-3 text-xs">

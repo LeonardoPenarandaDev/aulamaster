@@ -13,6 +13,7 @@ use Illuminate\Support\Carbon;
 #[Fillable([
     'class_schedule_id',
     'level_id',
+    'level_topic_id',
     'teacher_id',
     'classroom_id',
     'modality',
@@ -48,6 +49,11 @@ class ClassSession extends Model
     public function level(): BelongsTo
     {
         return $this->belongsTo(Level::class);
+    }
+
+    public function topic(): BelongsTo
+    {
+        return $this->belongsTo(LevelTopic::class, 'level_topic_id');
     }
 
     public function teacher(): BelongsTo

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Actions\Scheduling\CheckClassSessionConflicts;
+use App\Rules\TopicBelongsToLevel;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -27,6 +28,7 @@ class UpdateClassSessionRequest extends FormRequest
     {
         return [
             'level_id' => ['required', 'exists:levels,id'],
+            'level_topic_id' => ['nullable', 'integer', 'exists:level_topics,id', new TopicBelongsToLevel($this->input('level_id'))],
             'teacher_id' => ['nullable', 'exists:teachers,id'],
             'classroom_id' => ['required', 'exists:classrooms,id'],
             'modality' => ['sometimes', Rule::in(['presencial', 'virtual'])],

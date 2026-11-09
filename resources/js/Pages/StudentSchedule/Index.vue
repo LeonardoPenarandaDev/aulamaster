@@ -246,6 +246,15 @@ function hours(value) {
                                                     Programado ✅
                                                 </span>
                                             </div>
+                                            <p v-if="session.topic" class="text-sm text-gray-700">
+                                                📘 {{ session.topic }}
+                                                <span
+                                                    v-if="session.topic_seen"
+                                                    class="ml-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                                                >
+                                                    Ya viste este tema
+                                                </span>
+                                            </p>
                                             <p class="text-xs text-gray-500">
                                                 {{ hours(session.hours) }} h ·
                                                 <template v-if="session.modality === 'virtual'">

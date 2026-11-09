@@ -9,9 +9,11 @@ use App\Http\Requests\UpdateClassSessionRequest;
 use App\Models\Classroom;
 use App\Models\ClassSession;
 use App\Models\Level;
+use App\Models\LevelTopic;
 use App\Models\Teacher;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -33,7 +35,7 @@ class ClassSessionController extends Controller
 
         return Inertia::render('ClassSessions/Index', [
             'classSessions' => ClassSession::query()
-                ->with(['level.course:id,name', 'teacher:id,name', 'classroom:id,name'])
+                ->with(['level.course:id,name', 'topic:id,name', 'teacher:id,name', 'classroom:id,name'])
                 ->when(request('date'), fn ($query, $date) => $query->whereDate('date', $date))
                 ->when(request('classroom_id'), fn ($query, $id) => $query->where('classroom_id', $id))
                 ->when(request('teacher_id'), fn ($query, $id) => $query->where('teacher_id', $id))
@@ -68,7 +70,8 @@ class ClassSessionController extends Controller
         Gate::authorize('create', ClassSession::class);
 
         return Inertia::render('ClassSessions/Create', [
-            'levels' => Level::query()->orderBy('name')->get(['id', 'name']),
+            'levels' => Level::query()->orderBy('name')->get(['id', 'name', 'course_id', 'class_group']),
+            'topics' => $this->topicOptions(),
             'teachers' => Teacher::query()->orderBy('name')->get(['id', 'name']),
             'classrooms' => Classroom::query()->orderBy('name')->get(['id', 'name']),
         ]);
@@ -110,10 +113,22 @@ class ClassSessionController extends Controller
                 'start_time' => substr($classSession->start_time, 0, 5),
                 'end_time' => substr($classSession->end_time, 0, 5),
             ],
-            'levels' => Level::query()->orderBy('name')->get(['id', 'name']),
+            'levels' => Level::query()->orderBy('name')->get(['id', 'name', 'course_id', 'class_group']),
+            'topics' => $this->topicOptions(),
             'teachers' => Teacher::query()->orderBy('name')->get(['id', 'name']),
             'classrooms' => Classroom::query()->orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    /**
+     * Temas de todos los niveles globales; el formulario muestra los del
+     * nivel elegido.
+     *
+     * @return Collection<int, LevelTopic>
+     */
+    private function topicOptions(): Collection
+    {
+        return LevelTopic::query()->orderBy('position')->orderBy('id')->get(['id', 'course_id', 'class_group', 'name']);
     }
 
     /**

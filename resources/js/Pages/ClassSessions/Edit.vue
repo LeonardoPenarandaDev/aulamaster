@@ -6,16 +6,19 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed, watch } from 'vue';
 
 const props = defineProps({
     classSession: Object,
     levels: Array,
+    topics: { type: Array, default: () => [] },
     teachers: Array,
     classrooms: Array,
 });
 
 const form = useForm({
     level_id: props.classSession.level_id,
+    level_topic_id: props.classSession.level_topic_id ?? null,
     teacher_id: props.classSession.teacher_id,
     classroom_id: props.classSession.classroom_id,
     modality: props.classSession.modality ?? 'presencial',
@@ -27,6 +30,21 @@ const form = useForm({
     notes: props.classSession.notes,
     // Si se abrió desde el calendario, se vuelve al calendario al guardar.
     return_to: new URLSearchParams(window.location.search).get('return_to'),
+});
+
+/**
+ * Temas del nivel global de la clase (los comparten sus intensidades).
+ */
+const levelTopics = computed(() => {
+    const level = props.levels.find((item) => item.id === Number(form.level_id));
+
+    return level ? props.topics.filter((topic) => topic.course_id === level.course_id && topic.class_group === level.class_group) : [];
+});
+
+watch(() => form.level_id, () => {
+    if (!levelTopics.value.some((topic) => topic.id === form.level_topic_id)) {
+        form.level_topic_id = null;
+    }
 });
 
 function submit() {
@@ -54,6 +72,18 @@ function submit() {
                                 <option v-for="level in levels" :key="level.id" :value="level.id">{{ level.name }}</option>
                             </select>
                             <InputError class="mt-2" :message="form.errors.level_id" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="level_topic_id" value="Tema de la clase" />
+                            <select id="level_topic_id" v-model="form.level_topic_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
+                                <option :value="null">Sin tema</option>
+                                <option v-for="(topic, index) in levelTopics" :key="topic.id" :value="topic.id">{{ index + 1 }}. {{ topic.name }}</option>
+                            </select>
+                            <p v-if="levelTopics.length === 0" class="mt-1 text-xs text-gray-500">
+                                Este nivel todavía no tiene temas. Agrégalos en Niveles → editar el nivel → Temas.
+                            </p>
+                            <InputError class="mt-2" :message="form.errors.level_topic_id" />
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">

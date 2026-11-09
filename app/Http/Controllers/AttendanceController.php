@@ -84,7 +84,7 @@ class AttendanceController extends Controller
     {
         Gate::authorize('create', [Attendance::class, $classSession]);
 
-        $classSession->load(['level.course', 'teacher', 'classroom']);
+        $classSession->load(['level.course', 'topic', 'teacher', 'classroom']);
 
         $enrollments = Enrollment::query()
             ->with('student:id,name,code,photo_path')
