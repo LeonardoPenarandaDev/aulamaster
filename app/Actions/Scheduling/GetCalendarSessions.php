@@ -50,7 +50,7 @@ class GetCalendarSessions
                     ->first()
                 : null;
 
-            $query->where('level_id', $enrollment?->level_id ?? 0);
+            $query->whereIn('level_id', $enrollment?->level?->sharedClassLevelIds() ?? [0]);
         }
 
         $attendanceBySession = $enrollment

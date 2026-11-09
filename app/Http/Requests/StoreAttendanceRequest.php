@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Attendance;
 use App\Models\Enrollment;
+use App\Models\Level;
 use App\Models\Student;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -32,7 +33,7 @@ class StoreAttendanceRequest extends FormRequest
             'records.*.enrollment_id' => [
                 'required',
                 Rule::exists('enrollments', 'id')
-                    ->where('level_id', $this->route('class_session')->level_id)
+                    ->whereIn('level_id', Level::sharedClassLevelIdsFor($this->route('class_session')->level_id))
                     ->whereIn('status', ['activa', 'en_recuperacion', 'extendida']),
             ],
             'records.*.status' => ['required', Rule::in(['presente', 'ausente', 'excusado'])],

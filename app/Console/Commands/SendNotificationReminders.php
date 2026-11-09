@@ -8,6 +8,7 @@ use App\Actions\Notifications\NotifyTeacher;
 use App\Actions\Recovery\GetPendingRecoveries;
 use App\Models\ClassSession;
 use App\Models\Enrollment;
+use App\Models\Level;
 use App\Models\Student;
 use App\Notifications\HoursBehindNotification;
 use App\Notifications\RecoveryDeadlineApproachingNotification;
@@ -75,7 +76,7 @@ class SendNotificationReminders extends Command
 
         foreach ($sessions as $session) {
             $studentIds = Enrollment::query()
-                ->where('level_id', $session->level_id)
+                ->whereIn('level_id', Level::sharedClassLevelIdsFor($session->level_id))
                 ->whereIn('status', ['activa', 'en_recuperacion', 'extendida'])
                 ->pluck('student_id');
 

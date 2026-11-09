@@ -51,7 +51,7 @@ class StudentScheduleController extends Controller
         $bookedSessionIds = $enrollment->classBookings()->pluck('class_session_id')->all();
 
         $sessions = ClassSession::query()
-            ->where('level_id', $enrollment->level_id)
+            ->whereIn('level_id', $enrollment->level->sharedClassLevelIds())
             ->whereBetween('date', [$from->toDateString(), $until->toDateString()])
             ->with('classroom:id,name,capacity')
             ->withCount('bookings')

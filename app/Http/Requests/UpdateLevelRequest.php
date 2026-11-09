@@ -33,6 +33,7 @@ class UpdateLevelRequest extends FormRequest
                 new ValidNextLevel($this->input('course_id'), $this->route('level')),
             ],
             'name' => ['required', 'string', 'max:255'],
+            'class_group' => ['nullable', 'string', 'max:120'],
             'color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'code' => ['required', 'string', 'max:30', Rule::unique('levels', 'code')->ignore($this->route('level'))],
             'duration_months' => ['nullable', 'integer', 'min:1'],

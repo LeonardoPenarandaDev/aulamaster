@@ -23,7 +23,7 @@ class LevelController extends Controller
     {
         Gate::authorize('viewAny', Level::class);
 
-        $allLevels = Level::query()->with('course:id,name')->orderBy('position')->get(['id', 'course_id', 'next_level_id', 'name', 'color', 'position']);
+        $allLevels = Level::query()->with('course:id,name')->orderBy('position')->get(['id', 'course_id', 'next_level_id', 'name', 'class_group', 'color', 'position']);
 
         return Inertia::render('Levels/Index', [
             'levels' => Level::query()
@@ -47,6 +47,17 @@ class LevelController extends Controller
                         ->values(),
                 ])
                 ->sortBy('course')
+                ->values(),
+            // Niveles que comparten las clases del calendario (mismo curso y grupo).
+            'classGroups' => $allLevels
+                ->groupBy(fn (Level $level) => $level->course_id.'|'.$level->class_group)
+                ->filter(fn ($levels) => $levels->count() > 1)
+                ->map(fn ($levels) => [
+                    'course' => $levels->first()->course?->name,
+                    'group' => $levels->first()->class_group,
+                    'levels' => $levels->sortBy('name')->map->only(['id', 'name', 'color'])->values(),
+                ])
+                ->sortBy(['course', 'group'])
                 ->values(),
             'filters' => request()->only('search'),
         ]);
@@ -167,6 +178,6 @@ class LevelController extends Controller
      */
     private function levelOptions(): Collection
     {
-        return Level::query()->orderBy('name')->get(['id', 'course_id', 'name', 'code']);
+        return Level::query()->orderBy('name')->get(['id', 'course_id', 'name', 'code', 'class_group']);
     }
 }

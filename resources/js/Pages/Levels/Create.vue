@@ -17,6 +17,7 @@ const props = defineProps({
 const form = useForm({
     course_id: props.courses[0]?.id ?? '',
     name: '',
+    class_group: '',
     color: '#DBEAFE',
     next_level_id: null,
     code: '',
@@ -30,6 +31,26 @@ const form = useForm({
     start_date: '',
     end_date: '',
     status: 'activo',
+});
+
+const intensitySuffix = /[\s\-–]*(semi[\s\-]*intensivo|intensivo|standard|est[aá]ndar)\s*$/iu;
+
+const suggestedClassGroup = computed(() => form.name.replace(intensitySuffix, '').trim());
+
+const classGroupOptions = computed(() => [
+    ...new Set(
+        props.levelOptions
+            .filter((option) => option.course_id === Number(form.course_id) && option.class_group)
+            .map((option) => option.class_group),
+    ),
+]);
+
+const levelsSharingClasses = computed(() => {
+    const group = (form.class_group || suggestedClassGroup.value).trim().toLowerCase();
+
+    return props.levelOptions
+        .filter((option) => option.course_id === Number(form.course_id) && option.id !== null && option.class_group?.toLowerCase() === group)
+        .map((option) => option.name);
 });
 
 const nextLevelOptions = computed(() =>
@@ -103,6 +124,30 @@ function submit() {
                             </select>
                             <p class="mt-1 text-xs text-gray-500">Al aprobar este nivel, el estudiante queda matriculado automáticamente en el siguiente como pendiente.</p>
                             <InputError class="mt-2" :message="form.errors.next_level_id" />
+                        </div>
+
+                        <div>
+                            <InputLabel for="class_group" value="Comparte clases con (grupo)" />
+                            <TextInput
+                                id="class_group"
+                                v-model="form.class_group"
+                                list="class_group_options"
+                                class="mt-1 block w-full max-w-md"
+                                :placeholder="suggestedClassGroup || 'Ej: Elementary 1'"
+                                autocomplete="off"
+                            />
+                            <datalist id="class_group_options">
+                                <option v-for="group in classGroupOptions" :key="group" :value="group" />
+                            </datalist>
+                            <p class="mt-1 text-xs text-gray-500">
+                                Los niveles del mismo curso con el mismo grupo ven y comparten las mismas clases del calendario
+                                (p. ej. Elementary 1 Standard, Semi-Intensivo e Intensivo); cada estudiante toma las horas de su intensidad.
+                                Si lo dejas vacío, se toma del nombre sin la intensidad.
+                            </p>
+                            <p v-if="levelsSharingClasses.length" class="mt-1 text-xs font-medium text-indigo-700">
+                                Comparte clases con: {{ levelsSharingClasses.join(', ') }}
+                            </p>
+                            <InputError class="mt-2" :message="form.errors.class_group" />
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">

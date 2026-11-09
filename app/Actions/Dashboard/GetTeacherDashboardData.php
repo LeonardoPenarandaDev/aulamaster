@@ -34,7 +34,7 @@ class GetTeacherDashboardData
             ->orderBy('start_time')
             ->get()
             ->map(function (ClassSession $session) {
-                $enrolledCount = Enrollment::where('level_id', $session->level_id)
+                $enrolledCount = Enrollment::whereIn('level_id', $session->level->sharedClassLevelIds())
                     ->whereIn('status', ['activa', 'en_recuperacion', 'extendida'])
                     ->count();
 

@@ -42,7 +42,7 @@ class GetStudentDashboardData
         }
 
         $nextSession = ClassSession::query()
-            ->where('level_id', $enrollment->level_id)
+            ->whereIn('level_id', $enrollment->level->sharedClassLevelIds())
             ->where(fn ($query) => $query
                 ->where('date', '>', today())
                 ->orWhere(fn ($query) => $query->where('date', today())->where('start_time', '>=', now()->format('H:i:s')))

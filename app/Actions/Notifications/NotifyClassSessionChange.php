@@ -4,6 +4,7 @@ namespace App\Actions\Notifications;
 
 use App\Models\ClassSession;
 use App\Models\Enrollment;
+use App\Models\Level;
 use App\Models\Student;
 use App\Notifications\ClassCancelledNotification;
 use App\Notifications\ClassRescheduledNotification;
@@ -50,7 +51,7 @@ class NotifyClassSessionChange
     protected function enrolledStudents(ClassSession $session): Collection
     {
         $studentIds = Enrollment::query()
-            ->where('level_id', $session->level_id)
+            ->whereIn('level_id', Level::sharedClassLevelIdsFor($session->level_id))
             ->whereIn('status', ['activa', 'en_recuperacion', 'extendida'])
             ->pluck('student_id');
 

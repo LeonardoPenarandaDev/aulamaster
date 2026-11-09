@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\ClassBooking;
 use App\Models\Classroom;
 use App\Models\ClassSession;
+use App\Models\Course;
 use App\Models\Enrollment;
+use App\Models\Level;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -211,5 +213,47 @@ class ClassBookingTest extends TestCase
                 ->where('roster.0.is_booked', true)
                 ->where('roster.1.is_booked', false)
             );
+    }
+
+    public function test_students_of_every_intensity_share_the_classes_of_their_group(): void
+    {
+        $course = Course::factory()->create();
+        $standard = Level::factory()->create(['course_id' => $course->id, 'name' => 'Elementary 1 Standard']);
+        $intensive = Level::factory()->create(['course_id' => $course->id, 'name' => 'Elementary 1 Intensivo']);
+        $otherGroup = Level::factory()->create(['course_id' => $course->id, 'name' => 'Elementary 2 Standard']);
+
+        $this->assertSame('Elementary 1', $intensive->class_group);
+
+        [$user, $enrollment] = $this->studentWithEnrollment($standard->id);
+        $intensiveClass = ClassSession::factory()->create(['level_id' => $intensive->id, 'date' => '2026-10-01']);
+        $otherGroupClass = ClassSession::factory()->create(['level_id' => $otherGroup->id, 'date' => '2026-10-01', 'start_time' => '16:00', 'end_time' => '17:00']);
+
+        $this->actingAs($user)
+            ->get(route('student-schedule.index'))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->has('sessions', 1)
+                ->where('sessions.0.id', $intensiveClass->id)
+            );
+
+        $this->actingAs($user)->post(route('class-bookings.store', $intensiveClass))->assertSessionHasNoErrors();
+        $this->actingAs($user)->post(route('class-bookings.store', $otherGroupClass))->assertSessionHasErrors('booking');
+
+        $this->actingAs($this->adminUser())
+            ->get(route('attendance.create', $intensiveClass))
+            ->assertInertia(fn (AssertableInertia $page) => $page->where('roster.0.enrollment_id', $enrollment->id));
+    }
+
+    public function test_student_cannot_book_more_hours_than_their_weekly_intensity(): void
+    {
+        [$user, $enrollment] = $this->studentWithEnrollment();
+        $enrollment->update(['weekly_hours' => 4]);
+
+        $first = $this->sessionFor($enrollment, ['date' => '2026-10-06', 'start_time' => '08:00', 'end_time' => '11:00']);
+        $second = $this->sessionFor($enrollment, ['date' => '2026-10-07', 'start_time' => '08:00', 'end_time' => '10:00']);
+        $fits = $this->sessionFor($enrollment, ['date' => '2026-10-08', 'start_time' => '08:00', 'end_time' => '09:00']);
+
+        $this->actingAs($user)->post(route('class-bookings.store', $first))->assertSessionHasNoErrors();
+        $this->actingAs($user)->post(route('class-bookings.store', $second))->assertSessionHasErrors('booking');
+        $this->actingAs($user)->post(route('class-bookings.store', $fits))->assertSessionHasNoErrors();
     }
 }

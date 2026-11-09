@@ -15,6 +15,7 @@ use Illuminate\Support\Collection;
     'course_id',
     'next_level_id',
     'name',
+    'class_group',
     'color',
     'code',
     'duration_months',
@@ -35,6 +36,27 @@ class Level extends Model
 
     public const DEFAULT_COLOR = '#DBEAFE';
 
+    /**
+     * Intensidades que se quitan del final del nombre para obtener el grupo
+     * de clases ("Elementary 1 Semi-Intensivo" → "Elementary 1").
+     */
+    private const INTENSITY_SUFFIX = '/[\s\-–]*(semi[\s\-]*intensivo|intensivo|standard|est[aá]ndar)\s*$/iu';
+
+    /**
+     * Sin grupo escrito, el nivel toma el de su nombre.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Level $level) {
+            $level->class_group = trim((string) $level->class_group) ?: static::classGroupFromName((string) $level->name);
+        });
+    }
+
+    public static function classGroupFromName(string $name): string
+    {
+        return trim((string) preg_replace(self::INTENSITY_SUFFIX, '', $name)) ?: trim($name);
+    }
+
     protected function casts(): array
     {
         return [
@@ -46,6 +68,34 @@ class Level extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    /**
+     * Niveles que comparten las clases de este (el mismo curso y grupo de
+     * clases), incluido este mismo.
+     *
+     * @return list<int>
+     */
+    public function sharedClassLevelIds(): array
+    {
+        if (! $this->class_group) {
+            return [$this->id];
+        }
+
+        return static::query()
+            ->where('course_id', $this->course_id)
+            ->where('class_group', $this->class_group)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    public static function sharedClassLevelIdsFor(int $levelId): array
+    {
+        return static::find($levelId)?->sharedClassLevelIds() ?? [$levelId];
     }
 
     public function nextLevel(): BelongsTo

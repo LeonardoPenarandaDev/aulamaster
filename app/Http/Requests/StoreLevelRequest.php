@@ -29,6 +29,7 @@ class StoreLevelRequest extends FormRequest
             'course_id' => ['required', 'exists:courses,id'],
             'next_level_id' => ['nullable', 'exists:levels,id', Rule::unique('levels', 'next_level_id'), new ValidNextLevel($this->input('course_id'))],
             'name' => ['required', 'string', 'max:255'],
+            'class_group' => ['nullable', 'string', 'max:120'],
             'color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'code' => ['required', 'string', 'max:30', Rule::unique('levels', 'code')],
             'duration_months' => ['nullable', 'integer', 'min:1'],

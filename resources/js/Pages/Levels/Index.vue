@@ -8,6 +8,7 @@ import { ref } from 'vue';
 const props = defineProps({
     levels: Object,
     routes: Array,
+    classGroups: { type: Array, default: () => [] },
     filters: Object,
 });
 
@@ -78,6 +79,31 @@ function destroy(level) {
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <div v-if="classGroups.length" class="rounded-2xl border border-slate-200/80 bg-white p-6">
+                    <h3 class="text-sm font-medium text-gray-900">Clases compartidas</h3>
+                    <p class="mt-1 text-xs text-gray-500">
+                        Estos niveles ven y comparten las mismas clases del calendario; cada estudiante toma las horas de su intensidad.
+                        Configúralo con "Comparte clases con (grupo)" al editar cada nivel.
+                    </p>
+                    <ul class="mt-4 space-y-2">
+                        <li v-for="classGroup in classGroups" :key="`${classGroup.course}-${classGroup.group}`" class="flex flex-wrap items-center gap-2">
+                            <span class="w-40 shrink-0 text-sm font-semibold text-gray-700">
+                                {{ classGroup.group }}
+                                <span class="block text-xs font-normal uppercase tracking-wider text-gray-400">{{ classGroup.course }}</span>
+                            </span>
+                            <Link
+                                v-for="level in classGroup.levels"
+                                :key="level.id"
+                                :href="route('levels.edit', level.id)"
+                                class="on-level-color block rounded-full border border-gray-200 px-3 py-1 text-sm text-gray-800 hover:border-gray-400"
+                                :style="{ backgroundColor: level.color }"
+                            >
+                                {{ level.name }}
+                            </Link>
+                        </li>
+                    </ul>
                 </div>
 
                 <div class="flex items-center justify-between gap-4">
