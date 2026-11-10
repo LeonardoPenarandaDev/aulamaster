@@ -28,7 +28,7 @@ class InstructionsSheet implements FromArray, WithTitle
             ['docente', 'Correo o documento del docente. Puede quedar vacío: la clase queda "Sin docente" y se asigna después.'],
             ['enlace_virtual', 'Opcional. Enlace de la reunión para clases virtuales.'],
             ['notas', 'Opcional.'],
-            ['tema', 'Opcional. Nombre del tema tal como está en Niveles → editar el nivel → Temas. Debe ser un tema de ese nivel.'],
+            ['tema', 'Opcional. Nombre del tema tal como está en el módulo Temas. Debe ser un tema de ese nivel.'],
             [''],
             ['Antes de crear las clases verás una vista previa con las filas correctas, las que no tienen docente y las que tienen errores (incluidos los choques de aula o docente).'],
         ];

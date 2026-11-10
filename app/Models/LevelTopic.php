@@ -37,10 +37,19 @@ class LevelTopic extends Model
      */
     public function scopeForLevel(Builder $query, Level $level): void
     {
-        $query->where('course_id', $level->course_id)
-            ->where('class_group', $level->class_group)
+        $query->inGroup($level->course_id, $level->class_group)
             ->orderBy('position')
             ->orderBy('id');
+    }
+
+    /**
+     * Temas de un nivel global (curso + grupo de clases), sin orden.
+     *
+     * @param  Builder<LevelTopic>  $query
+     */
+    public function scopeInGroup(Builder $query, int|string $courseId, ?string $classGroup): void
+    {
+        $query->where('course_id', $courseId)->where('class_group', $classGroup);
     }
 
     public function belongsToLevelGroup(Level $level): bool

@@ -81,7 +81,7 @@ function submit() {
                                 <option v-for="(topic, index) in levelTopics" :key="topic.id" :value="topic.id">{{ index + 1 }}. {{ topic.name }}</option>
                             </select>
                             <p v-if="levelTopics.length === 0" class="mt-1 text-xs text-gray-500">
-                                Este nivel todavía no tiene temas. Agrégalos en Niveles → editar el nivel → Temas.
+                                Este nivel todavía no tiene temas. Agrégalos en el módulo Temas (menú Académico).
                             </p>
                             <InputError class="mt-2" :message="form.errors.level_topic_id" />
                         </div>

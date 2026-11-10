@@ -52,20 +52,63 @@ class LevelTopicTest extends TestCase
         ]);
     }
 
-    public function test_topics_added_from_one_intensity_are_shared_with_the_others(): void
+    private function groupKey(Level $level): string
+    {
+        return $level->course_id.'|'.$level->class_group;
+    }
+
+    public function test_topics_module_lists_each_global_level_with_the_intensities_that_see_it(): void
+    {
+        $this->topic('Verb to be');
+
+        $this->actingAs($this->coordinadorUser())
+            ->get(route('level-topics.index'))
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('LevelTopics/Index')
+                ->has('groups', 1)
+                ->where('groups.0.key', $this->groupKey($this->standard))
+                ->where('groups.0.group', 'Elementary 1')
+                ->where('groups.0.levels', ['Elementary 1 Intensivo', 'Elementary 1 Standard'])
+                ->where('topics.0.name', 'Verb to be')
+                ->where('topics.0.group_key', $this->groupKey($this->standard))
+            );
+    }
+
+    public function test_admin_picks_the_global_level_and_the_topic_is_shared_by_its_intensities(): void
     {
         $coordinador = $this->coordinadorUser();
 
-        $this->actingAs($coordinador)->post(route('level-topics.store', $this->standard), ['name' => 'Verb to be'])->assertSessionHasNoErrors();
-        $this->actingAs($coordinador)->post(route('level-topics.store', $this->standard), ['name' => 'Present simple']);
+        $this->actingAs($coordinador)->post(route('level-topics.store'), ['name' => 'Verb to be', 'group_key' => $this->groupKey($this->intensive)])->assertSessionHasNoErrors();
+        $this->actingAs($coordinador)->post(route('level-topics.store'), ['name' => 'Present simple', 'group_key' => $this->groupKey($this->standard)]);
+        $this->actingAs($coordinador)->post(route('level-topics.store'), ['name' => 'Nada', 'group_key' => '999|Inventado'])->assertSessionHasErrors('group_key');
 
         $this->actingAs($coordinador)
-            ->get(route('levels.edit', $this->intensive))
+            ->get(route('levels.edit', $this->standard))
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->has('topics', 2)
                 ->where('topics.0.name', 'Verb to be')
                 ->where('topics.1.name', 'Present simple')
             );
+    }
+
+    public function test_topic_can_change_level_only_while_it_has_no_classes(): void
+    {
+        $elementary2 = Level::factory()->create(['course_id' => $this->course->id, 'name' => 'Elementary 2 Standard']);
+        $free = $this->topic('Colors');
+        $used = $this->topic('Verb to be', 2);
+        ClassSession::factory()->create(['level_id' => $this->standard->id, 'level_topic_id' => $used->id]);
+        $coordinador = $this->coordinadorUser();
+
+        $this->actingAs($coordinador)
+            ->put(route('level-topics.update', $free), ['name' => 'Colors', 'group_key' => $this->groupKey($elementary2)])
+            ->assertSessionHasNoErrors();
+        $this->assertSame('Elementary 2', $free->fresh()->class_group);
+
+        $this->actingAs($coordinador)
+            ->put(route('level-topics.update', $used), ['name' => 'Verb to be', 'group_key' => $this->groupKey($elementary2)])
+            ->assertSessionHasErrors('group_key');
+        $this->assertSame('Elementary 1', $used->fresh()->class_group);
     }
 
     public function test_topics_can_be_reordered_renamed_and_deleted(): void
@@ -75,26 +118,23 @@ class LevelTopicTest extends TestCase
         $second = $this->topic('Present simple', 2);
         $session = ClassSession::factory()->create(['level_id' => $this->standard->id, 'level_topic_id' => $first->id]);
 
-        $this->actingAs($coordinador)->post(route('level-topics.move', [$this->standard, $second]), ['direction' => 'up']);
+        $this->actingAs($coordinador)->post(route('level-topics.move', $second), ['direction' => 'up']);
         $this->assertSame(1, $second->fresh()->position);
         $this->assertSame(2, $first->fresh()->position);
 
-        $this->actingAs($coordinador)->put(route('level-topics.update', [$this->standard, $first]), ['name' => 'To be']);
+        $this->actingAs($coordinador)->put(route('level-topics.update', $first), ['name' => 'To be', 'group_key' => $this->groupKey($this->standard)]);
         $this->assertSame('To be', $first->fresh()->name);
 
-        $this->actingAs($coordinador)->delete(route('level-topics.destroy', [$this->standard, $first]));
+        $this->actingAs($coordinador)->delete(route('level-topics.destroy', $first));
         $this->assertModelMissing($first);
         $this->assertNull($session->fresh()->level_topic_id);
     }
 
-    public function test_topic_of_another_level_cannot_be_managed_through_this_level(): void
+    public function test_only_admin_and_coordinator_manage_topics(): void
     {
-        $otherLevel = Level::factory()->create(['course_id' => $this->course->id, 'name' => 'Elementary 2 Standard']);
-        $topic = $this->topic('Past simple', 1, $otherLevel);
-
-        $this->actingAs($this->coordinadorUser())
-            ->delete(route('level-topics.destroy', [$this->standard, $topic]))
-            ->assertNotFound();
+        $this->actingAs($this->teacherUser())->get(route('level-topics.index'))->assertForbidden();
+        $this->actingAs($this->studentUser())->post(route('level-topics.store'), ['name' => 'X', 'group_key' => $this->groupKey($this->standard)])->assertForbidden();
+        $this->actingAs($this->adminUser())->get(route('level-topics.index'))->assertOk();
     }
 
     public function test_class_can_be_scheduled_with_a_topic_of_its_level_group_only(): void

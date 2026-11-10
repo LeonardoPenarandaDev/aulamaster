@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreLevelRequest;
 use App\Http\Requests\UpdateLevelRequest;
-use App\Models\ClassSession;
 use App\Models\Course;
 use App\Models\Level;
 use App\Models\LevelTopic;
@@ -111,11 +110,6 @@ class LevelController extends Controller
             'courses' => Course::query()->orderBy('name')->get(['id', 'name']),
             'levelOptions' => $this->levelOptions(),
             'topics' => $level->topics()->map->only(['id', 'name', 'position'])->values(),
-            'topicSessionCounts' => ClassSession::query()
-                ->whereIn('level_topic_id', $level->topics()->pluck('id'))
-                ->selectRaw('level_topic_id, count(*) as total')
-                ->groupBy('level_topic_id')
-                ->pluck('total', 'level_topic_id'),
         ]);
     }
 

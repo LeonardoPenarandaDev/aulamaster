@@ -46,6 +46,7 @@ const navigation = computed(() => [
             { label: 'Clases (lista)', icon: 'clipboard', route: 'class-sessions.index', active: ['class-sessions.*', 'class-schedules.*'], show: true },
             { label: 'Cursos', icon: 'book', route: 'courses.index', active: ['courses.*'], show: true },
             { label: 'Niveles', icon: 'chart', route: 'levels.index', active: ['levels.*'], show: true },
+            { label: 'Temas', icon: 'book', route: 'level-topics.index', active: ['level-topics.*'], show: true },
             { label: 'Aulas', icon: 'building', route: 'classrooms.index', active: ['classrooms.*'], show: true },
         ],
     },

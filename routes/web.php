@@ -106,10 +106,11 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
 Route::middleware(['auth', 'verified', 'role:admin|coordinador'])->group(function () {
     Route::resource('courses', CourseController::class)->except('show');
     Route::resource('levels', LevelController::class)->except('show');
-    Route::post('levels/{level}/topics', [LevelTopicController::class, 'store'])->name('level-topics.store');
-    Route::put('levels/{level}/topics/{level_topic}', [LevelTopicController::class, 'update'])->name('level-topics.update');
-    Route::post('levels/{level}/topics/{level_topic}/move', [LevelTopicController::class, 'move'])->name('level-topics.move');
-    Route::delete('levels/{level}/topics/{level_topic}', [LevelTopicController::class, 'destroy'])->name('level-topics.destroy');
+    Route::get('temas', [LevelTopicController::class, 'index'])->name('level-topics.index');
+    Route::post('temas', [LevelTopicController::class, 'store'])->name('level-topics.store');
+    Route::put('temas/{level_topic}', [LevelTopicController::class, 'update'])->name('level-topics.update');
+    Route::post('temas/{level_topic}/move', [LevelTopicController::class, 'move'])->name('level-topics.move');
+    Route::delete('temas/{level_topic}', [LevelTopicController::class, 'destroy'])->name('level-topics.destroy');
     Route::resource('classrooms', ClassroomController::class)->except('show');
     Route::get('class-sessions/import', [ClassSessionImportController::class, 'create'])->name('class-sessions.import.create');
     Route::get('class-sessions/import/template', [ClassSessionImportController::class, 'template'])->name('class-sessions.import.template');
