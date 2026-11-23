@@ -2,6 +2,7 @@
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import Icon from '@/Components/Icon.vue';
+import ImpersonationBanner from '@/Components/ImpersonationBanner.vue';
 import InstitutionLogo from '@/Components/InstitutionLogo.vue';
 import NotificationBell from '@/Components/NotificationBell.vue';
 import StudentAvatar from '@/Components/StudentAvatar.vue';
@@ -50,6 +51,7 @@ const background = computed(() => {
 
 <template>
     <div class="min-h-screen bg-gray-50 pb-24 sm:pb-10" :style="background">
+        <ImpersonationBanner />
         <header class="sticky top-0 z-40 border-b border-gray-200/60 bg-white/80 backdrop-blur">
             <div class="mx-auto flex h-16 max-w-5xl items-center justify-between gap-4 px-4 sm:px-6">
                 <Link :href="route('dashboard')" class="flex min-w-0 items-center gap-2">

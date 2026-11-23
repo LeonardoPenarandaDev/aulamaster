@@ -16,7 +16,16 @@ defineProps({
         stroke-linecap="round"
         stroke-linejoin="round"
     >
-        <template v-if="name === 'users'">
+        <template v-if="name === 'eye'">
+            <path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12Z" />
+            <circle cx="12" cy="12" r="2.75" />
+        </template>
+        <template v-else-if="name === 'eye-off'">
+            <path d="M3 3l18 18" />
+            <path d="M10.6 5.6c.46-.07.93-.1 1.4-.1 6 0 9.5 6.5 9.5 6.5a17.7 17.7 0 0 1-2.4 3.2M6.6 6.6C4 8.3 2.5 12 2.5 12s3.5 6.5 9.5 6.5c1.6 0 3-.4 4.2-1" />
+            <path d="M9.9 9.9a2.75 2.75 0 0 0 3.9 3.9" />
+        </template>
+        <template v-else-if="name === 'users'">
             <circle cx="9" cy="8" r="2.5" />
             <path d="M4.5 19c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5" />
             <circle cx="16" cy="9" r="2" />

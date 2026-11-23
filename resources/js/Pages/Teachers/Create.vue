@@ -1,13 +1,20 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import GlobalLevelCheckboxes from '@/Components/GlobalLevelCheckboxes.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
+import PasswordInput from '@/Components/PasswordInput.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
+defineProps({
+    globalLevels: { type: Array, default: () => [] },
+});
+
 const form = useForm({
+    global_levels: [],
     code: '',
     name: '',
     document: '',
@@ -60,6 +67,13 @@ function submit() {
                             <InputError class="mt-2" :message="form.errors.name" />
                         </div>
 
+                        <div>
+                            <InputLabel value="Niveles que dicta" />
+                            <p class="mb-2 text-xs text-gray-500">Al programar una clase se proponen solo los docentes de ese nivel.</p>
+                            <GlobalLevelCheckboxes v-model="form.global_levels" :options="globalLevels" />
+                            <InputError class="mt-2" :message="form.errors.global_levels || form.errors['global_levels.0']" />
+                        </div>
+
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="document" value="Documento" />
@@ -89,13 +103,13 @@ function submit() {
                             <div class="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
                                 <div>
                                     <InputLabel for="password" value="Contraseña" />
-                                    <TextInput id="password" type="password" v-model="form.password" class="mt-1 block w-full" autocomplete="new-password" />
+                                    <PasswordInput id="password" v-model="form.password" class="mt-1 block w-full" autocomplete="new-password" />
                                     <InputError class="mt-2" :message="form.errors.password" />
                                 </div>
 
                                 <div>
                                     <InputLabel for="password_confirmation" value="Confirmar contraseña" />
-                                    <TextInput id="password_confirmation" type="password" v-model="form.password_confirmation" class="mt-1 block w-full" autocomplete="new-password" />
+                                    <PasswordInput id="password_confirmation" v-model="form.password_confirmation" class="mt-1 block w-full" autocomplete="new-password" />
                                     <InputError class="mt-2" :message="form.errors.password_confirmation" />
                                 </div>
                             </div>

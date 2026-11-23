@@ -28,7 +28,7 @@ class PortalAccessController extends Controller
             'email' => $student->email,
             'password' => $password,
         ]);
-        $user->forceFill(['must_change_password' => true])->save();
+        // El estudiante no cambia su contraseña: la administra el instituto.
         $user->assignRole('estudiante');
         $student->update(['user_id' => $user->id]);
 

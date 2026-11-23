@@ -2,6 +2,10 @@
 import Dropdown from '@/Components/Dropdown.vue';
 import { router, usePage } from '@inertiajs/vue3';
 
+defineProps({
+    buttonClass: { type: String, default: 'bg-white text-gray-500 hover:text-gray-700' },
+});
+
 const page = usePage();
 
 function markAsRead(notification) {
@@ -29,7 +33,8 @@ function timeAgo(dateString) {
         <template #trigger>
             <button
                 type="button"
-                class="relative inline-flex items-center rounded-md border border-transparent bg-white p-2 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
+                class="relative inline-flex items-center rounded-md border border-transparent p-2 transition duration-150 ease-in-out focus:outline-none"
+                :class="buttonClass"
             >
                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path

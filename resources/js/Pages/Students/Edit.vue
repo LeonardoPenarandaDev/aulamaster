@@ -9,11 +9,14 @@ import StudentAvatar from '@/Components/StudentAvatar.vue';
 import StudentGuardianFields from '@/Components/StudentGuardianFields.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const props = defineProps({
     student: Object,
     documentTypes: Object,
     signedContracts: Array,
+    canImpersonate: { type: Boolean, default: false },
+    checklist: { type: Object, default: () => ({ done: 0, total: 0, complete: false, items: [] }) },
 });
 
 const page = usePage();
@@ -57,7 +60,36 @@ function removePhoto() {
     }
 }
 
+const checklistProcessing = ref(null);
+
+/**
+ * Marca o desmarca un requisito manual del checklist del estudiante.
+ */
+function toggleChecklistItem(item) {
+    const options = { preserveScroll: true, onFinish: () => (checklistProcessing.value = null) };
+    checklistProcessing.value = item.id;
+
+    if (item.done) {
+        if (!confirm(`¿Desmarcar «${item.name}»?`)) {
+            checklistProcessing.value = null;
+
+            return;
+        }
+
+        router.delete(route('students.checklist.uncheck', [props.student.id, item.id]), options);
+    } else {
+        router.post(route('students.checklist.check', [props.student.id, item.id]), {}, options);
+    }
+}
+
 const accessForm = useForm({});
+const impersonateForm = useForm({});
+
+function impersonate() {
+    if (confirm(`¿Entrar a la cuenta de ${props.student.name}? Verás la plataforma como el estudiante hasta que pulses "Volver a mi cuenta".`)) {
+        impersonateForm.post(route('students.impersonate', props.student.id));
+    }
+}
 
 function grantAccess() {
     accessForm.post(route('students.portal-access.store', props.student.id));
@@ -169,6 +201,46 @@ function grantAccess() {
                     </form>
                 </div>
 
+                <div v-if="checklist.total > 0" class="mt-6 rounded-2xl border border-slate-200/80 bg-white p-6">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h3 class="text-sm font-medium text-gray-900">Checklist del alumno</h3>
+                        <span
+                            class="rounded-full px-2.5 py-1 text-xs font-semibold"
+                            :class="checklist.complete ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'"
+                        >
+                            {{ checklist.complete ? 'Completo' : `${checklist.done} de ${checklist.total}` }}
+                        </span>
+                    </div>
+                    <ul class="mt-4 divide-y divide-slate-100">
+                        <li v-for="item in checklist.items" :key="item.id" class="flex flex-wrap items-center gap-3 py-3">
+                            <span
+                                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                                :class="item.done ? 'bg-emerald-500 text-white' : 'border-2 border-slate-300 text-transparent'"
+                                aria-hidden="true"
+                            >✓</span>
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-medium text-gray-900">{{ item.name }}</p>
+                                <p class="text-xs text-gray-500">
+                                    <template v-if="item.automatic">Lo revisa la plataforma</template>
+                                    <template v-else-if="item.done">Marcado por {{ item.checked_by ?? 'el personal' }} el {{ item.checked_at }}</template>
+                                    <template v-else>Pendiente</template>
+                                    <template v-if="item.description"> · {{ item.description }}</template>
+                                </p>
+                            </div>
+                            <button
+                                v-if="!item.automatic"
+                                type="button"
+                                class="rounded-lg border px-3 py-1.5 text-xs font-semibold disabled:opacity-50"
+                                :class="item.done ? 'border-slate-200 text-slate-600 hover:bg-slate-50' : 'border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100'"
+                                :disabled="checklistProcessing === item.id"
+                                @click="toggleChecklistItem(item)"
+                            >
+                                {{ item.done ? 'Desmarcar' : 'Marcar como cumplido' }}
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
                 <div class="mt-6 rounded-2xl border border-slate-200/80 bg-white p-6">
                     <h3 class="text-sm font-medium text-gray-900">Contratos firmados</h3>
                     <ul v-if="signedContracts.length" class="mt-3 divide-y divide-gray-100 text-sm">
@@ -197,9 +269,20 @@ function grantAccess() {
                         {{ page.props.flash.success }}
                     </div>
 
-                    <p v-if="student.user" class="mt-2 text-sm text-gray-600">
-                        Ya tiene acceso con el usuario <strong>{{ student.user.email }}</strong>.
-                    </p>
+                    <div v-if="student.user" class="mt-2">
+                        <p class="text-sm text-gray-600">
+                            Ya tiene acceso con el usuario <strong>{{ student.user.email }}</strong>.
+                        </p>
+                        <template v-if="canImpersonate">
+                            <p class="mt-2 text-sm text-gray-600">
+                                Puedes entrar a su cuenta, sin su contraseña, para ver exactamente lo que el estudiante ve.
+                                Queda registrado en la auditoría.
+                            </p>
+                            <SecondaryButton class="mt-3" :disabled="impersonateForm.processing" @click="impersonate">
+                                Entrar como el estudiante
+                            </SecondaryButton>
+                        </template>
+                    </div>
                     <div v-else class="mt-2">
                         <p class="text-sm text-gray-600">
                             Este estudiante todavía no puede iniciar sesión. Crear el acceso genera una cuenta con el correo

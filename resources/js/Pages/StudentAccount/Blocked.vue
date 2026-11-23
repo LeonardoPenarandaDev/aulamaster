@@ -32,6 +32,7 @@ function money(value) {
                             <p class="text-sm" :class="payment.status === 'vencido' ? 'text-red-600' : 'text-gray-500'">
                                 ${{ money(payment.final_amount) }}
                                 <template v-if="payment.due_date"> · {{ payment.status === 'vencido' ? 'venció' : 'vence' }} el {{ payment.due_date }}</template>
+                                <template v-if="Number(payment.late_fee_amount) > 0"> · incluye mora de ${{ money(payment.late_fee_amount) }}</template>
                             </p>
                         </div>
                         <a

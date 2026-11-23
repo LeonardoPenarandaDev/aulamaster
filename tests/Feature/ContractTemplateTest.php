@@ -138,7 +138,7 @@ class ContractTemplateTest extends TestCase
         $this->seed(ActiveEnglishContractTemplatesSeeder::class);
 
         $templates = ContractTemplate::query()->published()->get();
-        $this->assertCount(3, $templates);
+        $this->assertCount(5, $templates);
 
         $student = Student::factory()->create(['name' => 'Ana Gómez', 'document_type' => 'CC', 'document' => '1090']);
         $enrollment = Enrollment::factory()->create(['student_id' => $student->id, 'final_price' => 1200000, 'monthly_fee' => 150000]);

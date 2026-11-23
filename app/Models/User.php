@@ -51,6 +51,15 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * Los estudiantes no cambian su contraseña ni eliminan su cuenta: el
+     * instituto administra sus credenciales.
+     */
+    public function managesOwnCredentials(): bool
+    {
+        return ! $this->hasRole('estudiante');
+    }
+
     public function teacher(): HasOne
     {
         return $this->hasOne(Teacher::class);

@@ -50,7 +50,7 @@ class ProcessMonthlyFees
         return [
             'generated' => $this->generate($today, $settings),
             'reminded' => $this->remind($today, $settings),
-            'overdue' => $this->markOverdue($today),
+            'overdue' => $this->markOverdue($today, $settings),
             'alerted' => $this->alertLongOverdue($today, $settings),
         ];
     }
@@ -121,10 +121,13 @@ class ProcessMonthlyFees
 
     /**
      * Pasa a "vencido" lo que no se pagó hasta el día límite: el estudiante
-     * queda bloqueado hasta pagar o firmar un acuerdo de pago.
+     * queda bloqueado hasta pagar o firmar un acuerdo de pago. A la
+     * mensualidad se le suma la mora configurada (una sola vez).
      */
-    public function markOverdue(CarbonInterface $today): int
+    public function markOverdue(CarbonInterface $today, ?InstitutionSetting $settings = null): int
     {
+        $lateFeePercentage = (float) ($settings ?? InstitutionSetting::current())->late_fee_percentage;
+
         $payments = Payment::query()
             ->whereIn('type', ['mensualidad', 'matricula'])
             ->where('status', 'pendiente')
@@ -134,13 +137,36 @@ class ProcessMonthlyFees
             ->get();
 
         foreach ($payments as $payment) {
-            DB::transaction(fn () => $payment->update(['status' => 'vencido']));
+            DB::transaction(fn () => $payment->update([
+                'status' => 'vencido',
+                ...$this->lateFee($payment, $lateFeePercentage),
+            ]));
 
             $this->notifyStudent->handleWithGuardian($payment->student, new PaymentOverdueNotification($payment));
             $this->notifyStaff->handle(['cajero', 'secretaria', 'admin'], new StudentOverdueStaffNotification($payment));
         }
 
         return $payments->count();
+    }
+
+    /**
+     * Mora de una mensualidad vencida: el porcentaje sobre su valor, que se
+     * suma al total. La matrícula no paga mora.
+     *
+     * @return array{late_fee_amount?: float, final_amount?: float}
+     */
+    private function lateFee(Payment $payment, float $percentage): array
+    {
+        if ($payment->type !== 'mensualidad' || $percentage <= 0 || (float) $payment->late_fee_amount > 0) {
+            return [];
+        }
+
+        $lateFee = round((float) $payment->final_amount * $percentage / 100);
+
+        return [
+            'late_fee_amount' => $lateFee,
+            'final_amount' => (float) $payment->final_amount + $lateFee,
+        ];
     }
 
     public function alertLongOverdue(CarbonInterface $today, InstitutionSetting $settings): int

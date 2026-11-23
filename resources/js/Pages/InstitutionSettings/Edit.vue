@@ -22,6 +22,7 @@ const form = useForm({
     signer_name: props.settings.signer_name,
     signer_title: props.settings.signer_title,
     payment_due_day: props.settings.payment_due_day ?? 5,
+    late_fee_percentage: props.settings.late_fee_percentage ?? 0,
     payment_reminder_days: props.settings.payment_reminder_days ?? 2,
     overdue_alert_days: props.settings.overdue_alert_days ?? 10,
     logo: null,
@@ -129,11 +130,17 @@ function submit() {
 
                         <div class="border-t border-gray-100 pt-6">
                             <h3 class="text-sm font-medium text-gray-900">Mensualidades y mora</h3>
-                            <div class="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-3">
+                            <div class="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                                 <div>
                                     <InputLabel for="payment_due_day" value="Día límite de pago" />
                                     <TextInput id="payment_due_day" type="number" min="1" max="28" v-model="form.payment_due_day" class="mt-1 block w-full" required />
                                     <InputError class="mt-2" :message="form.errors.payment_due_day" />
+                                </div>
+                                <div>
+                                    <InputLabel for="late_fee_percentage" value="Mora por pago tardío (%)" />
+                                    <TextInput id="late_fee_percentage" type="number" min="0" max="100" step="0.01" v-model="form.late_fee_percentage" class="mt-1 block w-full" required />
+                                    <p class="mt-1 text-xs text-gray-500">Se suma a la mensualidad que no se pagó hasta el día límite. 0 = sin mora.</p>
+                                    <InputError class="mt-2" :message="form.errors.late_fee_percentage" />
                                 </div>
                                 <div>
                                     <InputLabel for="payment_reminder_days" value="Recordatorio (días antes)" />

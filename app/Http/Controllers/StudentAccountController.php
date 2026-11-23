@@ -28,9 +28,9 @@ class StudentAccountController extends Controller
                 ->whereIn('status', ['vencido', 'pendiente'])
                 ->where('type', '!=', 'otro')
                 ->orderBy('due_date')
-                ->get(['id', 'concept', 'final_amount', 'due_date', 'status'])
+                ->get(['id', 'concept', 'final_amount', 'late_fee_amount', 'due_date', 'status'])
                 ->map(fn (Payment $payment) => [
-                    ...$payment->only(['id', 'concept', 'final_amount', 'status']),
+                    ...$payment->only(['id', 'concept', 'final_amount', 'late_fee_amount', 'status']),
                     'due_date' => $payment->due_date?->toDateString(),
                 ]),
         ]);

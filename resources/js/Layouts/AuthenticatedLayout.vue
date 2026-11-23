@@ -2,6 +2,7 @@
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import Icon from '@/Components/Icon.vue';
+import ImpersonationBanner from '@/Components/ImpersonationBanner.vue';
 import InstitutionLogo from '@/Components/InstitutionLogo.vue';
 import NotificationBell from '@/Components/NotificationBell.vue';
 import { sidebarTheme } from '@/sidebarThemes';
@@ -86,6 +87,7 @@ const navigation = computed(() => [
             { label: 'Usuarios del personal', icon: 'users', route: 'staff-users.index', active: ['staff-users.*'], show: has('admin') },
             { label: 'Restablecer contraseñas', icon: 'shield', route: 'password-resets.index', active: ['password-resets.*'], show: true },
             { label: 'Plantillas de contrato', icon: 'document', route: 'contract-templates.index', active: ['contract-templates.*'], show: has('admin') },
+            { label: 'Checklist del alumno', icon: 'check-circle', route: 'checklist-items.index', active: ['checklist-items.*'], show: has('admin') },
             { label: 'Auditoría', icon: 'clipboard', route: 'audit-logs.index', active: ['audit-logs.*'], show: has('admin') },
             { label: 'Apariencia', icon: 'sun', route: 'appearance.edit', active: ['appearance.*'], show: has('admin') },
             { label: 'Configuración', icon: 'settings', route: 'institution-settings.edit', active: ['institution-settings.*'], show: has('admin') },
@@ -183,24 +185,26 @@ onBeforeUnmount(removeListener);
         </aside>
 
         <div class="lg:pl-72">
+            <ImpersonationBanner />
             <!-- Barra superior -->
-            <header class="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200/70 bg-white/80 px-4 backdrop-blur sm:px-6 lg:px-8">
-                <button type="button" class="-ml-1 rounded-lg p-2 text-slate-600 hover:bg-slate-100 lg:hidden" aria-label="Abrir menú" @click="sidebarOpen = true">
+            <!-- Mismo estilo que el menú lateral (Sistema → Apariencia). -->
+            <header class="sticky top-0 z-30 flex h-16 items-center gap-3 border-b px-4 sm:px-6 lg:px-8" :class="theme.header">
+                <button type="button" class="-ml-1 rounded-lg p-2 lg:hidden" :class="theme.headerButton" aria-label="Abrir menú" @click="sidebarOpen = true">
                     <Icon name="menu" class="h-6 w-6" />
                 </button>
 
-                <div class="min-w-0 flex-1 [&_h2]:truncate [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:leading-tight [&_h2]:text-slate-900">
+                <div class="min-w-0 flex-1 [&_h2]:truncate [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:leading-tight" :class="theme.headerTitle">
                     <slot name="header" />
                 </div>
 
-                <ThemeToggle />
-                <NotificationBell />
+                <ThemeToggle :button-class="theme.headerButton" />
+                <NotificationBell :button-class="theme.headerButton" />
 
                 <Dropdown align="right" width="48">
                     <template #trigger>
-                        <button type="button" class="flex items-center gap-2 rounded-full p-0.5 hover:bg-slate-100 sm:pr-2" :aria-label="page.props.auth.user.name">
+                        <button type="button" class="flex items-center gap-2 rounded-full p-0.5 sm:pr-2" :class="theme.headerButton" :aria-label="page.props.auth.user.name">
                             <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-600 to-accent-500 text-xs font-semibold text-white">{{ initials }}</span>
-                            <Icon name="chevron-down" class="hidden h-4 w-4 text-slate-500 sm:block" />
+                            <Icon name="chevron-down" class="hidden h-4 w-4 sm:block" />
                         </button>
                     </template>
                     <template #content>

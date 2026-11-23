@@ -6,6 +6,10 @@ import { computed } from 'vue';
 /**
  * Cambia entre tema claro, oscuro y el del sistema.
  */
+defineProps({
+    buttonClass: { type: String, default: 'text-slate-500 hover:bg-slate-100 hover:text-slate-900' },
+});
+
 const { theme, setTheme } = useTheme();
 
 const options = {
@@ -20,7 +24,8 @@ const current = computed(() => options[theme.value] ?? options.system);
 <template>
     <button
         type="button"
-        class="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+        class="rounded-full p-2 transition"
+        :class="buttonClass"
         :title="`${current.label} (clic para cambiar)`"
         :aria-label="current.label"
         @click="setTheme(current.next)"

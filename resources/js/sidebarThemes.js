@@ -1,5 +1,5 @@
 /**
- * Estilos del menú lateral del personal (Sistema → Apariencia). Los usan
+ * Estilos del menú lateral y de la barra superior del personal (Sistema → Apariencia). Los usan
  * AuthenticatedLayout y la vista previa de la pantalla de Apariencia.
  * "indigo" es el color principal de la institución.
  */
@@ -17,6 +17,9 @@ export const sidebarThemes = {
         profileName: 'text-white',
         profileRole: 'text-white/60',
         closeButton: 'text-white/70 hover:bg-white/10',
+        header: 'border-transparent bg-gradient-to-r from-indigo-700 to-indigo-800 text-white shadow-sm shadow-indigo-950/20',
+        headerTitle: '[&_h2]:text-white',
+        headerButton: 'text-white/80 hover:bg-white/10 hover:text-white',
     },
     oscuro: {
         aside: 'border-zinc-800 bg-zinc-950 text-zinc-100',
@@ -31,6 +34,9 @@ export const sidebarThemes = {
         profileName: 'text-white',
         profileRole: 'text-zinc-500',
         closeButton: 'text-zinc-400 hover:bg-white/10',
+        header: 'border-zinc-800 bg-zinc-950 text-zinc-100',
+        headerTitle: '[&_h2]:text-white',
+        headerButton: 'text-zinc-400 hover:bg-white/10 hover:text-white',
     },
     claro: {
         aside: 'border-slate-200 bg-white',
@@ -45,6 +51,9 @@ export const sidebarThemes = {
         profileName: 'text-slate-900',
         profileRole: 'text-slate-500',
         closeButton: 'text-slate-500 hover:bg-slate-100',
+        header: 'border-slate-200/70 bg-white/80 backdrop-blur',
+        headerTitle: '[&_h2]:text-slate-900',
+        headerButton: 'text-slate-500 hover:bg-slate-100 hover:text-slate-900',
     },
 };
 

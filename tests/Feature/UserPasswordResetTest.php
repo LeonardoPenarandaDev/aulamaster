@@ -29,7 +29,7 @@ class UserPasswordResetTest extends TestCase
     public function test_admin_resets_a_password_and_the_user_must_change_it_on_login(): void
     {
         $admin = $this->adminUser();
-        $student = $this->studentUser();
+        $student = $this->teacherUser();
 
         $response = $this->actingAs($admin)
             ->post(route('password-resets.store', $student))

@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Storage;
     'signer_name',
     'signer_title',
     'payment_due_day',
+    'late_fee_percentage',
     'payment_reminder_days',
     'overdue_alert_days',
 ])]

@@ -6,6 +6,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import IdPhotoInput from '@/Components/Contracts/IdPhotoInput.vue';
 import StudentGuardianFields from '@/Components/StudentGuardianFields.vue';
+import PasswordInput from '@/Components/PasswordInput.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
@@ -133,13 +134,13 @@ function submit() {
                             <div class="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
                                 <div>
                                     <InputLabel for="password" value="Contraseña" />
-                                    <TextInput id="password" type="password" v-model="form.password" class="mt-1 block w-full" autocomplete="new-password" />
+                                    <PasswordInput id="password" v-model="form.password" class="mt-1 block w-full" autocomplete="new-password" />
                                     <InputError class="mt-2" :message="form.errors.password" />
                                 </div>
 
                                 <div>
                                     <InputLabel for="password_confirmation" value="Confirmar contraseña" />
-                                    <TextInput id="password_confirmation" type="password" v-model="form.password_confirmation" class="mt-1 block w-full" autocomplete="new-password" />
+                                    <PasswordInput id="password_confirmation" v-model="form.password_confirmation" class="mt-1 block w-full" autocomplete="new-password" />
                                     <InputError class="mt-2" :message="form.errors.password_confirmation" />
                                 </div>
                             </div>

@@ -3,22 +3,23 @@
 namespace App\Actions\Dashboard;
 
 use App\Actions\Attendance\GetWeeklyHoursSummary;
-use App\Actions\Payments\GetAccountStatement;
 use App\Models\ClassSession;
 use App\Models\Enrollment;
 use App\Models\Level;
+use App\Models\Payment;
 use App\Models\Student;
 
 class GetStudentDashboardData
 {
     public function __construct(
-        protected GetAccountStatement $getAccountStatement,
         protected GetWeeklyHoursSummary $getWeeklyHoursSummary,
     ) {}
 
     /**
      * Datos del dashboard del estudiante (secciones 18 y 37 del plan): su
-     * matrícula activa, próxima clase, horas, evaluaciones y estado de cuenta.
+     * matrícula activa, próxima clase, horas, evaluaciones y sus mensualidades.
+     * El estudiante no ve su estado de cuenta completo (facturado, pagado,
+     * saldo): solo qué meses pagó y qué tiene pendiente.
      *
      * @return array<string, mixed>
      */
@@ -35,7 +36,8 @@ class GetStudentDashboardData
             return [
                 'has_enrollment' => false,
                 'level_path' => $this->levelPath($student),
-                'account' => $this->getAccountStatement->handle($student),
+                'payment_status' => $this->paymentStatus($student),
+                'monthly_fees' => $this->monthlyFees($student),
                 'pending_payments' => $this->pendingPayments($student),
                 'certificates' => $this->certificates($student),
             ];
@@ -78,7 +80,8 @@ class GetStudentDashboardData
                 'meeting_url' => $nextSession->meeting_url,
             ] : null,
             'evaluations' => ['presented' => $evaluationsPresented, 'total' => $evaluationsTotal],
-            'account' => $this->getAccountStatement->handle($student),
+            'payment_status' => $this->paymentStatus($student),
+            'monthly_fees' => $this->monthlyFees($student),
             'pending_payments' => $this->pendingPayments($student),
             'certificates' => $this->certificates($student),
         ];
@@ -150,7 +153,45 @@ class GetStudentDashboardData
         return $student->payments()
             ->whereIn('status', ['pendiente', 'vencido'])
             ->orderBy('id')
-            ->get(['id', 'concept', 'final_amount', 'status'])
+            ->get(['id', 'concept', 'final_amount', 'late_fee_amount', 'status'])
             ->toArray();
+    }
+
+    /**
+     * Al día, pendiente o vencido, según lo que falte por pagar.
+     */
+    protected function paymentStatus(Student $student): string
+    {
+        $statuses = $student->payments()->where('type', '!=', 'otro')->whereIn('status', ['pendiente', 'vencido'])->pluck('status');
+
+        return match (true) {
+            $statuses->contains('vencido') => 'vencido',
+            $statuses->isNotEmpty() => 'pendiente',
+            default => 'al_dia',
+        };
+    }
+
+    /**
+     * Últimas mensualidades: el mes y si está pagada o pendiente.
+     *
+     * @return list<array{id: int, period: string|null, status: string, amount: float, late_fee_amount: float, paid_at: string|null}>
+     */
+    protected function monthlyFees(Student $student): array
+    {
+        return $student->payments()
+            ->where('type', 'mensualidad')
+            ->where('status', '!=', 'anulado')
+            ->orderByDesc('period')
+            ->limit(6)
+            ->get(['id', 'period', 'status', 'final_amount', 'late_fee_amount', 'paid_at'])
+            ->map(fn (Payment $payment) => [
+                'id' => $payment->id,
+                'period' => $payment->period,
+                'status' => $payment->status,
+                'amount' => (float) $payment->final_amount,
+                'late_fee_amount' => (float) $payment->late_fee_amount,
+                'paid_at' => $payment->paid_at?->toDateString(),
+            ])
+            ->all();
     }
 }

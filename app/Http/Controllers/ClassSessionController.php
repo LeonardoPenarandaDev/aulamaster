@@ -72,7 +72,7 @@ class ClassSessionController extends Controller
         return Inertia::render('ClassSessions/Create', [
             'levels' => Level::query()->orderBy('name')->get(['id', 'name', 'course_id', 'class_group']),
             'topics' => $this->topicOptions(),
-            'teachers' => Teacher::query()->orderBy('name')->get(['id', 'name']),
+            'teachers' => $this->teacherOptions(),
             'classrooms' => Classroom::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }
@@ -115,9 +115,28 @@ class ClassSessionController extends Controller
             ],
             'levels' => Level::query()->orderBy('name')->get(['id', 'name', 'course_id', 'class_group']),
             'topics' => $this->topicOptions(),
-            'teachers' => Teacher::query()->orderBy('name')->get(['id', 'name']),
+            'teachers' => $this->teacherOptions(),
             'classrooms' => Classroom::query()->orderBy('name')->get(['id', 'name']),
         ]);
+    }
+
+    /**
+     * Docentes con los niveles que dictan, para proponer solo los del nivel
+     * de la clase.
+     *
+     * @return Collection<int, array{id: int, name: string, level_ids: list<int>}>
+     */
+    private function teacherOptions(): Collection
+    {
+        return Teacher::query()
+            ->with('levels:id')
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (Teacher $teacher) => [
+                'id' => $teacher->id,
+                'name' => $teacher->name,
+                'level_ids' => $teacher->levels->pluck('id')->all(),
+            ]);
     }
 
     /**

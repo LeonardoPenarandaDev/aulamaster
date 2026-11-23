@@ -1,5 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import GlobalLevelCheckboxes from '@/Components/GlobalLevelCheckboxes.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -9,6 +10,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
 const props = defineProps({
     teacher: Object,
+    globalLevels: { type: Array, default: () => [] },
 });
 
 const page = usePage();
@@ -20,6 +22,7 @@ const form = useForm({
     email: props.teacher.email,
     phone: props.teacher.phone,
     status: props.teacher.status,
+    global_levels: props.teacher.global_levels ?? [],
 });
 
 function submit() {
@@ -68,6 +71,13 @@ function grantAccess() {
                             <InputLabel for="name" value="Nombre" />
                             <TextInput id="name" v-model="form.name" class="mt-1 block w-full" required />
                             <InputError class="mt-2" :message="form.errors.name" />
+                        </div>
+
+                        <div>
+                            <InputLabel value="Niveles que dicta" />
+                            <p class="mb-2 text-xs text-gray-500">Al programar una clase se proponen solo los docentes de ese nivel.</p>
+                            <GlobalLevelCheckboxes v-model="form.global_levels" :options="globalLevels" />
+                            <InputError class="mt-2" :message="form.errors.global_levels || form.errors['global_levels.0']" />
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">

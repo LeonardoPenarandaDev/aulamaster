@@ -78,7 +78,7 @@ class UserPasswordResetController extends Controller
         DB::transaction(function () use ($user, $temporaryPassword, $actor, $request) {
             $user->forceFill([
                 'password' => $temporaryPassword,
-                'must_change_password' => true,
+                'must_change_password' => $user->managesOwnCredentials(),
             ])->save();
 
             if (config('session.driver') === 'database') {

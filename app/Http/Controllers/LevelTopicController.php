@@ -25,7 +25,7 @@ class LevelTopicController extends Controller
     {
         Gate::authorize('viewAny', Level::class);
 
-        $groups = $this->globalLevels();
+        $groups = $this->globalLevels()->map(fn (array $group) => collect($group)->except('level_ids')->all());
         $sessionCounts = ClassSession::query()
             ->whereNotNull('level_topic_id')
             ->selectRaw('level_topic_id, count(*) as total')
@@ -139,27 +139,11 @@ class LevelTopicController extends Controller
     }
 
     /**
-     * Niveles globales: un grupo de clases por curso, con las intensidades
-     * (niveles) que lo comparten.
-     *
-     * @return Collection<string, array{key: string, course: string|null, group: string, levels: list<string>}>
+     * @return Collection<string, array{key: string, course: string|null, group: string, levels: list<string>, level_ids: list<int>}>
      */
     private function globalLevels(): Collection
     {
-        return Level::query()
-            ->with('course:id,name')
-            ->whereNotNull('class_group')
-            ->orderBy('position')
-            ->orderBy('name')
-            ->get(['id', 'course_id', 'class_group', 'name', 'position'])
-            ->groupBy(fn (Level $level) => $this->groupKey($level->course_id, $level->class_group))
-            ->map(fn (Collection $levels, string $key) => [
-                'key' => $key,
-                'course' => $levels->first()->course?->name,
-                'group' => $levels->first()->class_group,
-                'levels' => $levels->pluck('name')->sort()->values()->all(),
-            ])
-            ->sortBy([['course', 'asc'], ['group', 'asc']]);
+        return Level::globalLevelOptions();
     }
 
     /**

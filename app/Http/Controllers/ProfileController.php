@@ -20,6 +20,7 @@ class ProfileController extends Controller
     {
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'managesOwnCredentials' => $request->user()->managesOwnCredentials(),
             'status' => session('status'),
         ]);
     }
@@ -45,6 +46,8 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        abort_unless($request->user()->managesOwnCredentials(), 403, 'Tu cuenta la administra el instituto.');
+
         $request->validate([
             'password' => ['required', 'current_password'],
         ]);

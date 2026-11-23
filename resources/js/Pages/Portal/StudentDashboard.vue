@@ -29,6 +29,23 @@ const accountStatus = {
     vencido: { label: 'Pago vencido', class: 'bg-rose-100 text-rose-800' },
 };
 
+const feeStatus = {
+    pagado: { label: 'Pagado', class: 'bg-emerald-100 text-emerald-800' },
+    pendiente: { label: 'Pendiente', class: 'bg-amber-100 text-amber-800' },
+    vencido: { label: 'Vencido', class: 'bg-rose-100 text-rose-800' },
+};
+
+function monthLabel(period) {
+    if (!period) {
+        return 'Mensualidad';
+    }
+
+    const [year, month] = period.split('-').map(Number);
+    const label = new Intl.DateTimeFormat('es-CO', { month: 'long', year: 'numeric' }).format(new Date(year, month - 1, 1));
+
+    return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 function money(value) {
     return Number(value).toLocaleString('es-CO');
 }
@@ -150,23 +167,30 @@ function longDate(value) {
                 </ul>
             </PortalCard>
 
-            <!-- Estado de cuenta -->
-            <PortalCard title="Estado de cuenta">
+            <!-- Mensualidades: solo el mes y si está pagado o pendiente (sin estado de cuenta completo) -->
+            <PortalCard title="Mis mensualidades">
                 <template #actions>
-                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="accountStatus[data.account.status].class">
-                        {{ accountStatus[data.account.status].label }}
+                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="accountStatus[data.payment_status].class">
+                        {{ accountStatus[data.payment_status].label }}
                     </span>
                 </template>
-                <div class="grid grid-cols-3 gap-4 text-sm">
-                    <div><p class="text-gray-500">Facturado</p><p class="font-semibold tabular-nums text-gray-900">${{ money(data.account.total_billed) }}</p></div>
-                    <div><p class="text-gray-500">Pagado</p><p class="font-semibold tabular-nums text-gray-900">${{ money(data.account.total_paid) }}</p></div>
-                    <div><p class="text-gray-500">Saldo</p><p class="font-semibold tabular-nums text-gray-900">${{ money(data.account.balance) }}</p></div>
-                </div>
+                <ul v-if="data.monthly_fees?.length" class="divide-y divide-gray-100">
+                    <li v-for="fee in data.monthly_fees" :key="fee.id" class="flex flex-wrap items-center justify-between gap-2 py-3 text-sm">
+                        <span class="font-medium text-gray-900">{{ monthLabel(fee.period) }}</span>
+                        <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="feeStatus[fee.status]?.class">
+                            {{ feeStatus[fee.status]?.label ?? fee.status }}
+                        </span>
+                    </li>
+                </ul>
+                <p v-else class="text-sm text-gray-500">Todavía no tienes mensualidades registradas.</p>
                 <ul v-if="data.pending_payments?.length" class="mt-5 space-y-2">
                     <li v-for="payment in data.pending_payments" :key="payment.id" class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gray-50 px-4 py-3 text-sm">
                         <div>
                             <p class="font-medium text-gray-900">{{ payment.concept }}</p>
-                            <p :class="payment.status === 'vencido' ? 'text-rose-600' : 'text-gray-500'">${{ money(payment.final_amount) }}<template v-if="payment.status === 'vencido'"> · vencido</template></p>
+                            <p :class="payment.status === 'vencido' ? 'text-rose-600' : 'text-gray-500'">
+                                ${{ money(payment.final_amount) }}<template v-if="payment.status === 'vencido'"> · vencido</template>
+                                <template v-if="Number(payment.late_fee_amount) > 0"> · incluye mora de ${{ money(payment.late_fee_amount) }}</template>
+                            </p>
                         </div>
                         <PortalButton :href="route('payments.pay-online', payment.id)" external size="sm">Pagar</PortalButton>
                     </li>

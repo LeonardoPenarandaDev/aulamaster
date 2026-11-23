@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Level;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -30,6 +31,8 @@ class UpdateTeacherRequest extends FormRequest
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'status' => ['required', Rule::in(['activo', 'inactivo'])],
+            'global_levels' => ['nullable', 'array'],
+            'global_levels.*' => ['string', Rule::in(Level::globalLevelOptions()->keys()->all())],
         ];
     }
 }

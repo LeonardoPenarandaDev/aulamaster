@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
@@ -88,6 +89,44 @@ class Level extends Model
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();
+    }
+
+    /**
+     * Clave del nivel global: "curso|grupo de clases".
+     */
+    public function globalLevelKey(): string
+    {
+        return $this->course_id.'|'.$this->class_group;
+    }
+
+    /**
+     * Niveles globales (un grupo de clases por curso) con las intensidades
+     * que los comparten, para los selectores de Temas y Docentes.
+     *
+     * @return Collection<string, array{key: string, course: string|null, group: string, levels: list<string>, level_ids: list<int>}>
+     */
+    public static function globalLevelOptions(): Collection
+    {
+        return static::query()
+            ->with('course:id,name')
+            ->whereNotNull('class_group')
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get(['id', 'course_id', 'class_group', 'name', 'position'])
+            ->groupBy(fn (Level $level) => $level->globalLevelKey())
+            ->map(fn (Collection $levels, string $key) => [
+                'key' => $key,
+                'course' => $levels->first()->course?->name,
+                'group' => $levels->first()->class_group,
+                'levels' => $levels->pluck('name')->sort()->values()->all(),
+                'level_ids' => $levels->pluck('id')->map(fn ($id) => (int) $id)->values()->all(),
+            ])
+            ->sortBy([['course', 'asc'], ['group', 'asc']]);
+    }
+
+    public function teachers(): BelongsToMany
+    {
+        return $this->belongsToMany(Teacher::class)->withTimestamps();
     }
 
     /**

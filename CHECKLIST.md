@@ -171,6 +171,30 @@ Marcar `[x]` al completar. Cada fase corresponde a uno o más módulos del plan 
 
 ---
 
+## Fase 18 — Pendientes solicitados (noviembre 2026)
+
+### Interfaz
+- [x] Cambiar el color del header para que sea igual al del menú del administrador — la barra superior del personal sigue el estilo elegido en Sistema → Apariencia (Color, Oscuro o Claro), también en la vista previa
+- [x] Agregar el botón de "ojito" (mostrar/ocultar) en los campos de contraseña de los usuarios — componente `PasswordInput` en login, perfil, cambio obligatorio y formularios de estudiantes, profesores y personal
+
+### Portal del estudiante
+- [x] Los estudiantes no pueden cambiar su contraseña ni eliminar su cuenta desde su perfil — bloqueado también en el servidor (403). Decisión: al estudiante ya no se le pide cambiar la contraseña temporal en el primer ingreso (la administra el instituto); profesores y personal siguen igual. `StudentCredentialsTest`
+- [x] El estudiante no ve el estado de cuenta completo: solo el mes pagado y si está pendiente — tarjeta "Mis mensualidades" (últimos 6 meses) y sus pagos pendientes con el botón de pago; facturado/pagado/saldo ya no se envían a su pantalla
+- [x] Mora por pago tardío: si el estudiante paga después de los primeros 5 días del mes, se le cobra una mora; el porcentaje se configura en la plataforma — Configuración de la institución → "Mora por pago tardío (%)" (0 = sin mora). Se suma una sola vez a la mensualidad al vencerse (columna `late_fee_amount`); la matrícula no paga mora. `LateFeeAndStudentPaymentsTest`
+
+### Matrícula y contratos
+- [x] Agregar la ficha de registro de matrícula — plantilla `active-ficha-matricula` en `ActiveEnglishContractTemplatesSeeder`, se firma con los demás contratos de la matrícula
+- [x] Agregar la autorización de uso de imagen como plantilla de contrato — plantilla opcional `active-uso-imagen` (por alumno): acepta o no acepta, revocable desde "Mis contratos". `ActiveEnglishContractsFlowTest`
+
+### Gestión académica
+- [x] Crear el checklist de la gestión académica — Sistema → "Checklist del alumno": el admin define los requisitos (manuales, como "Kit de inicio entregado", o automáticos: contratos firmados, foto de perfil, acceso a la plataforma, pago de la matrícula). En la ficha del estudiante se marcan con quién y cuándo; la lista de estudiantes muestra el avance y filtra los incompletos. `StudentChecklistTest`
+- [x] Filtrar docentes por niveles — cada docente tiene los niveles globales que dicta (tabla `level_teacher`); filtro y columna en Profesores, y al programar una clase se proponen solo los docentes de ese nivel (con opción de ver todos). `TeacherLevelTest`
+
+### Administración
+- [x] Ingresar desde la plataforma del administrador a la cuenta de un alumno sin necesitar sus credenciales — botón "Entrar como el estudiante" en la edición del estudiante (solo admin), aviso fijo con "Volver a mi cuenta" y registro en auditoría. `ImpersonationTest`
+
+---
+
 ## Estado actual
 **Las 17 fases del checklist están completas.** El sistema cubre los 14 módulos funcionales del plan (autenticación/roles, estudiantes/profesores, cursos/niveles/aulas, horarios, matrículas, asistencia, evaluaciones, recuperaciones, pagos/promociones/referidos, auditoría, dashboards por rol, reportes, notificaciones) sobre Laravel 13 + Inertia + Vue 3, con **5 roles**: `admin` (acceso total), `profesor`, `estudiante`, `coordinador` (solo calendario académico) y `cajero` (solo matrículas/pagos/promociones); certificados de nivel aprobado en PDF con membrete institucional configurable (logo, datos, firma); un calendario académico visual (grid mensual) junto al listado filtrable original; pagos en línea con Wompi (construidos, pendientes de credenciales reales para el primer uso); seguridad (policies auditadas, HTTPS forzado en producción, cajero con acceso acotado solo a reportes financieros), backups automatizados programados, y una suite de 61 pruebas automatizadas más un flujo de integración manual end-to-end validando las reglas de negocio críticas de la sección 40 del plan.
 

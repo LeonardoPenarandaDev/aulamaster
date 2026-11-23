@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
+use App\Models\Level;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -21,16 +23,30 @@ class TeacherController extends Controller
     {
         Gate::authorize('viewAny', Teacher::class);
 
+        $globalLevels = Level::globalLevelOptions();
+        $levelFilter = $globalLevels->get((string) request('level'));
+
         return Inertia::render('Teachers/Index', [
             'teachers' => Teacher::query()
+                ->with('levels:id,course_id,class_group')
                 ->when(request('search'), fn ($query, $search) => $query->where(fn ($query) => $query
                     ->where('name', 'like', "%{$search}%")
                     ->orWhere('code', 'like', "%{$search}%")
                 ))
+                ->when($levelFilter, fn ($query) => $query->whereHas('levels', fn ($query) => $query->whereIn('levels.id', $levelFilter['level_ids'])))
                 ->orderBy('name')
                 ->paginate(15)
-                ->withQueryString(),
-            'filters' => request()->only('search'),
+                ->withQueryString()
+                ->through(fn (Teacher $teacher) => [
+                    ...$teacher->only(['id', 'code', 'name', 'email', 'status']),
+                    'global_levels' => collect($teacher->globalLevelKeys())
+                        ->map(fn (string $key) => $globalLevels->get($key)['group'] ?? null)
+                        ->filter()
+                        ->sort()
+                        ->values(),
+                ]),
+            'globalLevels' => $this->globalLevelChoices($globalLevels),
+            'filters' => request()->only('search', 'level'),
         ]);
     }
 
@@ -41,7 +57,9 @@ class TeacherController extends Controller
     {
         Gate::authorize('create', Teacher::class);
 
-        return Inertia::render('Teachers/Create');
+        return Inertia::render('Teachers/Create', [
+            'globalLevels' => $this->globalLevelChoices(Level::globalLevelOptions()),
+        ]);
     }
 
     /**
@@ -50,7 +68,8 @@ class TeacherController extends Controller
     public function store(StoreTeacherRequest $request): RedirectResponse
     {
         DB::transaction(function () use ($request) {
-            $teacher = Teacher::create($request->safe()->except('password'));
+            $teacher = Teacher::create($request->safe()->except(['password', 'global_levels']));
+            $this->syncLevels($teacher, $request->validated('global_levels') ?? []);
 
             if ($request->filled('password')) {
                 $user = User::create([
@@ -76,7 +95,11 @@ class TeacherController extends Controller
         Gate::authorize('update', $teacher);
 
         return Inertia::render('Teachers/Edit', [
-            'teacher' => $teacher->load('user:id,email'),
+            'teacher' => [
+                ...$teacher->load('user:id,email')->toArray(),
+                'global_levels' => $teacher->load('levels:id,course_id,class_group')->globalLevelKeys(),
+            ],
+            'globalLevels' => $this->globalLevelChoices(Level::globalLevelOptions()),
         ]);
     }
 
@@ -85,9 +108,40 @@ class TeacherController extends Controller
      */
     public function update(UpdateTeacherRequest $request, Teacher $teacher): RedirectResponse
     {
-        $teacher->update($request->validated());
+        DB::transaction(function () use ($request, $teacher) {
+            $teacher->update($request->safe()->except('global_levels'));
+            $this->syncLevels($teacher, $request->validated('global_levels') ?? []);
+        });
 
         return to_route('teachers.index')->with('success', 'Profesor actualizado correctamente.');
+    }
+
+    /**
+     * Asigna al docente todas las intensidades de los niveles globales
+     * marcados.
+     *
+     * @param  list<string>  $globalLevelKeys
+     */
+    private function syncLevels(Teacher $teacher, array $globalLevelKeys): void
+    {
+        $options = Level::globalLevelOptions();
+
+        $teacher->levels()->sync(
+            collect($globalLevelKeys)->flatMap(fn (string $key) => $options->get($key)['level_ids'] ?? [])->unique()->values()->all()
+        );
+    }
+
+    /**
+     * @param  Collection<string, array<string, mixed>>  $globalLevels
+     * @return Collection<int, array{key: string, label: string, levels: list<string>}>
+     */
+    private function globalLevelChoices(Collection $globalLevels): Collection
+    {
+        return $globalLevels->map(fn (array $group) => [
+            'key' => $group['key'],
+            'label' => $group['group'].($group['course'] ? " · {$group['course']}" : ''),
+            'levels' => $group['levels'],
+        ])->values();
     }
 
     /**

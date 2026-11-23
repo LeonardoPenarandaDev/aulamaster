@@ -21,10 +21,10 @@ class ActiveEnglishContractTemplatesSeeder extends Seeder
             ContractTemplate::query()->firstOrCreate(
                 ['code' => $template['code']],
                 [
+                    'acceptance_mode' => 'obligatorio',
                     ...$template,
                     'version' => 1,
                     'status' => 'publicado',
-                    'acceptance_mode' => 'obligatorio',
                     'requires_guardian' => false,
                     'published_at' => now(),
                 ],
@@ -33,7 +33,7 @@ class ActiveEnglishContractTemplatesSeeder extends Seeder
     }
 
     /**
-     * @return list<array{code: string, name: string, type: string, scope: string, body: string}>
+     * @return list<array{code: string, name: string, type: string, scope: string, body: string, acceptance_mode?: string}>
      */
     private function templates(): array
     {
@@ -59,7 +59,92 @@ class ActiveEnglishContractTemplatesSeeder extends Seeder
                 'scope' => 'alumno',
                 'body' => $this->creditBureauAuthorization(),
             ],
+            [
+                'code' => 'active-ficha-matricula',
+                'name' => 'Ficha de registro de matrícula',
+                'type' => 'matricula',
+                'scope' => 'matricula',
+                'body' => $this->registrationForm(),
+            ],
+            [
+                // Opcional: el firmante elige si autoriza o no; queda en la
+                // ficha del estudiante y puede revocarla desde "Mis contratos".
+                'code' => 'active-uso-imagen',
+                'name' => 'Autorización de uso de imagen',
+                'type' => 'imagenes',
+                'scope' => 'alumno',
+                'acceptance_mode' => 'opcional',
+                'body' => $this->imageAuthorization(),
+            ],
         ];
+    }
+
+    private function registrationForm(): string
+    {
+        return <<<'TEXT'
+FICHA DE REGISTRO DE MATRÍCULA No. {{matricula.numero}}
+ACTIVE ENGLISH INSTITUTE SAS – NIT 900511030-9
+
+Fecha de registro: {{fecha}}
+
+DATOS DEL ESTUDIANTE
+Nombre completo: {{alumno.nombre}}
+Documento: {{alumno.documento}}
+Fecha de nacimiento: {{alumno.fecha_nacimiento}}
+Dirección: {{alumno.direccion}}
+Teléfono: {{alumno.telefono}}
+Correo electrónico: {{alumno.correo}}
+
+ACUDIENTE O RESPONSABLE (si el estudiante es menor de edad)
+Nombre: {{acudiente.nombre}}
+Documento: {{acudiente.documento}}
+Parentesco: {{acudiente.parentesco}}
+Teléfono: {{acudiente.telefono}}
+Correo electrónico: {{acudiente.correo}}
+
+DATOS DEL PROGRAMA
+Programa: {{curso}}
+Nivel: {{nivel}}
+Intensidad horaria: {{intensidad_horaria}}
+Fecha de inicio: {{fecha_inicio}}
+Fecha estimada de finalización: {{fecha_fin_estimada}}
+
+CONDICIONES ECONÓMICAS
+Valor del programa: {{precio_final}}
+Valor de la mensualidad: {{mensualidad}}
+
+DECLARACIÓN
+Declaro que los datos registrados en esta ficha son verdaderos y completos, y que informaré a la institución cualquier cambio en ellos. Autorizo a ACTIVE ENGLISH INSTITUTE SAS a usarlos para la prestación del servicio educativo, de acuerdo con su Política de tratamiento de datos personales y la Ley 1581 de 2012.
+
+Firma: {{firmante.nombre}} – {{firmante.documento}}
+TEXT;
+    }
+
+    private function imageAuthorization(): string
+    {
+        return <<<'TEXT'
+AUTORIZACIÓN DE USO DE IMAGEN
+ACTIVE ENGLISH INSTITUTE SAS – NIT 900511030-9
+
+Yo, {{firmante.nombre}}, identificado(a) con {{firmante.documento}}, actuando en nombre propio o como acudiente del estudiante {{alumno.nombre}} ({{alumno.documento}}), de manera libre, voluntaria, previa, expresa e informada:
+
+AUTORIZO a ACTIVE ENGLISH INSTITUTE SAS para que capture, use, publique y reproduzca fotografías, videos y grabaciones de voz en los que aparezca el estudiante, tomados durante las clases, eventos, actividades académicas y culturales de la institución.
+
+Finalidad: las imágenes se usarán únicamente para fines institucionales, educativos y de divulgación de las actividades de la institución, en su página web, redes sociales, material impreso y piezas publicitarias propias. No se usarán con fines distintos ni se cederán a terceros para fines comerciales ajenos a la institución.
+
+Condiciones:
+1. Esta autorización es gratuita: no genera pago, compensación ni regalías de ningún tipo.
+2. Se otorga sin límite de territorio y por el tiempo en que el estudiante esté vinculado a la institución y hasta un (1) año después, salvo que sea revocada antes.
+3. La institución respetará siempre la dignidad, la honra y el buen nombre del estudiante, y en el caso de menores de edad, prevalecerán sus derechos conforme al Código de la Infancia y la Adolescencia (Ley 1098 de 2006).
+4. El tratamiento de las imágenes como dato personal se hará conforme a la Ley 1581 de 2012 y a la Política de tratamiento de datos personales de la institución.
+5. Puedo revocar esta autorización en cualquier momento desde la plataforma ("Mis contratos") o por escrito a contactenos@activeenglish.edu.co. La revocación aplica para usos futuros y no afecta las publicaciones hechas antes de ella.
+
+Esta autorización es opcional: si no la otorgo, el estudiante recibe sus clases con normalidad y la institución no publicará imágenes en las que aparezca.
+
+Fecha: {{fecha}}
+
+Firma: {{firmante.nombre}} – {{firmante.documento}}
+TEXT;
     }
 
     private function enrollmentContract(): string

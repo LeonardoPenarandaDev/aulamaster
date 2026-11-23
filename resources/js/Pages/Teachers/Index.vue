@@ -7,16 +7,18 @@ import { ref } from 'vue';
 
 const props = defineProps({
     teachers: Object,
+    globalLevels: { type: Array, default: () => [] },
     filters: Object,
 });
 
 const page = usePage();
 const search = ref(props.filters.search ?? '');
+const level = ref(props.filters.level ?? '');
 
 function applySearch() {
     router.get(
         route('teachers.index'),
-        { search: search.value || undefined },
+        { search: search.value || undefined, level: level.value || undefined },
         { preserveState: true, replace: true },
     );
 }
@@ -47,14 +49,25 @@ function destroy(teacher) {
                     {{ page.props.flash.success }}
                 </div>
 
-                <div class="flex items-center justify-between gap-4">
-                    <TextInput
-                        v-model="search"
-                        type="text"
-                        placeholder="Buscar por nombre o código..."
-                        class="w-full max-w-sm"
-                        @keyup.enter="applySearch"
-                    />
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex w-full flex-wrap items-center gap-3 sm:w-auto sm:flex-1">
+                        <TextInput
+                            v-model="search"
+                            type="text"
+                            placeholder="Buscar por nombre o código..."
+                            class="w-full max-w-sm"
+                            @keyup.enter="applySearch"
+                        />
+                        <select
+                            v-model="level"
+                            class="rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
+                            aria-label="Filtrar por nivel"
+                            @change="applySearch"
+                        >
+                            <option value="">Todos los niveles</option>
+                            <option v-for="option in globalLevels" :key="option.key" :value="option.key">{{ option.label }}</option>
+                        </select>
+                    </div>
 
                     <Link :href="route('teachers.create')">
                         <PrimaryButton>Nuevo profesor</PrimaryButton>
@@ -68,6 +81,7 @@ function destroy(teacher) {
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Código</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Nombre</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Correo</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Niveles</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estado</th>
                                 <th class="px-6 py-3"></th>
                             </tr>
@@ -77,6 +91,12 @@ function destroy(teacher) {
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ teacher.code }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{{ teacher.name }}</td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ teacher.email }}</td>
+                                <td class="px-6 py-4 text-sm">
+                                    <div class="flex flex-wrap gap-1">
+                                        <span v-for="name in teacher.global_levels" :key="name" class="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">{{ name }}</span>
+                                        <span v-if="teacher.global_levels.length === 0" class="text-xs text-gray-400">Sin niveles</span>
+                                    </div>
+                                </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm">
                                     <span
                                         class="rounded-full px-2 py-1 text-xs font-medium"
@@ -102,7 +122,7 @@ function destroy(teacher) {
                                 </td>
                             </tr>
                             <tr v-if="teachers.data.length === 0">
-                                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
                                     No hay profesores registrados.
                                 </td>
                             </tr>

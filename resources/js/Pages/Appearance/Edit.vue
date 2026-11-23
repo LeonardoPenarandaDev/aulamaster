@@ -208,8 +208,8 @@ function submit() {
                                 </aside>
 
                                 <div class="flex min-w-0 flex-1 flex-col bg-slate-50">
-                                    <div class="flex h-14 items-center justify-between border-b border-slate-200/70 bg-white/80 px-5">
-                                        <span class="text-sm font-semibold text-slate-900">Inicio</span>
+                                    <div class="flex h-14 items-center justify-between border-b px-5" :class="previewTheme.header">
+                                        <span class="text-sm font-semibold" :class="previewTheme.name">Inicio</span>
                                         <span class="h-7 w-7 rounded-full bg-gradient-to-br from-indigo-600 to-accent-500" />
                                     </div>
                                     <div class="space-y-4 p-5">

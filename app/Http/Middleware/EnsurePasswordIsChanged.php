@@ -15,7 +15,7 @@ class EnsurePasswordIsChanged
     /**
      * @var list<string>
      */
-    private const ALLOWED_ROUTES = ['password.change', 'password.change.update', 'logout'];
+    private const ALLOWED_ROUTES = ['password.change', 'password.change.update', 'logout', 'impersonation.leave'];
 
     /**
      * Handle an incoming request.
@@ -24,7 +24,9 @@ class EnsurePasswordIsChanged
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()?->must_change_password && ! $request->routeIs(...self::ALLOWED_ROUTES)) {
+        $user = $request->user();
+
+        if ($user?->must_change_password && $user->managesOwnCredentials() && ! $request->routeIs(...self::ALLOWED_ROUTES)) {
             return to_route('password.change');
         }
 

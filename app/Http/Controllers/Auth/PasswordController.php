@@ -15,6 +15,8 @@ class PasswordController extends Controller
      */
     public function update(Request $request): RedirectResponse
     {
+        abort_unless($request->user()->managesOwnCredentials(), 403, 'Tu contraseña la administra el instituto.');
+
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
             'password' => ['required', Password::defaults(), 'confirmed'],

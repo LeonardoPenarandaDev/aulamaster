@@ -15,11 +15,12 @@ const props = defineProps({
 const page = usePage();
 const isAdmin = page.props.auth.roles?.includes('admin');
 const search = ref(props.filters.search ?? '');
+const checklistFilter = ref(props.filters.checklist ?? '');
 
 function applySearch() {
     router.get(
         route('students.index'),
-        { search: search.value || undefined },
+        { search: search.value || undefined, checklist: checklistFilter.value || undefined },
         { preserveState: true, replace: true },
     );
 }
@@ -58,6 +59,15 @@ function destroy(student) {
                         class="w-full max-w-sm"
                         @keyup.enter="applySearch"
                     />
+                    <select
+                        v-model="checklistFilter"
+                        class="rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
+                        aria-label="Filtrar por checklist"
+                        @change="applySearch"
+                    >
+                        <option value="">Todos los estudiantes</option>
+                        <option value="incompleto">Checklist incompleto</option>
+                    </select>
 
                     <div class="flex items-center gap-2">
                         <Link v-if="isAdmin" :href="route('students.import.create')">
@@ -76,6 +86,7 @@ function destroy(student) {
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Código</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Nombre</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Correo</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Checklist</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estado</th>
                                 <th class="px-6 py-3"></th>
                             </tr>
@@ -98,6 +109,16 @@ function destroy(student) {
                                     </div>
                                 </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500">{{ student.email }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-sm">
+                                    <span v-if="student.checklist.total === 0" class="text-xs text-gray-400">—</span>
+                                    <span
+                                        v-else
+                                        class="rounded-full px-2 py-1 text-xs font-medium"
+                                        :class="student.checklist.complete ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'"
+                                    >
+                                        {{ student.checklist.complete ? 'Completo' : `${student.checklist.done} de ${student.checklist.total}` }}
+                                    </span>
+                                </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-sm">
                                     <span
                                         class="rounded-full px-2 py-1 text-xs font-medium"
@@ -124,7 +145,7 @@ function destroy(student) {
                                 </td>
                             </tr>
                             <tr v-if="students.data.length === 0">
-                                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
                                     No hay estudiantes registrados.
                                 </td>
                             </tr>

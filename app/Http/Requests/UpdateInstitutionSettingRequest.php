@@ -32,6 +32,7 @@ class UpdateInstitutionSettingRequest extends FormRequest
             'signer_name' => ['nullable', 'string', 'max:255'],
             'signer_title' => ['nullable', 'string', 'max:255'],
             'payment_due_day' => ['sometimes', 'integer', 'min:1', 'max:28'],
+            'late_fee_percentage' => ['sometimes', 'numeric', 'min:0', 'max:100'],
             'payment_reminder_days' => ['sometimes', 'integer', 'min:0', 'max:10'],
             'overdue_alert_days' => ['sometimes', 'integer', 'min:1', 'max:60'],
         ];

@@ -12,6 +12,10 @@ defineProps({
     status: {
         type: String,
     },
+    managesOwnCredentials: {
+        type: Boolean,
+        default: true,
+    },
 });
 </script>
 
@@ -39,16 +43,25 @@ defineProps({
                     />
                 </div>
 
-                <div
-                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
-                >
-                    <UpdatePasswordForm class="max-w-xl" />
-                </div>
+                <template v-if="managesOwnCredentials">
+                    <div
+                        class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
+                    >
+                        <UpdatePasswordForm class="max-w-xl" />
+                    </div>
+
+                    <div
+                        class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
+                    >
+                        <DeleteUserForm class="max-w-xl" />
+                    </div>
+                </template>
 
                 <div
-                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
+                    v-else
+                    class="bg-white p-4 text-sm text-gray-600 shadow sm:rounded-lg sm:p-8"
                 >
-                    <DeleteUserForm class="max-w-xl" />
+                    Tu contraseña la administra el instituto. Si la olvidaste o necesitas cambiarla, escríbenos y te asignamos una nueva.
                 </div>
             </div>
         </div>

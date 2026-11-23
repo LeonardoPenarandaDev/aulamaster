@@ -5,6 +5,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AttendanceCorrectionController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\ChecklistItemController;
 use App\Http\Controllers\ClassBookingController;
 use App\Http\Controllers\ClassMaterialController;
 use App\Http\Controllers\ClassroomController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\EnrollmentWizardController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\EvaluationResultController;
 use App\Http\Controllers\ExtensionController;
+use App\Http\Controllers\ImpersonationController;
 use App\Http\Controllers\InstitutionSettingController;
 use App\Http\Controllers\LevelController;
 use App\Http\Controllers\LevelTopicController;
@@ -36,6 +38,7 @@ use App\Http\Controllers\RemoteContractSigningController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StaffUserController;
 use App\Http\Controllers\StudentAccountController;
+use App\Http\Controllers\StudentChecklistController;
 use App\Http\Controllers\StudentContractController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentImportController;
@@ -58,6 +61,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+
+    // Volver a la cuenta del administrador después de entrar como un estudiante.
+    Route::post('impersonation/leave', [ImpersonationController::class, 'destroy'])->name('impersonation.leave');
 });
 
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
@@ -70,6 +76,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
         ->only(['index', 'create', 'store', 'edit', 'update'])
         ->parameters(['staff-users' => 'user']);
     Route::post('students/{student}/portal-access', [PortalAccessController::class, 'storeForStudent'])->name('students.portal-access.store');
+    Route::post('students/{student}/impersonate', [ImpersonationController::class, 'store'])->name('students.impersonate');
     Route::post('teachers/{teacher}/portal-access', [PortalAccessController::class, 'storeForTeacher'])->name('teachers.portal-access.store');
 
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');
@@ -94,6 +101,12 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::post('contract-templates/{contract_template}/publish', [ContractTemplateController::class, 'publish'])->name('contract-templates.publish');
     Route::post('contract-templates/{contract_template}/new-version', [ContractTemplateController::class, 'createVersion'])->name('contract-templates.new-version');
     Route::post('contract-templates/{contract_template}/archive', [ContractTemplateController::class, 'archive'])->name('contract-templates.archive');
+
+    Route::get('checklist', [ChecklistItemController::class, 'index'])->name('checklist-items.index');
+    Route::post('checklist', [ChecklistItemController::class, 'store'])->name('checklist-items.store');
+    Route::put('checklist/{checklist_item}', [ChecklistItemController::class, 'update'])->name('checklist-items.update');
+    Route::post('checklist/{checklist_item}/move', [ChecklistItemController::class, 'move'])->name('checklist-items.move');
+    Route::delete('checklist/{checklist_item}', [ChecklistItemController::class, 'destroy'])->name('checklist-items.destroy');
 
     Route::get('apariencia', [AppearanceController::class, 'edit'])->name('appearance.edit');
     Route::put('apariencia', [AppearanceController::class, 'update'])->name('appearance.update');
@@ -134,6 +147,8 @@ Route::middleware(['auth', 'verified', 'role:admin|secretaria'])->group(function
     Route::resource('students', StudentController::class)->only(['index', 'create', 'store', 'edit', 'update']);
     Route::post('students/{student}/photo', [StudentPhotoController::class, 'update'])->name('students.photo.update');
     Route::delete('students/{student}/photo', [StudentPhotoController::class, 'destroy'])->name('students.photo.destroy');
+    Route::post('students/{student}/checklist/{checklist_item}', [StudentChecklistController::class, 'store'])->name('students.checklist.check');
+    Route::delete('students/{student}/checklist/{checklist_item}', [StudentChecklistController::class, 'destroy'])->name('students.checklist.uncheck');
 });
 
 // Contratos de la matrícula (partes 6.5 a 6.8 del plan de mejoras).

@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'concept',
     'base_amount',
     'discount_amount',
+    'late_fee_amount',
     'final_amount',
     'promotion_id',
     'referral_id',

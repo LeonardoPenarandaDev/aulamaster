@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Level;
 use App\Models\Teacher;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -38,6 +39,8 @@ class StoreTeacherRequest extends FormRequest
             ],
             'phone' => ['nullable', 'string', 'max:50'],
             'status' => ['required', Rule::in(['activo', 'inactivo'])],
+            'global_levels' => ['nullable', 'array'],
+            'global_levels.*' => ['string', Rule::in(Level::globalLevelOptions()->keys()->all())],
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ];
     }

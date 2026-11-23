@@ -22,7 +22,7 @@ class ForcedPasswordChangeController extends Controller
      */
     public function edit(Request $request): Response|RedirectResponse
     {
-        if (! $request->user()->must_change_password) {
+        if (! $request->user()->must_change_password || ! $request->user()->managesOwnCredentials()) {
             return to_route('dashboard');
         }
 
@@ -35,6 +35,8 @@ class ForcedPasswordChangeController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $user = $request->user();
+
+        abort_unless($user->managesOwnCredentials(), 403, 'Tu contraseña la administra el instituto.');
 
         $validated = $request->validate([
             'password' => [

@@ -6,7 +6,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const props = defineProps({
     levels: Array,
@@ -43,6 +43,38 @@ watch(() => form.level_id, () => {
         form.level_topic_id = null;
     }
 });
+
+/**
+ * Docentes que dictan el nivel global de la clase. Si no hay ninguno
+ * asignado (o se pide), se muestran todos.
+ */
+const showAllTeachers = ref(false);
+
+const levelTeachers = computed(() => {
+    const level = props.levels.find((item) => item.id === Number(form.level_id));
+    if (!level) {
+        return [];
+    }
+
+    const groupLevelIds = props.levels
+        .filter((item) => item.course_id === level.course_id && item.class_group === level.class_group)
+        .map((item) => item.id);
+
+    return props.teachers.filter((teacher) => teacher.level_ids.some((id) => groupLevelIds.includes(id)));
+});
+
+const teacherOptions = computed(() => {
+    const options = showAllTeachers.value || levelTeachers.value.length === 0 ? props.teachers : levelTeachers.value;
+    const selected = props.teachers.find((teacher) => teacher.id === form.teacher_id);
+
+    return selected && !options.includes(selected) ? [selected, ...options] : options;
+});
+
+watch([() => form.level_id, showAllTeachers], () => {
+    if (!teacherOptions.value.some((teacher) => teacher.id === form.teacher_id)) {
+        form.teacher_id = teacherOptions.value[0]?.id ?? '';
+    }
+}, { immediate: true });
 
 function submit() {
     form.post(route('class-sessions.store'));
@@ -87,8 +119,13 @@ function submit() {
                             <div>
                                 <InputLabel for="teacher_id" value="Profesor" />
                                 <select id="teacher_id" v-model="form.teacher_id" class="mt-1 block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
-                                    <option v-for="teacher in teachers" :key="teacher.id" :value="teacher.id">{{ teacher.name }}</option>
+                                    <option v-for="teacher in teacherOptions" :key="teacher.id" :value="teacher.id">{{ teacher.name }}</option>
                                 </select>
+                                <label v-if="levelTeachers.length > 0" class="mt-2 flex items-center gap-2 text-xs text-gray-600">
+                                    <input v-model="showAllTeachers" type="checkbox" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                    Ver todos los docentes (se muestran solo los que dictan este nivel)
+                                </label>
+                                <p v-else class="mt-2 text-xs text-gray-500">Ningún docente tiene asignado este nivel; se muestran todos.</p>
                                 <InputError class="mt-2" :message="form.errors.teacher_id" />
                             </div>
 
