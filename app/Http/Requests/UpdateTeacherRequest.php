@@ -28,11 +28,29 @@ class UpdateTeacherRequest extends FormRequest
             'code' => ['required', 'string', 'max:20', Rule::unique('teachers', 'code')->ignore($this->route('teacher'))],
             'name' => ['required', 'string', 'max:255'],
             'document' => ['nullable', 'string', 'max:50'],
-            'email' => ['nullable', 'email', 'max:255'],
+            'email' => [
+                Rule::requiredIf(fn (): bool => $this->hasOrCreatesAccount()),
+                'nullable',
+                'email',
+                'max:255',
+                Rule::when(
+                    $this->hasOrCreatesAccount(),
+                    [Rule::unique('users', 'email')->ignore($this->route('teacher')->user_id)],
+                ),
+            ],
             'phone' => ['nullable', 'string', 'max:50'],
             'status' => ['required', Rule::in(['activo', 'inactivo'])],
             'global_levels' => ['nullable', 'array'],
             'global_levels.*' => ['string', Rule::in(Level::globalLevelOptions()->keys()->all())],
+            'password' => ['nullable', 'string', 'min:6', 'max:255', 'confirmed'],
         ];
+    }
+
+    /**
+     * El profesor ya tiene cuenta de ingreso, o se le crea al definir una contraseña.
+     */
+    private function hasOrCreatesAccount(): bool
+    {
+        return $this->route('teacher')->user_id !== null || $this->filled('password');
     }
 }

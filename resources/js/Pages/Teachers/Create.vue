@@ -1,11 +1,11 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import Checkbox from '@/Components/Checkbox.vue';
 import GlobalLevelCheckboxes from '@/Components/GlobalLevelCheckboxes.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
-import PasswordInput from '@/Components/PasswordInput.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
@@ -21,8 +21,7 @@ const form = useForm({
     email: '',
     phone: '',
     status: 'activo',
-    password: '',
-    password_confirmation: '',
+    portal_access: true,
 });
 
 function submit() {
@@ -77,13 +76,13 @@ function submit() {
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
                                 <InputLabel for="document" value="Documento" />
-                                <TextInput id="document" v-model="form.document" class="mt-1 block w-full" />
+                                <TextInput id="document" v-model="form.document" class="mt-1 block w-full" :required="form.portal_access" />
                                 <InputError class="mt-2" :message="form.errors.document" />
                             </div>
 
                             <div>
                                 <InputLabel for="email" value="Correo" />
-                                <TextInput id="email" type="email" v-model="form.email" class="mt-1 block w-full" />
+                                <TextInput id="email" type="email" v-model="form.email" class="mt-1 block w-full" :required="form.portal_access" />
                                 <InputError class="mt-2" :message="form.errors.email" />
                             </div>
 
@@ -95,24 +94,15 @@ function submit() {
                         </div>
 
                         <div class="border-t border-gray-200 pt-6">
-                            <h3 class="text-sm font-medium text-gray-900">Acceso al portal (opcional)</h3>
+                            <label class="flex items-center gap-2">
+                                <Checkbox name="portal_access" v-model:checked="form.portal_access" />
+                                <span class="text-sm font-medium text-gray-900">Crear acceso a la app</span>
+                            </label>
                             <p class="mt-1 text-sm text-gray-500">
-                                Si defines una contraseña, el profesor podrá iniciar sesión con su correo. Déjala vacía para crearle el acceso más tarde.
+                                El profesor ingresará con su <strong>correo</strong> como usuario y su <strong>número de documento</strong> como contraseña.
+                                Luego puedes cambiarle la contraseña desde la edición del profesor.
                             </p>
-
-                            <div class="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
-                                <div>
-                                    <InputLabel for="password" value="Contraseña" />
-                                    <PasswordInput id="password" v-model="form.password" class="mt-1 block w-full" autocomplete="new-password" />
-                                    <InputError class="mt-2" :message="form.errors.password" />
-                                </div>
-
-                                <div>
-                                    <InputLabel for="password_confirmation" value="Confirmar contraseña" />
-                                    <PasswordInput id="password_confirmation" v-model="form.password_confirmation" class="mt-1 block w-full" autocomplete="new-password" />
-                                    <InputError class="mt-2" :message="form.errors.password_confirmation" />
-                                </div>
-                            </div>
+                            <InputError class="mt-2" :message="form.errors.portal_access" />
                         </div>
 
                         <div class="flex items-center gap-4">

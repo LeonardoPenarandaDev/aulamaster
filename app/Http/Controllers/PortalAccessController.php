@@ -36,24 +36,26 @@ class PortalAccessController extends Controller
     }
 
     /**
-     * Same as above, for a teacher (sección 36 del plan).
+     * Create the login account for a teacher (sección 36 del plan): el
+     * usuario es su correo y la contraseña inicial su número de documento.
      */
     public function storeForTeacher(Teacher $teacher): RedirectResponse
     {
         abort_if($teacher->user_id, 409, 'Este profesor ya tiene acceso al portal.');
-        abort_unless($teacher->email, 422, 'El profesor necesita un correo registrado antes de crear su acceso.');
+        abort_unless($teacher->email && $teacher->document, 422, 'El profesor necesita correo y documento registrados antes de crear su acceso.');
 
-        $password = Str::password(12);
+        if (User::query()->where('email', $teacher->email)->exists()) {
+            return back()->with('error', "Ya existe una cuenta con el correo {$teacher->email}.");
+        }
 
         $user = User::create([
             'name' => $teacher->name,
             'email' => $teacher->email,
-            'password' => $password,
+            'password' => $teacher->document,
         ]);
-        $user->forceFill(['must_change_password' => true])->save();
         $user->assignRole('profesor');
         $teacher->update(['user_id' => $user->id]);
 
-        return back()->with('success', "Acceso creado. Usuario: {$user->email} · Contraseña temporal: {$password}");
+        return back()->with('success', "Acceso creado. Usuario: {$user->email} · Contraseña: su número de documento.");
     }
 }

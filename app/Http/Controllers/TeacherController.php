@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Audit\RecordAuditEvent;
 use App\Http\Requests\StoreTeacherRequest;
 use App\Http\Requests\UpdateTeacherRequest;
 use App\Models\Level;
@@ -68,22 +69,22 @@ class TeacherController extends Controller
     public function store(StoreTeacherRequest $request): RedirectResponse
     {
         DB::transaction(function () use ($request) {
-            $teacher = Teacher::create($request->safe()->except(['password', 'global_levels']));
+            $teacher = Teacher::create($request->safe()->except(['portal_access', 'global_levels']));
             $this->syncLevels($teacher, $request->validated('global_levels') ?? []);
 
-            if ($request->filled('password')) {
+            if ($request->boolean('portal_access')) {
                 $user = User::create([
                     'name' => $teacher->name,
                     'email' => $teacher->email,
-                    'password' => $request->validated('password'),
+                    'password' => $teacher->document,
                 ]);
                 $user->assignRole('profesor');
                 $teacher->update(['user_id' => $user->id]);
             }
         });
 
-        return to_route('teachers.index')->with('success', $request->filled('password')
-            ? 'Profesor registrado con acceso al portal.'
+        return to_route('teachers.index')->with('success', $request->boolean('portal_access')
+            ? "Profesor registrado con acceso al portal. Usuario: {$request->validated('email')} · Contraseña: su número de documento."
             : 'Profesor registrado correctamente.');
     }
 
@@ -106,11 +107,44 @@ class TeacherController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateTeacherRequest $request, Teacher $teacher): RedirectResponse
+    public function update(UpdateTeacherRequest $request, Teacher $teacher, RecordAuditEvent $recordAudit): RedirectResponse
     {
-        DB::transaction(function () use ($request, $teacher) {
-            $teacher->update($request->safe()->except('global_levels'));
+        DB::transaction(function () use ($request, $teacher, $recordAudit) {
+            $teacher->update($request->safe()->except(['password', 'global_levels']));
             $this->syncLevels($teacher, $request->validated('global_levels') ?? []);
+
+            $user = $teacher->user;
+
+            if (! $user && $request->filled('password')) {
+                $user = User::create([
+                    'name' => $teacher->name,
+                    'email' => $teacher->email,
+                    'password' => $request->validated('password'),
+                ]);
+                $user->assignRole('profesor');
+                $teacher->update(['user_id' => $user->id]);
+
+                return;
+            }
+
+            $user?->update([
+                'name' => $teacher->name,
+                'email' => $teacher->email,
+            ]);
+
+            if ($user && $request->filled('password')) {
+                $user->forceFill([
+                    'password' => $request->validated('password'),
+                    'must_change_password' => false,
+                ])->save();
+
+                $recordAudit->handle(
+                    'contraseña_cambiada',
+                    'usuarios',
+                    $user,
+                    "Contraseña cambiada por el administrador para {$user->name} ({$user->email})",
+                );
+            }
         });
 
         return to_route('teachers.index')->with('success', 'Profesor actualizado correctamente.');

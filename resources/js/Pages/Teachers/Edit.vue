@@ -23,6 +23,8 @@ const form = useForm({
     phone: props.teacher.phone,
     status: props.teacher.status,
     global_levels: props.teacher.global_levels ?? [],
+    password: '',
+    password_confirmation: '',
 });
 
 function submit() {
@@ -100,6 +102,32 @@ function grantAccess() {
                             </div>
                         </div>
 
+                        <div class="border-t border-gray-200 pt-6">
+                            <h3 class="text-sm font-medium text-gray-900">Contraseña de ingreso a la app</h3>
+                            <p class="mt-1 text-sm text-gray-500">
+                                <template v-if="teacher.user">
+                                    Usuario: <strong>{{ teacher.user.email }}</strong>. Escribe una nueva contraseña solo si quieres cambiarla; déjala vacía para conservar la actual.
+                                </template>
+                                <template v-else>
+                                    Este profesor aún no tiene acceso. Si escribes una contraseña se le crea la cuenta con su correo como usuario.
+                                </template>
+                            </p>
+
+                            <div class="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                <div>
+                                    <InputLabel for="password" value="Nueva contraseña" />
+                                    <TextInput id="password" type="password" v-model="form.password" class="mt-1 block w-full" autocomplete="new-password" />
+                                    <InputError class="mt-2" :message="form.errors.password" />
+                                </div>
+
+                                <div>
+                                    <InputLabel for="password_confirmation" value="Confirmar contraseña" />
+                                    <TextInput id="password_confirmation" type="password" v-model="form.password_confirmation" class="mt-1 block w-full" autocomplete="new-password" />
+                                    <InputError class="mt-2" :message="form.errors.password_confirmation" />
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="flex items-center gap-4">
                             <PrimaryButton :disabled="form.processing">Guardar</PrimaryButton>
                             <Link :href="route('teachers.index')">
@@ -119,15 +147,26 @@ function grantAccess() {
                         {{ page.props.flash.success }}
                     </div>
 
-                    <p v-if="teacher.user" class="mt-2 text-sm text-gray-600">
-                        Ya tiene acceso con el usuario <strong>{{ teacher.user.email }}</strong>.
-                    </p>
+                    <div
+                        v-if="page.props.flash?.error"
+                        class="mt-3 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700"
+                    >
+                        {{ page.props.flash.error }}
+                    </div>
+
+                    <div v-if="teacher.user" class="mt-2">
+                        <p class="text-sm text-gray-600">
+                            Ingresa con el usuario <strong>{{ teacher.user.email }}</strong>.
+                        </p>
+
+                    </div>
                     <div v-else class="mt-2">
                         <p class="text-sm text-gray-600">
-                            Este profesor todavía no puede iniciar sesión. Crear el acceso genera una cuenta con el correo
-                            registrado ({{ teacher.email || 'no hay correo registrado' }}) y una contraseña temporal.
+                            Este profesor todavía no puede iniciar sesión. Crear el acceso genera una cuenta con su correo
+                            ({{ teacher.email || 'no hay correo registrado' }}) como usuario y su número de documento
+                            ({{ teacher.document || 'no hay documento registrado' }}) como contraseña.
                         </p>
-                        <PrimaryButton class="mt-3" :disabled="accessForm.processing || !teacher.email" @click="grantAccess">
+                        <PrimaryButton class="mt-3" :disabled="accessForm.processing || !teacher.email || !teacher.document" @click="grantAccess">
                             Crear acceso
                         </PrimaryButton>
                     </div>
