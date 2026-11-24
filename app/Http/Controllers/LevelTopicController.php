@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -35,16 +36,19 @@ class LevelTopicController extends Controller
         $topics = LevelTopic::query()
             ->orderBy('position')
             ->orderBy('id')
-            ->get(['id', 'course_id', 'class_group', 'name', 'position'])
+            ->get(['id', 'course_id', 'class_group', 'name', 'skills', 'teacher_notes', 'position'])
             ->map(fn (LevelTopic $topic) => [
                 'id' => $topic->id,
                 'name' => $topic->name,
+                'skills' => $topic->skills ?? [],
+                'teacher_notes' => $topic->teacher_notes,
                 'group_key' => $this->groupKey($topic->course_id, $topic->class_group),
                 'sessions_count' => (int) ($sessionCounts[$topic->id] ?? 0),
             ]);
 
         return Inertia::render('LevelTopics/Index', [
             'groups' => $groups->values(),
+            'skills' => LevelTopic::SKILLS,
             'topics' => $topics->values(),
             'filters' => ['group' => $request->query('group')],
         ]);
@@ -61,6 +65,8 @@ class LevelTopicController extends Controller
             'course_id' => $courseId,
             'class_group' => $classGroup,
             'name' => trim($validated['name']),
+            'skills' => $validated['skills'] ?? [],
+            'teacher_notes' => $validated['teacher_notes'] ?? null,
             'position' => $this->nextPosition($courseId, $classGroup),
         ]);
 
@@ -87,6 +93,8 @@ class LevelTopicController extends Controller
 
         $levelTopic->update([
             'name' => trim($validated['name']),
+            'skills' => $validated['skills'] ?? [],
+            'teacher_notes' => $validated['teacher_notes'] ?? null,
             ...($changesGroup ? [
                 'course_id' => $courseId,
                 'class_group' => $classGroup,
@@ -147,14 +155,17 @@ class LevelTopicController extends Controller
     }
 
     /**
-     * @return array{name: string, group_key: string}
+     * @return array{name: string, group_key: string, skills?: list<string>, teacher_notes?: string|null}
      */
     private function validateTopic(Request $request): array
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'group_key' => ['required', 'string'],
-        ], [], ['name' => 'tema', 'group_key' => 'nivel']);
+            'skills' => ['nullable', 'array'],
+            'skills.*' => ['string', 'distinct', Rule::in(array_keys(LevelTopic::SKILLS))],
+            'teacher_notes' => ['nullable', 'string', 'max:2000'],
+        ], [], ['name' => 'tema', 'group_key' => 'nivel', 'skills' => 'habilidades', 'teacher_notes' => 'observaciones']);
     }
 
     /**

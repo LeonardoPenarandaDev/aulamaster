@@ -219,4 +219,106 @@ class LevelTopicTest extends TestCase
 
         $this->assertSame('Kids Uno', $topic->fresh()->class_group);
     }
+
+    public function test_topic_stores_how_it_is_taught_and_the_teacher_instructions(): void
+    {
+        $coordinador = $this->coordinadorUser();
+
+        $this->actingAs($coordinador)
+            ->post(route('level-topics.store'), [
+                'name' => 'Verb to be',
+                'group_key' => $this->groupKey($this->standard),
+                'skills' => ['speaking', 'listening'],
+                'teacher_notes' => 'Trabajar el diálogo de la página 12 en parejas.',
+            ])
+            ->assertSessionHasNoErrors();
+
+        $topic = LevelTopic::query()->sole();
+        $this->assertSame(['speaking', 'listening'], $topic->skills);
+        $this->assertSame(['Listening', 'Speaking'], $topic->skillLabels());
+        $this->assertSame('Trabajar el diálogo de la página 12 en parejas.', $topic->teacher_notes);
+
+        $this->actingAs($coordinador)
+            ->put(route('level-topics.update', $topic), [
+                'name' => 'Verb to be',
+                'group_key' => $this->groupKey($this->standard),
+                'skills' => ['reading', 'writing'],
+                'teacher_notes' => null,
+            ])
+            ->assertSessionHasNoErrors();
+
+        $this->assertSame(['reading', 'writing'], $topic->fresh()->skills);
+        $this->assertNull($topic->fresh()->teacher_notes);
+
+        $this->actingAs($coordinador)
+            ->post(route('level-topics.store'), ['name' => 'X', 'group_key' => $this->groupKey($this->standard), 'skills' => ['dancing']])
+            ->assertSessionHasErrors('skills.0');
+
+        $this->actingAs($coordinador)
+            ->get(route('level-topics.index'))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('topics.0.skills', ['reading', 'writing'])
+                ->where('skills.listening', 'Listening')
+            );
+    }
+
+    public function test_teacher_sees_the_instructions_and_the_student_only_the_skills(): void
+    {
+        $this->travelTo('2026-09-30 12:00:00');
+
+        $topic = $this->topic('Verb to be');
+        $topic->update(['skills' => ['speaking'], 'teacher_notes' => 'Usar el video de la unidad 1.']);
+
+        $teacherUser = $this->teacherUser();
+        $teacher = Teacher::factory()->create(['user_id' => $teacherUser->id]);
+        $session = ClassSession::factory()->create([
+            'level_id' => $this->standard->id,
+            'level_topic_id' => $topic->id,
+            'teacher_id' => $teacher->id,
+            'date' => '2026-09-30',
+            'start_time' => '14:00',
+            'end_time' => '16:00',
+        ]);
+
+        $this->actingAs($teacherUser)
+            ->get(route('calendar.index', ['date' => '2026-09-30']))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('sessions.0.topic_skills', ['Speaking'])
+                ->where('sessions.0.topic_teacher_notes', 'Usar el video de la unidad 1.')
+            );
+
+        $this->actingAs($teacherUser)
+            ->get(route('attendance.create', $session))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('classSession.topic.teacher_notes', 'Usar el video de la unidad 1.')
+                ->where('classSession.topic_skills', ['Speaking'])
+            );
+
+        $this->actingAs($teacherUser)
+            ->get(route('dashboard'))
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('teacherData.today_sessions.0.topic', 'Verb to be')
+                ->where('teacherData.today_sessions.0.topic_teacher_notes', 'Usar el video de la unidad 1.')
+            );
+
+        $studentUser = $this->studentUser();
+        $student = Student::factory()->create(['user_id' => $studentUser->id]);
+        Enrollment::factory()->create(['student_id' => $student->id, 'level_id' => $this->intensive->id, 'start_date' => '2026-09-28']);
+
+        $this->actingAs($studentUser)
+            ->get(route('student-schedule.index'))
+            ->assertDontSee('Usar el video de la unidad 1.')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('sessions.0.topic_skills', ['Speaking'])
+                ->missing('sessions.0.topic_teacher_notes')
+            );
+
+        $this->actingAs($studentUser)
+            ->get(route('calendar.index', ['date' => '2026-09-30']))
+            ->assertDontSee('Usar el video de la unidad 1.')
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->where('sessions.0.topic_skills', ['Speaking'])
+                ->where('sessions.0.topic_teacher_notes', null)
+            );
+    }
 }

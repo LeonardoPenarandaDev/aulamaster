@@ -1,4 +1,5 @@
 <script setup>
+import SkillBadges from '@/Components/SkillBadges.vue';
 import Icon from '@/Components/Icon.vue';
 import PortalButton from '@/Components/Portal/PortalButton.vue';
 import PortalCard from '@/Components/Portal/PortalCard.vue';
@@ -60,6 +61,10 @@ function shortDate(value) {
                             </span>
                             <div>
                                 <p class="font-semibold text-gray-900">{{ session.level }}</p>
+                                <p v-if="session.topic" class="text-sm text-gray-800">
+                                    📘 {{ session.topic }}
+                                    <SkillBadges :skills="session.topic_skills" class="ml-1" />
+                                </p>
                                 <p class="text-sm text-gray-600">
                                     {{ session.start_time }} – {{ session.end_time }} ·
                                     {{ session.modality === 'virtual' ? 'Virtual' : session.classroom }} ·
@@ -72,6 +77,11 @@ function shortDate(value) {
                                 </p>
                             </div>
                         </div>
+                    </div>
+
+                    <div v-if="session.topic_teacher_notes" class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                        <p class="text-xs font-semibold uppercase tracking-wide">Instrucciones para el docente</p>
+                        <p class="mt-1 whitespace-pre-line">{{ session.topic_teacher_notes }}</p>
                     </div>
 
                     <form v-if="session.modality === 'virtual'" class="mt-4 flex flex-wrap items-center gap-2" @submit.prevent="saveMeetingUrl(session)">

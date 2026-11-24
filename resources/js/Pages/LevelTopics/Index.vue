@@ -1,4 +1,5 @@
 <script setup>
+import SkillBadges from '@/Components/SkillBadges.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
@@ -11,6 +12,7 @@ import { computed, ref } from 'vue';
 const props = defineProps({
     groups: Array,
     topics: Array,
+    skills: { type: Object, default: () => ({}) },
     filters: Object,
 });
 
@@ -23,10 +25,12 @@ const groupFilter = ref(props.filters.group ?? '');
 const form = useForm({
     group_key: props.filters.group ?? props.groups[0]?.key ?? '',
     name: '',
+    skills: [],
+    teacher_notes: '',
 });
 
 const editing = ref(null);
-const editForm = useForm({ name: '', group_key: '' });
+const editForm = useForm({ name: '', group_key: '', skills: [], teacher_notes: '' });
 
 /**
  * Niveles globales con sus temas en orden (los que no tienen temas
@@ -53,7 +57,7 @@ function applyFilter() {
 function addTopic() {
     form.post(route('level-topics.store'), {
         preserveScroll: true,
-        onSuccess: () => form.reset('name'),
+        onSuccess: () => form.reset('name', 'skills', 'teacher_notes'),
     });
 }
 
@@ -62,6 +66,8 @@ function startEditing(topic) {
     editForm.clearErrors();
     editForm.name = topic.name;
     editForm.group_key = topic.group_key;
+    editForm.skills = [...topic.skills];
+    editForm.teacher_notes = topic.teacher_notes ?? '';
 }
 
 function saveTopic(topic) {
@@ -126,7 +132,35 @@ function deleteTopic(topic) {
                             </div>
                             <PrimaryButton :disabled="form.processing || !form.name.trim()">Agregar</PrimaryButton>
                         </div>
-                        <InputError class="mt-2" :message="form.errors.name || form.errors.group_key" />
+
+                        <fieldset class="mt-4">
+                            <legend class="text-sm font-medium text-gray-700">Cómo se va a enseñar</legend>
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                <label
+                                    v-for="(label, key) in skills"
+                                    :key="key"
+                                    class="flex cursor-pointer items-center gap-2 rounded-xl border px-3 py-1.5 text-sm"
+                                    :class="form.skills.includes(key) ? 'border-indigo-300 bg-indigo-50 text-indigo-800' : 'border-slate-200 text-gray-700 hover:bg-slate-50'"
+                                >
+                                    <input v-model="form.skills" type="checkbox" :value="key" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                    {{ label }}
+                                </label>
+                            </div>
+                        </fieldset>
+
+                        <div class="mt-4">
+                            <InputLabel for="teacher_notes" value="Observaciones para el docente" />
+                            <textarea
+                                id="teacher_notes"
+                                v-model="form.teacher_notes"
+                                rows="3"
+                                maxlength="2000"
+                                :class="selectClasses"
+                                placeholder="Ej: empezar con un video corto y trabajar el diálogo en parejas"
+                            />
+                            <p class="mt-1 text-xs text-gray-500">Solo las ven el docente y el personal; los estudiantes no.</p>
+                        </div>
+                        <InputError class="mt-2" :message="form.errors.name || form.errors.group_key || form.errors.skills || form.errors.teacher_notes" />
                     </form>
 
                     <div class="flex flex-wrap items-center gap-3">
@@ -162,16 +196,33 @@ function deleteTopic(topic) {
                                     <select v-model="editForm.group_key" class="rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500">
                                         <option v-for="option in groups" :key="option.key" :value="option.key">{{ groupLabel(option) }}</option>
                                     </select>
+                                    <div class="flex w-full flex-wrap gap-3">
+                                        <label v-for="(label, key) in skills" :key="key" class="flex items-center gap-1.5 text-sm text-gray-700">
+                                            <input v-model="editForm.skills" type="checkbox" :value="key" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
+                                            {{ label }}
+                                        </label>
+                                    </div>
+                                    <textarea
+                                        v-model="editForm.teacher_notes"
+                                        rows="3"
+                                        maxlength="2000"
+                                        class="block w-full rounded-xl border-slate-200 text-sm shadow-sm shadow-slate-100 focus:border-indigo-500 focus:ring-indigo-500"
+                                        placeholder="Observaciones para el docente"
+                                    />
                                     <PrimaryButton :disabled="editForm.processing">Guardar</PrimaryButton>
                                     <SecondaryButton type="button" @click="editing = null">Cancelar</SecondaryButton>
-                                    <InputError class="w-full" :message="editForm.errors.name || editForm.errors.group_key" />
+                                    <InputError class="w-full" :message="editForm.errors.name || editForm.errors.group_key || editForm.errors.skills || editForm.errors.teacher_notes" />
                                 </form>
 
                                 <template v-else>
-                                    <span class="flex-1 text-sm text-gray-900">
-                                        {{ topic.name }}
-                                        <span v-if="topic.sessions_count" class="ml-1 text-xs text-gray-400">· {{ topic.sessions_count }} clase(s)</span>
-                                    </span>
+                                    <div class="min-w-0 flex-1 text-sm text-gray-900">
+                                        <p>
+                                            {{ topic.name }}
+                                            <SkillBadges :skills="topic.skills" class="ml-1" />
+                                            <span v-if="topic.sessions_count" class="ml-1 text-xs text-gray-400">· {{ topic.sessions_count }} clase(s)</span>
+                                        </p>
+                                        <p v-if="topic.teacher_notes" class="mt-1 whitespace-pre-line text-xs text-amber-800">📝 {{ topic.teacher_notes }}</p>
+                                    </div>
                                     <div class="flex items-center gap-1 text-sm">
                                         <button type="button" class="rounded-md px-2 py-1 text-gray-500 hover:bg-slate-100 disabled:opacity-30" :disabled="index === 0" title="Subir" @click="moveTopic(topic, 'up')">↑</button>
                                         <button type="button" class="rounded-md px-2 py-1 text-gray-500 hover:bg-slate-100 disabled:opacity-30" :disabled="index === group.topics.length - 1" title="Bajar" @click="moveTopic(topic, 'down')">↓</button>

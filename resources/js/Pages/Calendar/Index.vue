@@ -1,4 +1,5 @@
 <script setup>
+import SkillBadges from '@/Components/SkillBadges.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import CalendarView from '@/Components/Calendar/CalendarView.vue';
 import Modal from '@/Components/Modal.vue';
@@ -163,7 +164,14 @@ const selectClasses = 'mt-1 rounded-xl border-slate-200 text-sm shadow-sm shadow
                         <dd class="inline">{{ selected.booked_count }}{{ selected.capacity !== null ? ` de ${selected.capacity} cupos` : '' }}</dd>
                     </div>
                     <div><dt class="inline text-gray-500">Estado: </dt><dd class="inline">{{ statusLabels[selected.status] ?? selected.status }}</dd></div>
-                    <div v-if="selected.topic"><dt class="inline text-gray-500">Tema: </dt><dd class="inline font-medium">{{ selected.topic }}</dd></div>
+                    <div v-if="selected.topic">
+                        <dt class="inline text-gray-500">Tema: </dt><dd class="inline font-medium">{{ selected.topic }}</dd>
+                        <SkillBadges :skills="selected.topic_skills" class="ml-1" />
+                    </div>
+                    <div v-if="selected.topic_teacher_notes" class="rounded-lg bg-amber-50 p-2 text-amber-900">
+                        <dt class="text-xs font-semibold uppercase tracking-wide">Instrucciones para el docente</dt>
+                        <dd class="whitespace-pre-line">{{ selected.topic_teacher_notes }}</dd>
+                    </div>
                     <div v-if="selected.notes"><dt class="inline text-gray-500">Notas: </dt><dd class="inline">{{ selected.notes }}</dd></div>
                 </dl>
 

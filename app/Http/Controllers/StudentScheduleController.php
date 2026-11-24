@@ -60,7 +60,7 @@ class StudentScheduleController extends Controller
         $sessions = ClassSession::query()
             ->whereIn('level_id', $enrollment->level->sharedClassLevelIds())
             ->whereBetween('date', [$from->toDateString(), $until->toDateString()])
-            ->with(['classroom:id,name,capacity', 'topic:id,name'])
+            ->with(['classroom:id,name,capacity', 'topic:id,name,skills'])
             ->withCount('bookings')
             ->orderBy('date')
             ->orderBy('start_time')
@@ -77,6 +77,7 @@ class StudentScheduleController extends Controller
                 'status' => $session->status,
                 'notes' => $session->notes,
                 'topic' => $session->topic?->name,
+                'topic_skills' => $session->topic?->skillLabels() ?? [],
                 'topic_seen' => $session->level_topic_id !== null && in_array($session->level_topic_id, $seenTopicIds),
                 'modality' => $session->modality,
                 'meeting_url' => $session->meeting_url,

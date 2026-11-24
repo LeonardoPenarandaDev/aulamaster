@@ -1,4 +1,5 @@
 <script setup>
+import SkillBadges from '@/Components/SkillBadges.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import StudentAvatar from '@/Components/StudentAvatar.vue';
@@ -110,7 +111,12 @@ function submit() {
                     </p>
                     <p v-if="classSession.topic" class="text-sm font-medium text-gray-900">
                         Tema: {{ classSession.topic.name }}
+                        <SkillBadges :skills="classSession.topic_skills ?? []" class="ml-1" />
                     </p>
+                    <div v-if="classSession.topic?.teacher_notes" class="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
+                        <p class="text-xs font-semibold uppercase tracking-wide">Instrucciones para el docente</p>
+                        <p class="mt-1 whitespace-pre-line">{{ classSession.topic.teacher_notes }}</p>
+                    </div>
                     <p class="text-sm text-gray-600">
                         Profesor: {{ classSession.teacher?.name }} · Aula: {{ classSession.classroom?.name }}
                     </p>

@@ -1,4 +1,5 @@
 <script setup>
+import SkillBadges from '@/Components/SkillBadges.vue';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { Head, router, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
@@ -248,6 +249,7 @@ function hours(value) {
                                             </div>
                                             <p v-if="session.topic" class="text-sm text-gray-700">
                                                 📘 {{ session.topic }}
+                                                <SkillBadges :skills="session.topic_skills" class="ml-1" />
                                                 <span
                                                     v-if="session.topic_seen"
                                                     class="ml-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700"

@@ -85,6 +85,7 @@ class AttendanceController extends Controller
         Gate::authorize('create', [Attendance::class, $classSession]);
 
         $classSession->load(['level.course', 'topic', 'teacher', 'classroom']);
+        $classSession->setAttribute('topic_skills', $classSession->topic?->skillLabels() ?? []);
 
         $enrollments = Enrollment::query()
             ->with('student:id,name,code,photo_path')

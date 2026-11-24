@@ -30,7 +30,7 @@ class GetTeacherDashboardData
         $todaySessions = ClassSession::query()
             ->where('teacher_id', $teacher->id)
             ->whereDate('date', today())
-            ->with(['level.course:id,name', 'classroom:id,name'])
+            ->with(['level.course:id,name', 'classroom:id,name', 'topic:id,name,skills,teacher_notes'])
             ->orderBy('start_time')
             ->get()
             ->map(function (ClassSession $session) {
@@ -43,6 +43,9 @@ class GetTeacherDashboardData
                 return [
                     'id' => $session->id,
                     'level' => "{$session->level->course->name} {$session->level->name}",
+                    'topic' => $session->topic?->name,
+                    'topic_skills' => $session->topic?->skillLabels() ?? [],
+                    'topic_teacher_notes' => $session->topic?->teacher_notes,
                     'classroom' => $session->classroom->name,
                     'start_time' => substr($session->start_time, 0, 5),
                     'end_time' => substr($session->end_time, 0, 5),

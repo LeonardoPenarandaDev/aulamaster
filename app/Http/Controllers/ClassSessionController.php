@@ -35,7 +35,7 @@ class ClassSessionController extends Controller
 
         return Inertia::render('ClassSessions/Index', [
             'classSessions' => ClassSession::query()
-                ->with(['level.course:id,name', 'topic:id,name', 'teacher:id,name', 'classroom:id,name'])
+                ->with(['level.course:id,name', 'topic:id,name,skills,teacher_notes', 'teacher:id,name', 'classroom:id,name'])
                 ->when(request('date'), fn ($query, $date) => $query->whereDate('date', $date))
                 ->when(request('classroom_id'), fn ($query, $id) => $query->where('classroom_id', $id))
                 ->when(request('teacher_id'), fn ($query, $id) => $query->where('teacher_id', $id))

@@ -14,11 +14,40 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * Tema de un nivel global (curso + grupo de clases), compartido por todas
  * sus intensidades.
  */
-#[Fillable(['course_id', 'class_group', 'name', 'position'])]
+#[Fillable(['course_id', 'class_group', 'name', 'skills', 'teacher_notes', 'position'])]
 class LevelTopic extends Model
 {
     /** @use HasFactory<LevelTopicFactory> */
     use HasFactory;
+
+    /**
+     * Habilidades con las que se trabaja el tema.
+     *
+     * @var array<string, string>
+     */
+    public const SKILLS = [
+        'listening' => 'Listening',
+        'speaking' => 'Speaking',
+        'reading' => 'Reading',
+        'writing' => 'Writing',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'skills' => 'array',
+        ];
+    }
+
+    /**
+     * Nombres de las habilidades del tema, en el orden de SKILLS.
+     *
+     * @return list<string>
+     */
+    public function skillLabels(): array
+    {
+        return array_values(array_intersect_key(self::SKILLS, array_flip($this->skills ?? [])));
+    }
 
     public function course(): BelongsTo
     {
