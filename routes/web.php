@@ -61,9 +61,6 @@ Route::middleware('auth')->group(function () {
 
     Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
-
-    // Volver a la cuenta del administrador después de entrar como un estudiante.
-    Route::post('impersonation/leave', [ImpersonationController::class, 'destroy'])->name('impersonation.leave');
 });
 
 Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
@@ -76,7 +73,8 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
         ->only(['index', 'create', 'store', 'edit', 'update'])
         ->parameters(['staff-users' => 'user']);
     Route::post('students/{student}/portal-access', [PortalAccessController::class, 'storeForStudent'])->name('students.portal-access.store');
-    Route::post('students/{student}/impersonate', [ImpersonationController::class, 'store'])->name('students.impersonate');
+    // Abre en una pestaña nueva la vista del estudiante (ImpersonateStudentInTab).
+    Route::get('students/{student}/ingresar', [ImpersonationController::class, 'store'])->name('students.impersonate');
     Route::post('teachers/{teacher}/portal-access', [PortalAccessController::class, 'storeForTeacher'])->name('teachers.portal-access.store');
 
     Route::get('attendance', [AttendanceController::class, 'index'])->name('attendance.index');

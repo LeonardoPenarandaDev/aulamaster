@@ -26,7 +26,6 @@ class EnsureStudentIsUpToDate
         'notifications.*',
         'student-contracts.*',
         'contract-signatures.pdf',
-        'impersonation.leave',
     ];
 
     /**

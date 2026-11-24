@@ -15,7 +15,7 @@ class EnsurePasswordIsChanged
     /**
      * @var list<string>
      */
-    private const ALLOWED_ROUTES = ['password.change', 'password.change.update', 'logout', 'impersonation.leave'];
+    private const ALLOWED_ROUTES = ['password.change', 'password.change.update', 'logout'];
 
     /**
      * Handle an incoming request.

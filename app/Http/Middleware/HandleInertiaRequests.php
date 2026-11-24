@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Http\Controllers\ImpersonationController;
 use App\Models\InstitutionSetting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -39,9 +38,9 @@ class HandleInertiaRequests extends Middleware
                 'avatar_url' => fn () => $request->user()?->hasRole('estudiante') ? $request->user()->student?->photo_url : null,
             ],
             'institution' => fn () => InstitutionSetting::branding(),
-            // Administrador que entró a la cuenta de un estudiante (banner para volver).
-            'impersonating' => fn () => $request->session()->has(ImpersonationController::SESSION_KEY)
-                ? ['student' => $request->user()?->name]
+            // Pestaña en la que el administrador ve la plataforma como un estudiante.
+            'impersonating' => fn () => $request->attributes->has(ImpersonateStudentInTab::ATTRIBUTE)
+                ? ['student' => $request->user()?->name, 'admin' => $request->attributes->get(ImpersonateStudentInTab::ATTRIBUTE)->name]
                 : null,
             'studentTheme' => fn () => $this->studentTheme($request),
             'flash' => [

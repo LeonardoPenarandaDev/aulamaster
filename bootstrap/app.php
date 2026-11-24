@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\EnsureStudentIsUpToDate;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\ImpersonateStudentInTab;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -18,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
+            // Antes de Inertia: así comparte el usuario de la pestaña (estudiante).
+            ImpersonateStudentInTab::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
             EnsurePasswordIsChanged::class,

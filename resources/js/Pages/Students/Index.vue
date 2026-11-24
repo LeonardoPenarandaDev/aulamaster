@@ -88,6 +88,7 @@ function destroy(student) {
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Correo</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Checklist</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Estado</th>
+                                <th v-if="isAdmin" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">Plataforma</th>
                                 <th class="px-6 py-3"></th>
                             </tr>
                         </thead>
@@ -127,6 +128,18 @@ function destroy(student) {
                                         {{ student.status }}
                                     </span>
                                 </td>
+                                <td v-if="isAdmin" class="whitespace-nowrap px-6 py-4 text-sm">
+                                    <a
+                                        v-if="student.user_id"
+                                        :href="route('students.impersonate', student.id)"
+                                        target="_blank"
+                                        class="inline-flex items-center gap-1 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                        :title="`Ver la plataforma como ${student.name} en una pestaña nueva`"
+                                    >
+                                        Ingresar ↗
+                                    </a>
+                                    <span v-else class="text-xs text-gray-400" title="Todavía no tiene acceso a la plataforma">Sin acceso</span>
+                                </td>
                                 <td class="whitespace-nowrap px-6 py-4 text-right text-sm">
                                     <Link
                                         :href="route('students.edit', student.id)"
@@ -145,7 +158,7 @@ function destroy(student) {
                                 </td>
                             </tr>
                             <tr v-if="students.data.length === 0">
-                                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                                <td :colspan="isAdmin ? 7 : 6" class="px-6 py-4 text-center text-sm text-gray-500">
                                     No hay estudiantes registrados.
                                 </td>
                             </tr>

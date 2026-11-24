@@ -83,13 +83,6 @@ function toggleChecklistItem(item) {
 }
 
 const accessForm = useForm({});
-const impersonateForm = useForm({});
-
-function impersonate() {
-    if (confirm(`¿Entrar a la cuenta de ${props.student.name}? Verás la plataforma como el estudiante hasta que pulses "Volver a mi cuenta".`)) {
-        impersonateForm.post(route('students.impersonate', props.student.id));
-    }
-}
 
 function grantAccess() {
     accessForm.post(route('students.portal-access.store', props.student.id));
@@ -275,12 +268,16 @@ function grantAccess() {
                         </p>
                         <template v-if="canImpersonate">
                             <p class="mt-2 text-sm text-gray-600">
-                                Puedes entrar a su cuenta, sin su contraseña, para ver exactamente lo que el estudiante ve.
-                                Queda registrado en la auditoría.
+                                Puedes ver la plataforma como el estudiante, sin su contraseña, en una pestaña nueva;
+                                tu sesión de administrador sigue abierta. Queda registrado en la auditoría.
                             </p>
-                            <SecondaryButton class="mt-3" :disabled="impersonateForm.processing" @click="impersonate">
-                                Entrar como el estudiante
-                            </SecondaryButton>
+                            <a
+                                :href="route('students.impersonate', student.id)"
+                                target="_blank"
+                                class="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-700 shadow-sm hover:bg-slate-50"
+                            >
+                                Ingresar como el estudiante ↗
+                            </a>
                         </template>
                     </div>
                     <div v-else class="mt-2">
